@@ -1,0 +1,28 @@
+[gd_scene load_steps=5 format=3 uid="uid://player001"]
+
+[ext_resource type="Script" path="res://scripts/player.gd" id="1_player"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_1"]
+radius = 0.7
+height = 1.4
+
+[sub_resource type="StandardMaterial3D" id="BoulderMaterial"]
+albedo_color = Color(0.25, 0.2, 0.18, 1)
+shading_mode = 0
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_1"]
+radius = 0.7
+
+[node name="Player" type="RigidBody3D"]
+collision_layer = 2
+collision_mask = 1
+mass = 5.0
+physics_material_override = null
+script = ExtResource("1_player")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("SphereMesh_1")
+surface_material_override/0 = SubResource("BoulderMaterial")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("SphereShape3D_1")

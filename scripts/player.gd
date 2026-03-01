@@ -1,0 +1,221 @@
+extends RigidBody3D
+## Boulder player controller - automatically rolls forward, player controls left/right
+
+signal died
+signal hit_rock(impact_position: Vector3)
+
+# Movement parameters
+@export var forward_force: float = 50.0  # Constant forward push
+@export var turn_torque: float = 120.0   # Horizontal steering torque (3x stronger)
+@export var max_angular_velocity: float = 30.0  # Cap rotation speed
+@export var max_speed: float = 25.0  # Maximum forward speed
+@export var death_height_offset: float = -30.0  # Y offset below terrain that triggers death
+@export var rock_damage: int = 12  # Damage taken from rocks (halved)
+
+var is_dead := false
+var can_move := false
+var start_y: float = 0.0
+var game_manager: Node
+var hit_cooldown: float = 0.0  # Prevent multiple hits from same rock
+
+var terrain_slope: float = 15.0  # Will be set from terrain generator
+var audio_manager: Node
+
+func _ready() -> void:
+	# Get autoload references
+	game_manager = get_node("/root/GameManager")
+	audio_manager = get_node("/root/AudioManager")
+	
+	# Enable continuous collision detection for fast-moving physics
+	continuous_cd = true
+	add_to_group("player")
+	
+	# Enable contact monitoring for rock collisions
+	contact_monitor = true
+	max_contacts_reported = 8  # More contacts for reliable detection
+	body_entered.connect(_on_body_entered)
+	
+	# Freeze until terrain is ready
+	freeze = true
+	start_y = global_position.y
+	
+	# Wait for terrain
+	var terrain = get_tree().get_first_node_in_group("terrain_generator")
+	if terrain:
+		terrain_slope = terrain.slope_angle
+		if terrain.is_ready:
+			_start_rolling()
+		else:
+			terrain.terrain_ready.connect(_start_rolling)
+	else:
+		# No terrain generator, start immediately
+		await get_tree().create_timer(0.1).timeout
+		_start_rolling()
+
+func _start_rolling() -> void:
+	freeze = false
+	can_move = true
+	
+	# Start rolling sound
+	if audio_manager:
+		audio_manager.start_roll_sound()
+	
+	# Register with GameManager
+	if game_manager:
+		game_manager.set_player(self)
+		game_manager.start_game()
+
+func _physics_process(delta: float) -> void:
+	if is_dead or not can_move:
+		return
+	
+	# Update hit cooldown
+	if hit_cooldown > 0:
+		hit_cooldown -= delta
+	
+	# Death detection disabled for now - terrain goes downhill infinitely
+	# TODO: Implement proper death detection (e.g., falling off edges)
+	# if global_position.y < death_height_offset:
+	# 	die()
+	# 	return
+	
+	# Apply constant forward force only if below max speed
+	var current_forward_speed := -linear_velocity.z  # Negative Z is forward
+	if current_forward_speed < max_speed:
+		# Apply more force when slow, less when approaching max speed
+		var speed_factor := 1.0 - (current_forward_speed / max_speed)
+		speed_factor = clamp(speed_factor, 0.2, 1.0)
+		apply_central_force(Vector3(0, 0, -forward_force * speed_factor))
+	
+	# Get horizontal input (A/D or arrow keys)
+	var turn_input := Input.get_axis("ui_right", "ui_left")
+	
+	# Also support A/D keys directly
+	if Input.is_action_pressed("move_left"):
+		turn_input += 1.0
+	if Input.is_action_pressed("move_right"):
+		turn_input -= 1.0
+	
+	# Tilt controls for mobile - phone held portrait (vertical)
+	# Accelerometer X axis = left/right tilt
+	var accel := Input.get_accelerometer()
+	if accel != Vector3.ZERO:
+		# Normalize tilt: accel.x ranges roughly -10 to 10, we want -1 to 1
+		# Dead zone at ~1.0 to avoid drift
+		var tilt := accel.x / 5.0  # Sensitivity adjustment
+		if abs(tilt) < 0.2:
+			tilt = 0.0  # Dead zone
+		turn_input += clamp(tilt, -1.0, 1.0)
+	
+	turn_input = clamp(turn_input, -1.0, 1.0)
+	
+	# Apply turning torque on the Z-axis to roll left/right
+	if turn_input != 0.0:
+		apply_torque(Vector3(0, 0, turn_input * turn_torque))
+	
+	# Clamp angular velocity to prevent excessive spinning
+	if angular_velocity.length() > max_angular_velocity:
+		angular_velocity = angular_velocity.normalized() * max_angular_velocity
+	
+	# Update rolling sound pitch based on speed
+	if audio_manager:
+		var speed_ratio := current_forward_speed / max_speed
+		audio_manager.update_roll_pitch(speed_ratio)
+
+func die() -> void:
+	if is_dead:
+		return
+	
+	is_dead = true
+	
+	# Stop rolling sound
+	if audio_manager:
+		audio_manager.stop_roll_sound()
+		audio_manager.play_death_sound()
+	
+	# Freeze physics immediately
+	freeze = true
+	
+	# Spawn explosion particles at player position
+	var explosion_scene := preload("res://scenes/explosion_effect.tscn")
+	var explosion := explosion_scene.instantiate()
+	explosion.global_position = global_position
+	get_tree().current_scene.add_child(explosion)
+	
+	# Hide the ball
+	visible = false
+	
+	# Wait before showing death menu (2 seconds)
+	await get_tree().create_timer(2.0).timeout
+	
+	# Now emit died signal and end game
+	died.emit()
+	if game_manager:
+		game_manager.end_game()
+
+func _on_body_entered(body: Node) -> void:
+	if is_dead or hit_cooldown > 0:
+		return
+	
+	# Check if we hit a rock (in "rocks" group or name starts with "Rock")
+	if body.is_in_group("rocks") or (body is StaticBody3D and body.name.begins_with("Rock")):
+		hit_cooldown = 0.5  # Prevent rapid hits
+		
+		# Calculate impact position
+		var impact_pos := global_position
+		
+		# Emit signal for effects (camera shake, red flash)
+		hit_rock.emit(impact_pos)
+		
+		# Spawn impact particles
+		_spawn_rock_impact_particles(impact_pos)
+		
+		# Play hurt sound
+		if audio_manager:
+			audio_manager.play_hurt_sound()
+		
+		# Take damage
+		if game_manager:
+			game_manager.take_damage(rock_damage)
+
+func _spawn_rock_impact_particles(impact_pos: Vector3) -> void:
+	# Check if we're in the scene tree before spawning
+	if not is_inside_tree():
+		return
+	
+	var particles := GPUParticles3D.new()
+	particles.name = "RockImpactParticles"
+	particles.one_shot = true
+	particles.explosiveness = 0.95
+	particles.amount = 25
+	particles.lifetime = 0.8
+	
+	var proc_material := ParticleProcessMaterial.new()
+	proc_material.direction = Vector3(0, 1, 0)
+	proc_material.spread = 80.0
+	proc_material.initial_velocity_min = 4.0
+	proc_material.initial_velocity_max = 10.0
+	proc_material.gravity = Vector3(0, -15, 0)
+	proc_material.scale_min = 0.05
+	proc_material.scale_max = 0.12
+	proc_material.color = Color(0.5, 0.45, 0.4)  # Gray rock color
+	particles.process_material = proc_material
+	
+	var mesh := BoxMesh.new()
+	mesh.size = Vector3(1.0, 1.0, 1.0)
+	var mesh_material := StandardMaterial3D.new()
+	mesh_material.albedo_color = Color(0.5, 0.45, 0.4)
+	mesh_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mesh.material = mesh_material
+	particles.draw_pass_1 = mesh
+	
+	var scene_root := get_tree().current_scene
+	if scene_root:
+		particles.global_position = impact_pos
+		scene_root.add_child(particles)
+		particles.emitting = true
+		
+		get_tree().create_timer(2.0).timeout.connect(func():
+			if is_instance_valid(particles):
+				particles.queue_free()
+		)
