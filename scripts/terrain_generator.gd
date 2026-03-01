@@ -4,18 +4,19 @@ extends Node3D
 signal terrain_chunk_created(chunk: Node3D)
 signal terrain_ready
 
-@export var chunk_size: Vector2 = Vector2(30, 50)  # Wider to match terrain_width
+@export var chunk_size: Vector2 = Vector2(42, 50)  # Slightly wider than playable area
 @export var chunks_ahead: int = 5
 @export var chunks_behind: int = 2
 @export var slope_angle: float = 12.0
 @export var noise_height: float = 1.0
 @export var noise_scale: float = 0.02
-@export var tree_density: float = 0.0175  # trees per 100 sq units (halved)
+@export var tree_density: float = 0.5  # trees per 100 sq units (~10 per chunk)
 @export var rock_spawn_chance: float = 0.6  # 60% chance of 1 rock per chunk
 @export var barrier_height: float = 10.0
-@export var terrain_width: float = 26.0  # 30% wider
+@export var terrain_width: float = 36.0  # Playable center
 @export var rock_safe_chunks: int = 2  # No rocks in first N chunks (safe zone)
 @export var num_lanes: int = 5  # Divide terrain into lanes for rock placement
+@export var edge_slope_height: float = 1.5  # Very gentle slope at terrain edges
 
 var noise: FastNoiseLite
 var chunks: Dictionary = {}
@@ -56,6 +57,10 @@ var tree_scene: PackedScene = preload("res://scenes/tree.tscn")
 
 # Shared material with color palette texture
 var color_palette_material: StandardMaterial3D
+
+# Target heights for spawned objects (in world units)
+const TARGET_TREE_HEIGHT: float = 3.0  # Trees will be ~3 units tall
+const TARGET_ROCK_HEIGHT: float = 0.8  # Rocks will be ~0.8 units tall
 
 func _ready() -> void:
 	add_to_group("terrain_generator")
@@ -157,9 +162,14 @@ func _create_lowpoly_terrain(chunk_index: int) -> StaticBody3D:
 			var height := noise.get_noise_2d(world_x * 3, world_z * 3) * noise_height
 			height += noise.get_noise_2d(world_x * 0.5, world_z * 0.5) * noise_height * 2
 			
-			var edge_factor: float = abs(world_x) / (chunk_size.x / 2.0)
-			if edge_factor > 0.65:
-				height += pow((edge_factor - 0.65) / 0.35, 2) * 12.0  # Less steep mountain edges
+			# Edge zone: gentle gradual slope at terrain edges (where mountains will be placed)
+			var half_terrain: float = terrain_width / 2.0
+			var half_chunk: float = chunk_size.x / 2.0
+			var abs_x: float = absf(world_x)
+			if abs_x > half_terrain:
+				# Very gentle linear slope in edge zone (25% of width on each side)
+				var edge_progress: float = (abs_x - half_terrain) / (half_chunk - half_terrain)
+				height += edge_progress * edge_slope_height
 			
 			var slope_offset := z * cell_length * tan(deg_to_rad(slope_angle))
 			height -= slope_offset
@@ -240,33 +250,38 @@ func _get_terrain_color(height: float, world_x: float, world_z: float) -> Color:
 	else:
 		base_color = grass_yellow
 	
-	# Edge factor for mountain coloring
-	var edge_factor: float = abs(world_x) / (chunk_size.x / 2.0)
-	if edge_factor > 0.5:
+	# Edge zone coloring - transition to rock/mountain color in edge zones
+	var half_terrain: float = terrain_width / 2.0
+	var abs_x: float = absf(world_x)
+	if abs_x > half_terrain * 0.7:
 		# Transition to rock/mountain color
-		var rock_blend := (edge_factor - 0.5) / 0.5
+		var rock_blend: float = (abs_x - half_terrain * 0.7) / (half_terrain * 0.3)
+		rock_blend = clampf(rock_blend, 0.0, 1.0)
 		var rock_color := rock_gray if color_noise > 0 else rock_dark
 		base_color = base_color.lerp(rock_color, rock_blend)
 	
 	return base_color
 
 func _create_barriers(chunk: Node3D) -> void:
+	# Invisible collision barriers at edge of playable area (green/gray boundary)
+	var half_playable := terrain_width / 2.0
+	
 	var left_barrier := StaticBody3D.new()
 	left_barrier.name = "LeftBarrier"
-	left_barrier.position = Vector3(-terrain_width / 2 - 1, 0, -chunk_size.y / 2)
+	left_barrier.position = Vector3(-half_playable - 0.5, 0, -chunk_size.y / 2)
 	var left_shape := CollisionShape3D.new()
 	var left_box := BoxShape3D.new()
-	left_box.size = Vector3(2, barrier_height * 2, chunk_size.y + 10)
+	left_box.size = Vector3(1, barrier_height * 2, chunk_size.y + 10)
 	left_shape.shape = left_box
 	left_barrier.add_child(left_shape)
 	chunk.add_child(left_barrier)
 	
 	var right_barrier := StaticBody3D.new()
 	right_barrier.name = "RightBarrier"
-	right_barrier.position = Vector3(terrain_width / 2 + 1, 0, -chunk_size.y / 2)
+	right_barrier.position = Vector3(half_playable + 0.5, 0, -chunk_size.y / 2)
 	var right_shape := CollisionShape3D.new()
 	var right_box := BoxShape3D.new()
-	right_box.size = Vector3(2, barrier_height * 2, chunk_size.y + 10)
+	right_box.size = Vector3(1, barrier_height * 2, chunk_size.y + 10)
 	right_shape.shape = right_box
 	right_barrier.add_child(right_shape)
 	chunk.add_child(right_barrier)
@@ -287,12 +302,12 @@ func _spawn_decorations(chunk: Node3D, chunk_index: int) -> void:
 		
 		# Create tree from random model
 		var tree := _create_tree(rng)
-		# Lower tree slightly so it's not floating
-		tree.position = Vector3(x, height - 0.1, local_z)
+		# Place exactly on terrain surface
+		tree.position = Vector3(x, height, local_z)
 		tree.rotation.y = rng.randf_range(0, TAU)
-		# Scale down 5x (models are too big)
-		var tree_scale := rng.randf_range(0.15, 0.25)
-		tree.scale = Vector3(tree_scale, tree_scale, tree_scale)
+		# Scale tree to target height with some variation
+		var target_h := TARGET_TREE_HEIGHT * rng.randf_range(0.8, 1.2)
+		_scale_to_target_height(tree, target_h)
 		chunk.add_child(tree)
 	
 	# Spawn rocks - lane-based system (2-4 rocks per chunk, always passable)
@@ -301,8 +316,8 @@ func _spawn_decorations(chunk: Node3D, chunk_index: int) -> void:
 		var rock_rng := RandomNumberGenerator.new()
 		rock_rng.seed = hash(chunk_index * 54321 + 999)
 		
-		# Spawn 2-4 rocks per chunk, spread across Z axis
-		var num_rocks := rock_rng.randi_range(2, 4)
+		# Spawn 4-8 rocks per chunk (2x more), spread across Z axis
+		var num_rocks := rock_rng.randi_range(4, 8)
 		var z_section_size := chunk_size.y / float(num_rocks)
 		var used_lanes: Array[int] = []  # Track recently used lanes to avoid clustering
 		
@@ -332,21 +347,26 @@ func _spawn_decorations(chunk: Node3D, chunk_index: int) -> void:
 			var height := _get_decoration_height(x, local_z, chunk_index)
 			
 			var rock := _create_rock_from_model(rock_rng)
-			rock.position = Vector3(x, height - 0.1, local_z)
+			# Place exactly on terrain surface
+			rock.position = Vector3(x, height, local_z)
 			rock.rotation.y = rock_rng.randf_range(0, TAU)
-			# Smaller rocks for better gameplay
-			var rock_scale := rock_rng.randf_range(0.5, 0.8)
-			rock.scale = Vector3(rock_scale, rock_scale, rock_scale)
+			# Scale rock to target height with some variation
+			var target_h := TARGET_ROCK_HEIGHT * rock_rng.randf_range(0.7, 1.3)
+			_scale_to_target_height(rock, target_h)
 			chunk.add_child(rock)
 
 # Get height at local chunk position (without global slope - chunk Y handles that)
 func _get_local_height(local_x: float, local_z: float) -> float:
-	var height := noise.get_noise_2d(local_x * 3, local_z * 3) * noise_height
+	var height: float = noise.get_noise_2d(local_x * 3, local_z * 3) * noise_height
 	height += noise.get_noise_2d(local_x * 0.5, local_z * 0.5) * noise_height * 2
 	
-	var edge_factor: float = abs(local_x) / (chunk_size.x / 2.0)
-	if edge_factor > 0.65:
-		height += pow((edge_factor - 0.65) / 0.35, 2) * 12.0  # Less steep edges
+	# Edge zone: gentle linear slope at terrain edges
+	var half_terrain: float = terrain_width / 2.0
+	var half_chunk: float = chunk_size.x / 2.0
+	var abs_x: float = absf(local_x)
+	if abs_x > half_terrain:
+		var edge_progress: float = (abs_x - half_terrain) / (half_chunk - half_terrain)
+		height += edge_progress * edge_slope_height
 	
 	# Local slope within chunk
 	height -= (-local_z) * tan(deg_to_rad(slope_angle))
@@ -356,14 +376,18 @@ func _get_local_height(local_x: float, local_z: float) -> float:
 # Get height for decorations - uses world coordinates for noise sampling to match terrain
 func _get_decoration_height(local_x: float, local_z: float, chunk_index: int) -> float:
 	# Convert to world coordinates for noise sampling (same as terrain mesh generation)
-	var world_z := local_z - chunk_index * chunk_size.y
+	var world_z: float = local_z - chunk_index * chunk_size.y
 	
-	var height := noise.get_noise_2d(local_x * 3, world_z * 3) * noise_height
+	var height: float = noise.get_noise_2d(local_x * 3, world_z * 3) * noise_height
 	height += noise.get_noise_2d(local_x * 0.5, world_z * 0.5) * noise_height * 2
 	
-	var edge_factor: float = abs(local_x) / (chunk_size.x / 2.0)
-	if edge_factor > 0.65:
-		height += pow((edge_factor - 0.65) / 0.35, 2) * 12.0  # Less steep edges
+	# Edge zone: gentle linear slope at terrain edges
+	var half_terrain: float = terrain_width / 2.0
+	var half_chunk: float = chunk_size.x / 2.0
+	var abs_x: float = absf(local_x)
+	if abs_x > half_terrain:
+		var edge_progress: float = (abs_x - half_terrain) / (half_chunk - half_terrain)
+		height += edge_progress * edge_slope_height
 	
 	# Local slope offset (same formula as terrain: z * cell_length * tan(slope))
 	# local_z is negative (going into -Z), so we need to invert it
@@ -373,12 +397,16 @@ func _get_decoration_height(local_x: float, local_z: float, chunk_index: int) ->
 	return height
 
 func _get_height_at(world_x: float, world_z: float) -> float:
-	var height := noise.get_noise_2d(world_x * 3, world_z * 3) * noise_height
+	var height: float = noise.get_noise_2d(world_x * 3, world_z * 3) * noise_height
 	height += noise.get_noise_2d(world_x * 0.5, world_z * 0.5) * noise_height * 2
 	
-	var edge_factor: float = abs(world_x) / (chunk_size.x / 2.0)
-	if edge_factor > 0.65:
-		height += pow((edge_factor - 0.65) / 0.35, 2) * 12.0  # Less steep edges
+	# Edge zone: gentle linear slope at terrain edges
+	var half_terrain: float = terrain_width / 2.0
+	var half_chunk: float = chunk_size.x / 2.0
+	var abs_x: float = absf(world_x)
+	if abs_x > half_terrain:
+		var edge_progress: float = (abs_x - half_terrain) / (half_chunk - half_terrain)
+		height += edge_progress * edge_slope_height
 	
 	height += world_z * tan(deg_to_rad(slope_angle))
 	
@@ -400,11 +428,12 @@ func _create_tree(rng: RandomNumberGenerator) -> RigidBody3D:
 	var model_scene := load(model_path) as PackedScene
 	if model_scene:
 		var model := model_scene.instantiate()
+		model.name = "Model"
 		_apply_material_recursive(model, color_palette_material)
 		tree.add_child(model)
 	
 	# Add Area3D for detecting player collision (non-blocking)
-	# Collision shape sized for scaled-down tree (model scale ~0.2)
+	# Collision shape will be adjusted after scaling
 	var detect_area := Area3D.new()
 	detect_area.name = "DetectArea"
 	detect_area.collision_layer = 0
@@ -413,15 +442,69 @@ func _create_tree(rng: RandomNumberGenerator) -> RigidBody3D:
 	
 	var col_shape := CollisionShape3D.new()
 	var capsule := CapsuleShape3D.new()
-	# Capsule in local space, tree is scaled ~0.2, so make capsule big enough
-	capsule.radius = 2.5  # Will be ~0.5 after scale
-	capsule.height = 20.0  # Will be ~4 after scale
+	# Bigger collision for better detection
+	capsule.radius = 0.6
+	capsule.height = 2.5
 	col_shape.shape = capsule
-	col_shape.position.y = 10.0  # Will be ~2 after scale
+	col_shape.position.y = 1.25
 	detect_area.add_child(col_shape)
 	tree.add_child(detect_area)
 	
 	return tree
+
+# Get combined AABB of all meshes in a node hierarchy
+func _get_model_aabb(node: Node) -> AABB:
+	var combined_aabb := AABB()
+	var found_mesh := false
+	
+	if node is MeshInstance3D:
+		var mesh_instance := node as MeshInstance3D
+		if mesh_instance.mesh:
+			var mesh_aabb := mesh_instance.mesh.get_aabb()
+			# Transform AABB by node's transform
+			var transformed := mesh_instance.transform * mesh_aabb
+			if not found_mesh:
+				combined_aabb = transformed
+				found_mesh = true
+			else:
+				combined_aabb = combined_aabb.merge(transformed)
+	
+	for child in node.get_children():
+		var child_aabb := _get_model_aabb(child)
+		if child_aabb.size != Vector3.ZERO:
+			if not found_mesh:
+				combined_aabb = child_aabb
+				found_mesh = true
+			else:
+				combined_aabb = combined_aabb.merge(child_aabb)
+	
+	return combined_aabb
+
+# Scale a node so its model reaches the target height
+func _scale_to_target_height(node: Node3D, target_height: float) -> void:
+	# Find the model child node
+	var model: Node = null
+	for child in node.get_children():
+		if child.name == "Model" or child is Node3D:
+			model = child
+			break
+	
+	if not model:
+		# No model found, use default scale
+		node.scale = Vector3.ONE * 0.5
+		return
+	
+	# Get the AABB of the model
+	var aabb := _get_model_aabb(model)
+	if aabb.size.y <= 0.001:
+		# Invalid AABB, use default scale
+		node.scale = Vector3.ONE * 0.5
+		return
+	
+	# Calculate uniform scale to achieve target height
+	var current_height := aabb.size.y
+	var scale_factor := target_height / current_height
+	node.scale = Vector3(scale_factor, scale_factor, scale_factor)
 
 # Apply material to all MeshInstance3D nodes recursively
 # This applies our color palette texture and unshaded mode
@@ -466,16 +549,17 @@ func _create_rock_from_model(rng: RandomNumberGenerator) -> StaticBody3D:
 	var model_scene := load(model_path) as PackedScene
 	if model_scene:
 		var model := model_scene.instantiate()
+		model.name = "Model"
 		_apply_material_recursive(model, color_palette_material)
 		rock.add_child(model)
 	
 	# Add collision shape (approximate with sphere for rocks)
-	# Values in local space, will be multiplied by rock scale (~0.45)
+	# Collision shape values will be correct after _scale_to_target_height
 	var col_shape := CollisionShape3D.new()
 	var sphere := SphereShape3D.new()
-	sphere.radius = 1.5  # Will be ~0.67 after scale
+	sphere.radius = 0.4
 	col_shape.shape = sphere
-	col_shape.position.y = 1.0  # Will be ~0.45 after scale
+	col_shape.position.y = 0.3
 	rock.add_child(col_shape)
 	
 	return rock

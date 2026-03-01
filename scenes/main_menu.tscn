@@ -1,10 +1,32 @@
-[gd_scene load_steps=7 format=3 uid="uid://mainmenu001"]
+[gd_scene format=3 uid="uid://mainmenu001"]
 
-[ext_resource type="Script" path="res://scripts/main_menu.gd" id="1_menu"]
+[ext_resource type="Script" uid="uid://d3nvasl7sdaka" path="res://scripts/main_menu.gd" id="1_menu"]
+
+[sub_resource type="Gradient" id="Gradient_1"]
+colors = PackedColorArray(0.1, 0.15, 0.2, 1, 0.2, 0.35, 0.25, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_1"]
+gradient = SubResource("Gradient_1")
+fill_to = Vector2(0, 1)
+
+[sub_resource type="Animation" id="Animation_RESET"]
+resource_name = "RESET"
+length = 0.01
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("VBoxContainer:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1, 1, 1, 0)]
+}
 
 [sub_resource type="Animation" id="Animation_enter"]
 resource_name = "enter"
-length = 1.0
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
@@ -46,37 +68,14 @@ tracks/0/keys = {
 "values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0)]
 }
 
-[sub_resource type="Animation" id="Animation_RESET"]
-resource_name = "RESET"
-length = 0.01
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("VBoxContainer:modulate")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Color(1, 1, 1, 0)]
-}
-
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_1"]
 _data = {
-"RESET": SubResource("Animation_RESET"),
-"enter": SubResource("Animation_enter"),
-"exit": SubResource("Animation_exit")
+&"RESET": SubResource("Animation_RESET"),
+&"enter": SubResource("Animation_enter"),
+&"exit": SubResource("Animation_exit")
 }
 
-[sub_resource type="Gradient" id="Gradient_1"]
-colors = PackedColorArray(0.1, 0.15, 0.2, 1, 0.2, 0.35, 0.25, 1)
-
-[sub_resource type="GradientTexture2D" id="GradientTexture2D_1"]
-gradient = SubResource("Gradient_1")
-fill_to = Vector2(0, 1)
-
-[node name="MainMenu" type="Control"]
+[node name="MainMenu" type="Control" unique_id=1005671399]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -85,7 +84,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_menu")
 
-[node name="Background" type="TextureRect" parent="."]
+[node name="Background" type="TextureRect" parent="." unique_id=1019424080]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -94,17 +93,18 @@ grow_horizontal = 2
 grow_vertical = 2
 texture = SubResource("GradientTexture2D_1")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=1753336359]
+modulate = Color(1, 1, 1, 0)
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-alignment = 1
 theme_override_constants/separation = 25
+alignment = 1
 
-[node name="Title" type="Label" parent="VBoxContainer"]
+[node name="Title" type="Label" parent="VBoxContainer" unique_id=1972088813]
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_colors/font_color = Color(1, 0.9, 0.7, 1)
@@ -115,7 +115,7 @@ theme_override_font_sizes/font_size = 48
 text = "DOWNHILL DOOM"
 horizontal_alignment = 1
 
-[node name="Subtitle" type="Label" parent="VBoxContainer"]
+[node name="Subtitle" type="Label" parent="VBoxContainer" unique_id=1538338323]
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
@@ -123,35 +123,32 @@ theme_override_font_sizes/font_size = 18
 text = "Roll. Destroy. Survive."
 horizontal_alignment = 1
 
-[node name="Spacer" type="Control" parent="VBoxContainer"]
+[node name="Spacer" type="Control" parent="VBoxContainer" unique_id=311600220]
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 
-[node name="PlayButton" type="Button" parent="VBoxContainer"]
+[node name="PlayButton" type="Button" parent="VBoxContainer" unique_id=941300437]
 custom_minimum_size = Vector2(280, 60)
 layout_mode = 2
 size_flags_horizontal = 4
-pivot_offset = Vector2(140, 30)
 theme_override_font_sizes/font_size = 28
 text = "PLAY"
 
-[node name="SettingsButton" type="Button" parent="VBoxContainer"]
+[node name="SettingsButton" type="Button" parent="VBoxContainer" unique_id=365954633]
 custom_minimum_size = Vector2(280, 50)
 layout_mode = 2
 size_flags_horizontal = 4
-pivot_offset = Vector2(140, 25)
 theme_override_font_sizes/font_size = 22
 text = "SETTINGS"
 
-[node name="QuitButton" type="Button" parent="VBoxContainer"]
+[node name="QuitButton" type="Button" parent="VBoxContainer" unique_id=1747867136]
 custom_minimum_size = Vector2(280, 50)
 layout_mode = 2
 size_flags_horizontal = 4
-pivot_offset = Vector2(140, 25)
 theme_override_font_sizes/font_size = 22
 text = "QUIT"
 
-[node name="VersionLabel" type="Label" parent="."]
+[node name="VersionLabel" type="Label" parent="." unique_id=269888009]
 layout_mode = 1
 anchors_preset = 3
 anchor_left = 1.0
@@ -168,12 +165,10 @@ theme_override_font_sizes/font_size = 14
 text = "v0.1.0"
 horizontal_alignment = 2
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
-libraries = {
-"": SubResource("AnimationLibrary_1")
-}
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=839275597]
+libraries/ = SubResource("AnimationLibrary_1")
 
-[node name="SettingsPanel" type="Control" parent="."]
+[node name="SettingsPanel" type="Control" parent="." unique_id=677639257]
 visible = false
 layout_mode = 1
 anchors_preset = 15
@@ -182,7 +177,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Background" type="ColorRect" parent="SettingsPanel"]
+[node name="Background" type="ColorRect" parent="SettingsPanel" unique_id=1434006732]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -191,7 +186,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 0.8)
 
-[node name="VBoxContainer" type="VBoxContainer" parent="SettingsPanel"]
+[node name="VBoxContainer" type="VBoxContainer" parent="SettingsPanel" unique_id=1688739228]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -206,44 +201,42 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 20
 
-[node name="Title" type="Label" parent="SettingsPanel/VBoxContainer"]
+[node name="Title" type="Label" parent="SettingsPanel/VBoxContainer" unique_id=886842906]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 36
 text = "SETTINGS"
 horizontal_alignment = 1
 
-[node name="MusicLabel" type="Label" parent="SettingsPanel/VBoxContainer"]
+[node name="MusicLabel" type="Label" parent="SettingsPanel/VBoxContainer" unique_id=420745396]
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
 text = "Music Volume"
 horizontal_alignment = 1
 
-[node name="MusicSlider" type="HSlider" parent="SettingsPanel/VBoxContainer"]
+[node name="MusicSlider" type="HSlider" parent="SettingsPanel/VBoxContainer" unique_id=1581101459]
 custom_minimum_size = Vector2(300, 30)
 layout_mode = 2
 size_flags_horizontal = 4
-min_value = 0.0
 max_value = 1.0
 step = 0.05
 value = 0.7
 
-[node name="SFXLabel" type="Label" parent="SettingsPanel/VBoxContainer"]
+[node name="SFXLabel" type="Label" parent="SettingsPanel/VBoxContainer" unique_id=840868493]
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
 text = "Sound Effects"
 horizontal_alignment = 1
 
-[node name="SFXSlider" type="HSlider" parent="SettingsPanel/VBoxContainer"]
+[node name="SFXSlider" type="HSlider" parent="SettingsPanel/VBoxContainer" unique_id=979525057]
 custom_minimum_size = Vector2(300, 30)
 layout_mode = 2
 size_flags_horizontal = 4
-min_value = 0.0
 max_value = 1.0
 step = 0.05
 value = 0.8
 
-[node name="BackButton" type="Button" parent="SettingsPanel/VBoxContainer"]
+[node name="BackButton" type="Button" parent="SettingsPanel/VBoxContainer" unique_id=85466579]
 custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
 size_flags_horizontal = 4

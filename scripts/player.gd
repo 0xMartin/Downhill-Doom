@@ -103,11 +103,12 @@ func _physics_process(delta: float) -> void:
 		apply_central_force(Vector3(0, 0, -forward_force * speed_factor))
 	
 	# Get horizontal input (A/D or arrow keys) - for desktop testing
+	# Inverted and reduced to 60% intensity compared to tilt
 	var keyboard_input: float = 0.0
 	if Input.is_action_pressed("move_left") or Input.is_action_pressed("ui_left"):
-		keyboard_input = 1.0
+		keyboard_input = -0.7
 	if Input.is_action_pressed("move_right") or Input.is_action_pressed("ui_right"):
-		keyboard_input = -1.0
+		keyboard_input = 0.7
 	
 	# Tilt controls for mobile - SIMPLE AND DIRECT
 	# accel.x: negative when tilted left, positive when tilted right
