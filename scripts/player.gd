@@ -34,6 +34,8 @@ func _ready() -> void:
 		# Make top-level so it doesn't inherit RigidBody rotation
 		player_model.top_level = true
 		player_model.global_position = global_position
+		# Disable shadows and make unshaded
+		_setup_unshaded_materials(player_model)
 	
 	# Enable continuous collision detection for fast-moving physics
 	continuous_cd = true
@@ -105,16 +107,16 @@ func _physics_process(delta: float) -> void:
 	if Input.is_action_pressed("move_right"):
 		turn_input -= 1.0
 	
-	# Tilt controls for mobile - phone held portrait (vertical)
-	# Accelerometer X axis = left/right tilt
+	# Tilt controls for mobile - portrait mode
+	# X axis: tilt left = negative, tilt right = positive
 	var accel := Input.get_accelerometer()
-	if accel.length_squared() > 0.01:  # Check if accelerometer has valid data
-		# Normalize tilt: accel.x ranges roughly -10 to 10, we want -1 to 1
-		# Smaller dead zone and higher sensitivity for responsiveness
-		var tilt := accel.x / 4.0  # Increased sensitivity
-		if abs(tilt) < 0.1:
-			tilt = 0.0  # Smaller dead zone
-		turn_input += clamp(tilt, -1.0, 1.0)
+	if accel != Vector3.ZERO:
+		# Simple portrait mode: use X axis directly
+		# Gravity is approximately -9.8 on Y when phone is upright
+		# X goes from about -10 (tilted left) to +10 (tilted right)
+		var tilt := accel.x / 5.0  # Higher sensitivity
+		if abs(tilt) > 0.08:  # Small dead zone
+			turn_input += clamp(tilt, -1.0, 1.0)
 	
 	turn_input = clamp(turn_input, -1.0, 1.0)
 	
@@ -244,3 +246,30 @@ func _spawn_rock_impact_particles(impact_pos: Vector3) -> void:
 			if is_instance_valid(particles):
 				particles.queue_free()
 		)
+
+func _setup_unshaded_materials(node: Node) -> void:
+	# Disable shadows and set unshaded mode on all meshes
+	if node is MeshInstance3D:
+		var mesh_instance := node as MeshInstance3D
+		mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		
+		# Make material unshaded
+		for i in range(mesh_instance.get_surface_override_material_count()):
+			var mat := mesh_instance.get_surface_override_material(i)
+			if mat and mat is StandardMaterial3D:
+				var new_mat := mat.duplicate() as StandardMaterial3D
+				new_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+				mesh_instance.set_surface_override_material(i, new_mat)
+		
+		# Also check mesh resource materials
+		if mesh_instance.mesh:
+			for i in range(mesh_instance.mesh.get_surface_count()):
+				var mat := mesh_instance.mesh.surface_get_material(i)
+				if mat and mat is StandardMaterial3D:
+					var new_mat := mat.duplicate() as StandardMaterial3D
+					new_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+					mesh_instance.set_surface_override_material(i, new_mat)
+	
+	# Recurse to children
+	for child in node.get_children():
+		_setup_unshaded_materials(child)

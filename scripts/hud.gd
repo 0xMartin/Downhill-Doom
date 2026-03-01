@@ -15,6 +15,9 @@ var audio: Node  # AudioManager reference
 var coin_icon_texture: Texture2D
 var last_coin_count: int = 0
 
+# Debug label for tilt info
+var debug_label: Label
+
 func _ready() -> void:
 	gm = get_node("/root/GameManager")
 	audio = get_node("/root/AudioManager")
@@ -37,6 +40,33 @@ func _ready() -> void:
 	_on_coins_changed(gm.coins)
 	_on_distance_changed(gm.distance)
 	_on_health_changed(gm.health, gm.max_health)
+	
+	# Create debug label
+	debug_label = Label.new()
+	debug_label.position = Vector2(20, 400)
+	debug_label.add_theme_font_size_override("font_size", 18)
+	debug_label.add_theme_color_override("font_color", Color.YELLOW)
+	debug_label.add_theme_color_override("font_shadow_color", Color.BLACK)
+	debug_label.add_theme_constant_override("shadow_offset_x", 1)
+	debug_label.add_theme_constant_override("shadow_offset_y", 1)
+	add_child(debug_label)
+
+func _process(_delta: float) -> void:
+	# Update debug info
+	var accel: Vector3 = Input.get_accelerometer()
+	var gyro: Vector3 = Input.get_gyroscope()
+	
+	var tilt: float = accel.x / 5.0
+	var tilt_clamped: float = clamp(tilt, -1.0, 1.0) if abs(tilt) > 0.08 else 0.0
+	
+	debug_label.text = "=== DEBUG ===\n"
+	debug_label.text += "Accel X: %.2f\n" % accel.x
+	debug_label.text += "Accel Y: %.2f\n" % accel.y
+	debug_label.text += "Accel Z: %.2f\n" % accel.z
+	debug_label.text += "Gyro: %.2f, %.2f, %.2f\n" % [gyro.x, gyro.y, gyro.z]
+	debug_label.text += "Tilt raw: %.2f\n" % tilt
+	debug_label.text += "Tilt used: %.2f\n" % tilt_clamped
+	debug_label.text += "Direction: %s" % ("LEFT" if tilt_clamped < -0.1 else ("RIGHT" if tilt_clamped > 0.1 else "CENTER"))
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
@@ -124,22 +154,22 @@ func show_pickup_popup(amount: int, icon_texture: Texture2D) -> void:
 	
 	# Create popup container
 	var popup := HBoxContainer.new()
-	popup.add_theme_constant_override("separation", 5)
+	popup.add_theme_constant_override("separation", 8)
 	
-	# Create +N label
+	# Create +N label (30% bigger)
 	var label := Label.new()
 	label.text = "+" + str(amount)
-	label.add_theme_font_size_override("font_size", 36)
+	label.add_theme_font_size_override("font_size", 47)
 	label.add_theme_color_override("font_color", Color(1, 0.85, 0, 1))  # Gold
 	label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.7))
 	label.add_theme_constant_override("shadow_offset_x", 2)
 	label.add_theme_constant_override("shadow_offset_y", 2)
 	popup.add_child(label)
 	
-	# Create icon
+	# Create icon (30% bigger)
 	var icon := TextureRect.new()
 	icon.texture = icon_texture
-	icon.custom_minimum_size = Vector2(32, 32)
+	icon.custom_minimum_size = Vector2(42, 42)
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	icon.modulate = Color(1, 0.85, 0, 1)  # Gold tint
@@ -154,6 +184,7 @@ func show_pickup_popup(amount: int, icon_texture: Texture2D) -> void:
 	var offset_x := randf_range(-120, 120)
 	var offset_y := randf_range(-60, 60)
 	popup.position = Vector2(base_x + offset_x, base_y + offset_y)
+	popup.pivot_offset = Vector2(50, 25)  # Center pivot for rotation
 	add_child(popup)
 	
 	# Random float direction
@@ -161,10 +192,14 @@ func show_pickup_popup(amount: int, icon_texture: Texture2D) -> void:
 	var distance := randf_range(60, 100)
 	var target_offset := Vector2(cos(angle), sin(angle)) * distance
 	
-	# Animate: float in random direction and fade out
+	# Random spin (mild rotation)
+	var spin_amount := randf_range(-0.3, 0.3)  # ~17 degrees max
+	
+	# Animate: float in random direction, spin, and fade out
 	var tween := create_tween()
 	tween.set_parallel(true)
 	tween.tween_property(popup, "position", popup.position + target_offset, 0.8).set_ease(Tween.EASE_OUT)
+	tween.tween_property(popup, "rotation", spin_amount, 0.8).set_ease(Tween.EASE_OUT)
 	tween.tween_property(popup, "modulate:a", 0.0, 0.8).set_delay(0.3)
 	tween.set_parallel(false)
 	tween.tween_callback(popup.queue_free)
