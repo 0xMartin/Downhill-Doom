@@ -81,7 +81,7 @@ func take_damage(amount: int) -> void:
 	player_hit.emit(amount)
 	
 	# Vibrate on mobile devices
-	Input.vibrate_handheld(100)  # 100ms vibration
+	Input.vibrate_handheld(150)  # 150ms vibration (longer for better feel)
 	
 	if health <= 0:
 		# Call player's die() method which handles explosion, sound, and delay

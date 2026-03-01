@@ -1,6 +1,9 @@
 [gd_scene format=3 uid="uid://hud001"]
 
 [ext_resource type="Script" path="res://scripts/hud.gd" id="1_hud"]
+[ext_resource type="Texture2D" uid="uid://coin_icon" path="res://assets/icons/coin.svg" id="2_coin_icon"]
+[ext_resource type="Texture2D" uid="uid://distance_icon" path="res://assets/icons/distance.svg" id="3_distance_icon"]
+[ext_resource type="Texture2D" uid="uid://heart_icon" path="res://assets/icons/heart.svg" id="4_heart_icon"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
 bg_color = Color(0.2, 0.2, 0.2, 0.8)
@@ -56,19 +59,18 @@ theme_override_constants/separation = 10
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="CoinIcon" type="Label" parent="MarginContainer/VBoxContainer/CoinsContainer"]
+[node name="CoinIcon" type="TextureRect" parent="MarginContainer/VBoxContainer/CoinsContainer"]
+custom_minimum_size = Vector2(32, 32)
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.85, 0, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.5)
-theme_override_constants/shadow_offset_x = 2
-theme_override_constants/shadow_offset_y = 2
-theme_override_font_sizes/font_size = 32
-text = "🪙"
+texture = ExtResource("2_coin_icon")
+expand_mode = 1
+stretch_mode = 5
+modulate = Color(1, 0.85, 0, 1)
 
 [node name="CoinsLabel" type="Label" parent="MarginContainer/VBoxContainer/CoinsContainer"]
 layout_mode = 2
 pivot_offset = Vector2(30, 16)
-theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_color = Color(1, 0.85, 0, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.5)
 theme_override_constants/shadow_offset_x = 2
 theme_override_constants/shadow_offset_y = 2
@@ -79,14 +81,13 @@ text = "0"
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="DistanceIcon" type="Label" parent="MarginContainer/VBoxContainer/DistanceContainer"]
+[node name="DistanceIcon" type="TextureRect" parent="MarginContainer/VBoxContainer/DistanceContainer"]
+custom_minimum_size = Vector2(28, 28)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.5, 0.8, 1, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.5)
-theme_override_constants/shadow_offset_x = 2
-theme_override_constants/shadow_offset_y = 2
-theme_override_font_sizes/font_size = 28
-text = "📏"
+texture = ExtResource("3_distance_icon")
+expand_mode = 1
+stretch_mode = 5
+modulate = Color(1, 1, 1, 1)
 
 [node name="DistanceLabel" type="Label" parent="MarginContainer/VBoxContainer/DistanceContainer"]
 layout_mode = 2
@@ -101,14 +102,13 @@ text = "0 m"
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="HealthIcon" type="Label" parent="MarginContainer/VBoxContainer/HealthContainer"]
+[node name="HealthIcon" type="TextureRect" parent="MarginContainer/VBoxContainer/HealthContainer"]
+custom_minimum_size = Vector2(28, 28)
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.3, 0.3, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.5)
-theme_override_constants/shadow_offset_x = 2
-theme_override_constants/shadow_offset_y = 2
-theme_override_font_sizes/font_size = 28
-text = "❤️"
+texture = ExtResource("4_heart_icon")
+expand_mode = 1
+stretch_mode = 5
+modulate = Color(1, 0.3, 0.3, 1)
 
 [node name="HealthBar" type="ProgressBar" parent="MarginContainer/VBoxContainer/HealthContainer"]
 custom_minimum_size = Vector2(150, 24)
@@ -221,9 +221,15 @@ max_value = 1.0
 step = 0.05
 value = 0.8
 
+[node name="PopupCheck" type="CheckButton" parent="PauseMenu/VBoxContainer"]
+layout_mode = 2
+button_pressed = true
+text = "Show Pickups"
+
 [connection signal="pressed" from="SettingsButton" to="." method="_on_settings_pressed"]
 [connection signal="pressed" from="PauseMenu/VBoxContainer/ResumeButton" to="." method="_on_resume_pressed"]
 [connection signal="pressed" from="PauseMenu/VBoxContainer/RestartButton" to="." method="_on_restart_pressed"]
 [connection signal="pressed" from="PauseMenu/VBoxContainer/MenuButton" to="." method="_on_menu_pressed"]
 [connection signal="value_changed" from="PauseMenu/VBoxContainer/MusicSlider" to="." method="_on_music_slider_changed"]
 [connection signal="value_changed" from="PauseMenu/VBoxContainer/SFXSlider" to="." method="_on_sfx_slider_changed"]
+[connection signal="toggled" from="PauseMenu/VBoxContainer/PopupCheck" to="." method="_on_popup_check_toggled"]

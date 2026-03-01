@@ -119,8 +119,9 @@ func _spawn_fall_particles() -> void:
 	# Add to scene root at global position (not as child - tree is scaled)
 	var scene_root := get_tree().current_scene
 	if scene_root:
-		particles.global_position = global_position + Vector3(0, 0.5, 0)
+		var spawn_pos := global_position + Vector3(0, 0.5, 0)
 		scene_root.add_child(particles)
+		particles.global_position = spawn_pos
 		particles.emitting = true
 		
 		# Auto-remove particles after they finish

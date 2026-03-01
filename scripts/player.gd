@@ -11,8 +11,10 @@ signal hit_rock(impact_position: Vector3)
 @export var max_speed: float = 25.0  # Maximum forward speed
 @export var death_height_offset: float = -30.0  # Y offset below terrain that triggers death
 @export var rock_damage: int = 12  # Damage taken from rocks (halved)
+@export var sphere_radius: float = 0.7  # For calculating proper roll rotation
 
 var is_dead := false
+var player_model: Node3D  # Visual model (separate from physics)
 var can_move := false
 var start_y: float = 0.0
 var game_manager: Node
@@ -25,6 +27,13 @@ func _ready() -> void:
 	# Get autoload references
 	game_manager = get_node("/root/GameManager")
 	audio_manager = get_node("/root/AudioManager")
+	
+	# Get visual model for manual rotation
+	player_model = get_node_or_null("PlayerModel")
+	if player_model:
+		# Make top-level so it doesn't inherit RigidBody rotation
+		player_model.top_level = true
+		player_model.global_position = global_position
 	
 	# Enable continuous collision detection for fast-moving physics
 	continuous_cd = true
@@ -99,12 +108,12 @@ func _physics_process(delta: float) -> void:
 	# Tilt controls for mobile - phone held portrait (vertical)
 	# Accelerometer X axis = left/right tilt
 	var accel := Input.get_accelerometer()
-	if accel != Vector3.ZERO:
+	if accel.length_squared() > 0.01:  # Check if accelerometer has valid data
 		# Normalize tilt: accel.x ranges roughly -10 to 10, we want -1 to 1
-		# Dead zone at ~1.0 to avoid drift
-		var tilt := accel.x / 5.0  # Sensitivity adjustment
-		if abs(tilt) < 0.2:
-			tilt = 0.0  # Dead zone
+		# Smaller dead zone and higher sensitivity for responsiveness
+		var tilt := accel.x / 4.0  # Increased sensitivity
+		if abs(tilt) < 0.1:
+			tilt = 0.0  # Smaller dead zone
 		turn_input += clamp(tilt, -1.0, 1.0)
 	
 	turn_input = clamp(turn_input, -1.0, 1.0)
@@ -121,6 +130,22 @@ func _physics_process(delta: float) -> void:
 	if audio_manager:
 		var speed_ratio := current_forward_speed / max_speed
 		audio_manager.update_roll_pitch(speed_ratio)
+	
+	# Manual visual rotation based on actual velocity (not physics rotation)
+	if player_model:
+		# Keep visual model at player position
+		player_model.global_position = global_position
+		
+		# Calculate proper angular velocity: omega = v / r
+		var rotation_scale := 0.7  # Slow down visual rotation slightly
+		# Forward movement (negative Z) rotates around X axis
+		var forward_angular := linear_velocity.z / sphere_radius * rotation_scale
+		# Sideways movement (X) rotates around Z axis (negated for correct direction)
+		var side_angular := -linear_velocity.x / sphere_radius * rotation_scale
+		
+		# Apply rotation to visual model
+		player_model.rotate_x(forward_angular * delta)
+		player_model.rotate_z(side_angular * delta)
 
 func die() -> void:
 	if is_dead:

@@ -8,13 +8,17 @@ extends CanvasLayer
 @onready var pause_menu: Control = $PauseMenu
 @onready var music_slider: HSlider = $PauseMenu/VBoxContainer/MusicSlider
 @onready var sfx_slider: HSlider = $PauseMenu/VBoxContainer/SFXSlider
+@onready var popup_check: CheckButton = $PauseMenu/VBoxContainer/PopupCheck
 
 var gm: Node  # GameManager reference
 var audio: Node  # AudioManager reference
+var coin_icon_texture: Texture2D
+var last_coin_count: int = 0
 
 func _ready() -> void:
 	gm = get_node("/root/GameManager")
 	audio = get_node("/root/AudioManager")
+	coin_icon_texture = load("res://assets/icons/coin.svg")
 	gm.coins_changed.connect(_on_coins_changed)
 	gm.distance_changed.connect(_on_distance_changed)
 	gm.game_paused.connect(_on_game_paused)
@@ -25,9 +29,11 @@ func _ready() -> void:
 	if audio:
 		music_slider.value = audio.get_music_volume()
 		sfx_slider.value = audio.get_sfx_volume()
+		popup_check.button_pressed = audio.get_show_pickup_popup()
 	
 	pause_menu.visible = false
 	red_flash.visible = false
+	last_coin_count = gm.coins  # Initialize to prevent popup on start
 	_on_coins_changed(gm.coins)
 	_on_distance_changed(gm.distance)
 	_on_health_changed(gm.health, gm.max_health)
@@ -41,6 +47,12 @@ func _input(event: InputEvent) -> void:
 				gm.pause_game()
 
 func _on_coins_changed(total: int) -> void:
+	# Show popup for new coins
+	var added := total - last_coin_count
+	if added > 0 and coin_icon_texture:
+		show_pickup_popup(added, coin_icon_texture)
+	last_coin_count = total
+	
 	coins_label.text = str(total)
 	
 	# Juice animation
@@ -99,3 +111,60 @@ func _on_music_slider_changed(value: float) -> void:
 func _on_sfx_slider_changed(value: float) -> void:
 	if audio:
 		audio.set_sfx_volume(value)
+
+func _on_popup_check_toggled(toggled_on: bool) -> void:
+	if audio:
+		audio.set_show_pickup_popup(toggled_on)
+
+# ========== Floating Pickup Popup ==========
+
+func show_pickup_popup(amount: int, icon_texture: Texture2D) -> void:
+	if not audio or not audio.get_show_pickup_popup():
+		return
+	
+	# Create popup container
+	var popup := HBoxContainer.new()
+	popup.add_theme_constant_override("separation", 5)
+	
+	# Create +N label
+	var label := Label.new()
+	label.text = "+" + str(amount)
+	label.add_theme_font_size_override("font_size", 36)
+	label.add_theme_color_override("font_color", Color(1, 0.85, 0, 1))  # Gold
+	label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.7))
+	label.add_theme_constant_override("shadow_offset_x", 2)
+	label.add_theme_constant_override("shadow_offset_y", 2)
+	popup.add_child(label)
+	
+	# Create icon
+	var icon := TextureRect.new()
+	icon.texture = icon_texture
+	icon.custom_minimum_size = Vector2(32, 32)
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.modulate = Color(1, 0.85, 0, 1)  # Gold tint
+	popup.add_child(icon)
+	
+	# Position at player area (center X, 65% from top = 35% from bottom)
+	var viewport_size: Vector2i = get_viewport().size
+	var base_x := viewport_size.x / 2 - 50
+	var base_y := viewport_size.y * 0.65
+	
+	# Random spawn offset (3x spread)
+	var offset_x := randf_range(-120, 120)
+	var offset_y := randf_range(-60, 60)
+	popup.position = Vector2(base_x + offset_x, base_y + offset_y)
+	add_child(popup)
+	
+	# Random float direction
+	var angle := randf_range(-PI * 0.8, -PI * 0.2)  # Mostly upward but random angle
+	var distance := randf_range(60, 100)
+	var target_offset := Vector2(cos(angle), sin(angle)) * distance
+	
+	# Animate: float in random direction and fade out
+	var tween := create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(popup, "position", popup.position + target_offset, 0.8).set_ease(Tween.EASE_OUT)
+	tween.tween_property(popup, "modulate:a", 0.0, 0.8).set_delay(0.3)
+	tween.set_parallel(false)
+	tween.tween_callback(popup.queue_free)
