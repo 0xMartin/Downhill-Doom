@@ -35,6 +35,12 @@ var sfx_player: AudioStreamPlayer  # One-shot SFX
 var current_game_track_index: int = -1
 var is_in_game: bool = false
 var roll_sound_playing: bool = false
+var roll_target_volume: float = -80.0  # Target volume for fade
+var roll_ground_contact: bool = false  # Is player on ground?
+var roll_ground_timer: float = 0.0  # Debounce timer
+const ROLL_FADE_TIME: float = 0.15  # Fade duration (half)
+const ROLL_DEBOUNCE_TIME: float = 0.1  # Debounce for ground contact changes
+const ROLL_SILENT_DB: float = -80.0  # Volume at which sound is considered silent
 
 func _ready() -> void:
 	_load_settings()
@@ -56,6 +62,7 @@ func _ready() -> void:
 	roll_sound_player = AudioStreamPlayer.new()
 	roll_sound_player.name = "RollSoundPlayer"
 	roll_sound_player.volume_db = -12.0
+	roll_sound_player.finished.connect(_on_roll_sound_finished)
 	add_child(roll_sound_player)
 	
 	sfx_player = AudioStreamPlayer.new()
@@ -72,6 +79,24 @@ func _ready() -> void:
 	var menu_stream := load(MENU_MUSIC) as AudioStream
 	if menu_stream:
 		menu_music_player.stream = menu_stream
+
+func _process(delta: float) -> void:
+	# Handle roll sound fade based on ground contact with debounce
+	if roll_sound_playing:
+		# Smooth volume transition
+		var current_vol := roll_sound_player.volume_db
+		if abs(current_vol - roll_target_volume) > 0.5:
+			var fade_speed := 80.0 / ROLL_FADE_TIME  # dB per second (faster for larger range)
+			if current_vol < roll_target_volume:
+				roll_sound_player.volume_db = min(current_vol + fade_speed * delta, roll_target_volume)
+			else:
+				roll_sound_player.volume_db = max(current_vol - fade_speed * delta, roll_target_volume)
+		
+		# Pause playback when fully silent to save resources
+		if roll_sound_player.volume_db <= ROLL_SILENT_DB + 1.0 and not roll_ground_contact:
+			roll_sound_player.stream_paused = true
+		elif roll_ground_contact and roll_sound_player.stream_paused:
+			roll_sound_player.stream_paused = false
 
 # ========== UI Sounds ==========
 
@@ -154,12 +179,26 @@ func _on_game_music_finished() -> void:
 
 func start_roll_sound() -> void:
 	if not roll_sound_playing and roll_sound_player.stream:
+		roll_sound_player.volume_db = ROLL_SILENT_DB  # Start silent
+		roll_target_volume = ROLL_SILENT_DB
+		roll_sound_player.stream_paused = true  # Start paused
 		roll_sound_player.play()
 		roll_sound_playing = true
 
 func stop_roll_sound() -> void:
 	roll_sound_player.stop()
 	roll_sound_playing = false
+	roll_ground_contact = false
+	roll_ground_timer = 0.0
+
+func _on_roll_sound_finished() -> void:
+	# Restart rolling sound if still playing (loop behavior)
+	if roll_sound_playing:
+		roll_sound_player.play()
+
+func set_roll_ground_contact(on_ground: bool) -> void:
+	# Direct update - debouncing handled by the gradual fade
+	roll_ground_contact = on_ground
 
 func update_roll_pitch(speed_ratio: float) -> void:
 	# Pitch ranges from 0.5 (slow) to 1.5 (fast)
@@ -167,9 +206,12 @@ func update_roll_pitch(speed_ratio: float) -> void:
 	var pitch := lerpf(0.6, 1.2, clampf(speed_ratio, 0.0, 1.0))
 	roll_sound_player.pitch_scale = pitch
 	
-	# Also adjust volume based on speed
+	# Set target volume based on speed and ground contact
 	var base_vol := lerpf(-20.0, -8.0, clampf(speed_ratio, 0.0, 1.0))
-	roll_sound_player.volume_db = _get_sfx_db(base_vol)
+	if roll_ground_contact:
+		roll_target_volume = _get_sfx_db(base_vol)
+	else:
+		roll_target_volume = ROLL_SILENT_DB  # Fade out when in air
 
 # ========== Player Sounds ==========
 
@@ -209,6 +251,40 @@ func play_tree_hit_sound() -> void:
 		add_child(player)
 		player.play()
 		player.finished.connect(player.queue_free)
+
+func play_jump_sound() -> void:
+	# Simple procedural jump sound - short "whoosh"
+	var sample_rate := 22050
+	var duration := 0.15
+	var sample_count := int(sample_rate * duration)
+	
+	var audio := AudioStreamWAV.new()
+	audio.format = AudioStreamWAV.FORMAT_8_BITS
+	audio.mix_rate = sample_rate
+	audio.stereo = false
+	
+	var data := PackedByteArray()
+	data.resize(sample_count)
+	
+	for i in range(sample_count):
+		var t := float(i) / sample_rate
+		var progress := float(i) / sample_count
+		# Rising pitch "whoosh" effect
+		var freq := 200.0 + progress * 400.0
+		var envelope := (1.0 - progress) * (1.0 - progress)  # Fade out
+		var sample := sin(t * freq * TAU) * envelope
+		# Add some noise for "air" effect
+		sample += (randf() - 0.5) * 0.3 * envelope
+		data[i] = int((sample * 0.5 + 0.5) * 255)
+	
+	audio.data = data
+	
+	var player := AudioStreamPlayer.new()
+	player.stream = audio
+	player.volume_db = _get_sfx_db(-8.0)
+	add_child(player)
+	player.play()
+	player.finished.connect(player.queue_free)
 
 # ========== Volume Control ==========
 

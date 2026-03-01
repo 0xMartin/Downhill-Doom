@@ -14,6 +14,10 @@ signal hit_rock(impact_position: Vector3)
 @export var rock_damage: int = 12  # Damage taken from rocks (halved)
 @export var sphere_radius: float = 0.7  # For calculating proper roll rotation
 
+# Jump parameters
+@export var jump_force: float = 60.0  # Upward impulse when jumping (50% reduced)
+@export var jump_cooldown_time: float = 0.3  # Minimum time between jumps
+
 # Tilt control - SIMPLE direct mapping
 var tilt_multiplier: float = 3.0  # How much accel.x affects steering (higher = more sensitive)
 
@@ -26,6 +30,8 @@ var hit_cooldown: float = 0.0  # Prevent multiple hits from same rock
 
 var terrain_slope: float = 15.0  # Will be set from terrain generator
 var audio_manager: Node
+var jump_cooldown: float = 0.0  # Time until next jump allowed
+var is_on_ground: bool = true  # Track if player is touching ground
 
 func _ready() -> void:
 	# Get autoload references
@@ -88,6 +94,13 @@ func _physics_process(delta: float) -> void:
 	if hit_cooldown > 0:
 		hit_cooldown -= delta
 	
+	# Update jump cooldown
+	if jump_cooldown > 0:
+		jump_cooldown -= delta
+	
+	# Check if on ground (simple raycast down)
+	_update_ground_state()
+	
 	# Death detection disabled for now - terrain goes downhill infinitely
 	# TODO: Implement proper death detection (e.g., falling off edges)
 	# if global_position.y < death_height_offset:
@@ -143,10 +156,11 @@ func _physics_process(delta: float) -> void:
 	if angular_velocity.length() > max_angular_velocity:
 		angular_velocity = angular_velocity.normalized() * max_angular_velocity
 	
-	# Update rolling sound pitch based on speed
+	# Update rolling sound pitch based on speed and ground contact
 	if audio_manager:
 		var speed_ratio := current_forward_speed / max_speed
 		audio_manager.update_roll_pitch(speed_ratio)
+		audio_manager.set_roll_ground_contact(is_on_ground)
 	
 	# Manual visual rotation based on actual velocity (not physics rotation)
 	if player_model:
@@ -163,6 +177,42 @@ func _physics_process(delta: float) -> void:
 		# Apply rotation to visual model
 		player_model.rotate_x(forward_angular * delta)
 		player_model.rotate_z(side_angular * delta)
+
+func _update_ground_state() -> void:
+	# Simple ground check: raycast downward (small tolerance for easier jumping)
+	var space_state := get_world_3d().direct_space_state
+	var query := PhysicsRayQueryParameters3D.create(
+		global_position,
+		global_position + Vector3(0, -sphere_radius - 0.8, 0)  # 0.8m tolerance under sphere
+	)
+	query.exclude = [get_rid()]
+	var result := space_state.intersect_ray(query)
+	is_on_ground = not result.is_empty()
+
+func _input(event: InputEvent) -> void:
+	if is_dead or not can_move:
+		return
+	
+	# Jump on spacebar (desktop)
+	if event.is_action_pressed("jump"):
+		_try_jump()
+		return
+	
+	# Jump on screen tap (mobile) - but not on UI elements
+	if event is InputEventScreenTouch:
+		if event.pressed:
+			_try_jump()
+
+func _try_jump() -> void:
+	if jump_cooldown > 0 or not is_on_ground:
+		return
+	
+	# Reset vertical velocity for consistent jumps (cancel any falling)
+	linear_velocity.y = 0.0
+	
+	# Apply upward impulse
+	apply_central_impulse(Vector3(0, jump_force, 0))
+	jump_cooldown = jump_cooldown_time
 
 func die() -> void:
 	if is_dead:
