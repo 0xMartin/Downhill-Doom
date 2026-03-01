@@ -4,7 +4,7 @@ extends Node3D
 signal terrain_chunk_created(chunk: Node3D)
 signal terrain_ready
 
-@export var chunk_size: Vector2 = Vector2(42, 50)  # Slightly wider than playable area
+@export var chunk_size: Vector2 = Vector2(100, 50)  # Wide enough for mountains on both sides
 @export var chunks_ahead: int = 5
 @export var chunks_behind: int = 2
 @export var slope_angle: float = 12.0
@@ -13,10 +13,17 @@ signal terrain_ready
 @export var tree_density: float = 0.5  # trees per 100 sq units (~10 per chunk)
 @export var rock_spawn_chance: float = 0.6  # 60% chance of 1 rock per chunk
 @export var barrier_height: float = 10.0
-@export var terrain_width: float = 36.0  # Playable center
+@export var terrain_width: float = 36.0  # Playable center (green area)
 @export var rock_safe_chunks: int = 2  # No rocks in first N chunks (safe zone)
 @export var num_lanes: int = 5  # Divide terrain into lanes for rock placement
 @export var edge_slope_height: float = 1.5  # Very gentle slope at terrain edges
+
+# Mountain parameters
+@export var mountain_width: float = 25.0  # Width of mountain slope on each side
+@export var mountain_height: float = 21.0  # Peak height above playable area (25% higher)
+@export var peak_curve_width: float = 7.0  # Width of the rounded dome at peak
+@export var mountain_noise_strength: float = 3.5  # Variation in mountain shape
+@export var grid_jitter: float = 0.35  # Random offset for vertex positions (0-1, relative to cell size)
 
 var noise: FastNoiseLite
 var chunks: Dictionary = {}
@@ -148,56 +155,72 @@ func _create_lowpoly_terrain(chunk_index: int) -> StaticBody3D:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	
-	var resolution := 12
-	var cell_width := chunk_size.x / resolution
-	var cell_length := chunk_size.y / resolution
+	# Use uniform cell size for 1:1 triangle ratio
+	var cell_size := 2.0  # Square cells
+	var resolution_x := int(chunk_size.x / cell_size)
+	var resolution_z := int(chunk_size.y / cell_size)
+	var cell_width := chunk_size.x / resolution_x
+	var cell_length := chunk_size.y / resolution_z
 	
-	var heights: Array = []
-	for z in range(resolution + 1):
+	# Store vertex data: position and height for each grid point
+	var vertex_data: Array = []  # [z][x] = {pos: Vector2, height: float}
+	for z in range(resolution_z + 1):
 		var row: Array = []
-		for x in range(resolution + 1):
-			var world_x := (x - resolution / 2.0) * cell_width
-			var world_z := -z * cell_length - chunk_index * chunk_size.y
+		for x in range(resolution_x + 1):
+			var base_x := (x - resolution_x / 2.0) * cell_width
+			var base_z := -z * cell_length
+			var world_z := base_z - chunk_index * chunk_size.y
 			
-			var height := noise.get_noise_2d(world_x * 3, world_z * 3) * noise_height
-			height += noise.get_noise_2d(world_x * 0.5, world_z * 0.5) * noise_height * 2
+			# Add jitter to vertex position (but not at edges to ensure chunk connectivity)
+			var jitter_x := 0.0
+			var jitter_z := 0.0
+			var is_edge := (x == 0 or x == resolution_x or z == 0 or z == resolution_z)
+			if not is_edge and grid_jitter > 0:
+				# Use noise for consistent jitter based on world position
+				jitter_x = noise.get_noise_2d(base_x * 7.3 + 1000, world_z * 7.3) * cell_width * grid_jitter
+				jitter_z = noise.get_noise_2d(base_x * 7.3, world_z * 7.3 + 1000) * cell_length * grid_jitter
 			
-			# Edge zone: gentle gradual slope at terrain edges (where mountains will be placed)
-			var half_terrain: float = terrain_width / 2.0
-			var half_chunk: float = chunk_size.x / 2.0
-			var abs_x: float = absf(world_x)
-			if abs_x > half_terrain:
-				# Very gentle linear slope in edge zone (25% of width on each side)
-				var edge_progress: float = (abs_x - half_terrain) / (half_chunk - half_terrain)
-				height += edge_progress * edge_slope_height
+			var world_x := base_x + jitter_x
+			var local_z := base_z + jitter_z
+			var actual_world_z := world_z + jitter_z
 			
-			var slope_offset := z * cell_length * tan(deg_to_rad(slope_angle))
+			# Get U-profile height (mountains on sides, flat center)
+			var profile_height := _get_cross_section_height(world_x, actual_world_z)
+			
+			# Add terrain noise only in playable area
+			var abs_x := absf(world_x)
+			var half_terrain := terrain_width / 2.0
+			var terrain_noise := 0.0
+			if abs_x < half_terrain:
+				terrain_noise = noise.get_noise_2d(world_x * 3, actual_world_z * 3) * noise_height
+				terrain_noise += noise.get_noise_2d(world_x * 0.5, actual_world_z * 0.5) * noise_height * 2
+			
+			var height := profile_height + terrain_noise
+			
+			# Apply downhill slope
+			var slope_offset := (-local_z) * tan(deg_to_rad(slope_angle))
 			height -= slope_offset
 			
-			row.append(height)
-		heights.append(row)
+			row.append({"x": world_x, "z": local_z, "world_z": actual_world_z, "height": height})
+		vertex_data.append(row)
 	
-	for z in range(resolution):
-		for x in range(resolution):
-			var x0 := (x - resolution / 2.0) * cell_width
-			var x1 := (x + 1 - resolution / 2.0) * cell_width
-			var z0 := -z * cell_length
-			var z1 := -(z + 1) * cell_length
+	for z in range(resolution_z):
+		for x in range(resolution_x):
+			# Get jittered vertex data for all 4 corners
+			var d00: Dictionary = vertex_data[z][x]
+			var d10: Dictionary = vertex_data[z][x + 1]
+			var d01: Dictionary = vertex_data[z + 1][x]
+			var d11: Dictionary = vertex_data[z + 1][x + 1]
 			
-			var h00: float = heights[z][x]
-			var h10: float = heights[z][x + 1]
-			var h01: float = heights[z + 1][x]
-			var h11: float = heights[z + 1][x + 1]
-			
-			var v0 := Vector3(x0, h00, z0)
-			var v1 := Vector3(x1, h10, z0)
-			var v2 := Vector3(x0, h01, z1)
-			var v3 := Vector3(x1, h11, z1)
+			var v0 := Vector3(d00["x"], d00["height"], d00["z"])
+			var v1 := Vector3(d10["x"], d10["height"], d10["z"])
+			var v2 := Vector3(d01["x"], d01["height"], d01["z"])
+			var v3 := Vector3(d11["x"], d11["height"], d11["z"])
 			
 			# Flip triangle winding for correct normals (facing UP)
 			var normal1 := (v2 - v0).cross(v1 - v0).normalized()
 			st.set_normal(normal1)
-			var color1 := _get_terrain_color(h00, x0, z0 - chunk_index * chunk_size.y)
+			var color1 := _get_terrain_color(d00["height"], d00["x"], d00["world_z"])
 			st.set_color(color1)
 			st.add_vertex(v0)
 			st.set_color(color1)
@@ -207,7 +230,7 @@ func _create_lowpoly_terrain(chunk_index: int) -> StaticBody3D:
 			
 			var normal2 := (v2 - v1).cross(v3 - v1).normalized()
 			st.set_normal(normal2)
-			var color2 := _get_terrain_color(h11, x1, z1 - chunk_index * chunk_size.y)
+			var color2 := _get_terrain_color(d11["height"], d11["x"], d11["world_z"])
 			st.set_color(color2)
 			st.add_vertex(v1)
 			st.set_color(color2)
@@ -232,35 +255,115 @@ func _create_lowpoly_terrain(chunk_index: int) -> StaticBody3D:
 	
 	return static_body
 
+# Calculate U-shaped cross-section height with rounded mountain peaks
+func _get_cross_section_height(world_x: float, world_z: float) -> float:
+	var half_terrain := terrain_width / 2.0
+	var abs_x := absf(world_x)
+	
+	# Flat playable area (center)
+	if abs_x <= half_terrain:
+		return 0.0
+	
+	# Mountain zone - base position can wobble laterally
+	var lateral_wobble := noise.get_noise_2d(world_x * 0.15, world_z * 0.15) * 3.0
+	var effective_abs_x := abs_x + lateral_wobble
+	effective_abs_x = maxf(effective_abs_x, half_terrain + 0.1)  # Keep positive slope
+	
+	var mountain_start := half_terrain
+	var slope_end := half_terrain + mountain_width - peak_curve_width
+	var peak_end := half_terrain + mountain_width
+	
+	# Add noise variation to mountain shape - more pronounced
+	var mountain_noise := noise.get_noise_2d(world_x * 0.4, world_z * 0.4) * mountain_noise_strength * 2.0
+	var peak_variation := noise.get_noise_2d(world_x * 0.08, world_z * 0.08) * 10.0  # 40% more variation
+	
+	if effective_abs_x <= slope_end:
+		# Rising slope using smoothstep for smooth curve
+		var t := (effective_abs_x - mountain_start) / (slope_end - mountain_start)
+		t = clampf(t, 0.0, 1.0)
+		var smooth_t := t * t * (3.0 - 2.0 * t)  # smoothstep
+		return smooth_t * (mountain_height + peak_variation) + mountain_noise * smooth_t
+	else:
+		# Peak dome - rounded top that curves back down
+		var peak_progress := (effective_abs_x - slope_end) / peak_curve_width
+		peak_progress = clampf(peak_progress, 0.0, 1.5)
+		var base_height := mountain_height + peak_variation
+		# Use cosine for rounded dome shape
+		var dome_shape := cos(peak_progress * PI * 0.5)  # Goes from 1 to 0
+		# Add small overhang effect - peak curves slightly inward then down
+		var overhang := sin(peak_progress * PI) * 1.5
+		return base_height * dome_shape + overhang + mountain_noise
+
 func _get_terrain_color(height: float, world_x: float, world_z: float) -> Color:
-	# Darker colors (50% of original brightness)
-	var grass_dark := Color(0.11, 0.21, 0.09)
-	var grass_light := Color(0.18, 0.28, 0.13)
-	var grass_yellow := Color(0.23, 0.25, 0.10)
-	var rock_gray := Color(0.23, 0.22, 0.20)  # Gray rock color for mountains
-	var rock_dark := Color(0.18, 0.17, 0.15)  # Darker rock
+	# Grass colors for playable area - moderate contrast
+	var grass_light := Color(0.18, 0.28, 0.12)
+	var grass_dark := Color(0.10, 0.18, 0.08)
+	var grass_yellow := Color(0.20, 0.22, 0.10)
+	
+	# Mountain colors - subtle gray variations (low contrast)
+	var rock_light := Color(0.30, 0.29, 0.27)
+	var rock_medium := Color(0.26, 0.25, 0.24)
+	var rock_dark := Color(0.22, 0.21, 0.20)
+	
+	# Snow/ice for peaks
+	var snow_color := Color(0.90, 0.91, 0.93)
 	
 	var color_noise := noise.get_noise_2d(world_x * 5, world_z * 5)
+	var detail_noise := noise.get_noise_2d(world_x * 8, world_z * 8)
 	
-	var base_color: Color
-	if color_noise > 0.3:
-		base_color = grass_light
-	elif color_noise > -0.2:
-		base_color = grass_dark
-	else:
-		base_color = grass_yellow
+	var half_terrain := terrain_width / 2.0
+	var abs_x := absf(world_x)
 	
-	# Edge zone coloring - transition to rock/mountain color in edge zones
-	var half_terrain: float = terrain_width / 2.0
-	var abs_x: float = absf(world_x)
-	if abs_x > half_terrain * 0.7:
-		# Transition to rock/mountain color
-		var rock_blend: float = (abs_x - half_terrain * 0.7) / (half_terrain * 0.3)
-		rock_blend = clampf(rock_blend, 0.0, 1.0)
-		var rock_color := rock_gray if color_noise > 0 else rock_dark
-		base_color = base_color.lerp(rock_color, rock_blend)
+	# Playable area - grass colors with moderate variation
+	if abs_x <= half_terrain:
+		if color_noise > 0.25:
+			return grass_light
+		elif color_noise > -0.25:
+			var blend := (color_noise + 0.25) / 0.5
+			return grass_dark.lerp(grass_light, blend)
+		else:
+			return grass_dark.lerp(grass_yellow, (-color_noise - 0.25) / 0.75)
 	
-	return base_color
+	# Mountain zone - calculate progress up the mountain
+	var mountain_start := half_terrain
+	var mountain_progress := (abs_x - mountain_start) / mountain_width
+	
+	# Transition zone at base of mountain (grass to rock) - very subtle blend
+	if mountain_progress < 0.25:
+		# Use smoothstep for very gradual transition
+		var raw_blend := mountain_progress / 0.25
+		var blend := raw_blend * raw_blend * (3.0 - 2.0 * raw_blend)  # smoothstep
+		# Start with grass color matching the playable area
+		var grass_color: Color
+		if color_noise > 0.25:
+			grass_color = grass_light
+		elif color_noise > -0.25:
+			grass_color = grass_dark.lerp(grass_light, (color_noise + 0.25) / 0.5)
+		else:
+			grass_color = grass_dark.lerp(grass_yellow, (-color_noise - 0.25) / 0.75)
+		# Transition to a rock color that's close to the grass initially
+		var rock_color := rock_medium.lerp(rock_dark, (detail_noise + 1.0) * 0.3)
+		return grass_color.lerp(rock_color, blend)
+	
+	# Main mountain slope - rock variations
+	if mountain_progress < 0.75:
+		if detail_noise > 0.2:
+			return rock_light
+		elif detail_noise > -0.2:
+			return rock_medium
+		else:
+			return rock_dark
+	
+	# Upper mountain / peak zone - blend rock to snow
+	var peak_progress := (mountain_progress - 0.75) / 0.25
+	var rock_color := rock_medium if detail_noise > 0 else rock_dark
+	
+	# Gradual snow blend at the very top
+	if peak_progress > 0.35:
+		var snow_blend := (peak_progress - 0.35) / 0.65
+		return rock_color.lerp(snow_color, snow_blend * 0.7)
+	
+	return rock_color
 
 func _create_barriers(chunk: Node3D) -> void:
 	# Invisible collision barriers at edge of playable area (green/gray boundary)
@@ -378,16 +481,14 @@ func _get_decoration_height(local_x: float, local_z: float, chunk_index: int) ->
 	# Convert to world coordinates for noise sampling (same as terrain mesh generation)
 	var world_z: float = local_z - chunk_index * chunk_size.y
 	
-	var height: float = noise.get_noise_2d(local_x * 3, world_z * 3) * noise_height
-	height += noise.get_noise_2d(local_x * 0.5, world_z * 0.5) * noise_height * 2
+	# Get U-profile height (should be 0 in playable area)
+	var profile_height := _get_cross_section_height(local_x, world_z)
 	
-	# Edge zone: gentle linear slope at terrain edges
-	var half_terrain: float = terrain_width / 2.0
-	var half_chunk: float = chunk_size.x / 2.0
-	var abs_x: float = absf(local_x)
-	if abs_x > half_terrain:
-		var edge_progress: float = (abs_x - half_terrain) / (half_chunk - half_terrain)
-		height += edge_progress * edge_slope_height
+	# Add terrain noise (only in playable area)
+	var terrain_noise := noise.get_noise_2d(local_x * 3, world_z * 3) * noise_height
+	terrain_noise += noise.get_noise_2d(local_x * 0.5, world_z * 0.5) * noise_height * 2
+	
+	var height := profile_height + terrain_noise
 	
 	# Local slope offset (same formula as terrain: z * cell_length * tan(slope))
 	# local_z is negative (going into -Z), so we need to invert it
@@ -397,17 +498,18 @@ func _get_decoration_height(local_x: float, local_z: float, chunk_index: int) ->
 	return height
 
 func _get_height_at(world_x: float, world_z: float) -> float:
-	var height: float = noise.get_noise_2d(world_x * 3, world_z * 3) * noise_height
-	height += noise.get_noise_2d(world_x * 0.5, world_z * 0.5) * noise_height * 2
+	# Get U-profile height
+	var profile_height := _get_cross_section_height(world_x, world_z)
 	
-	# Edge zone: gentle linear slope at terrain edges
-	var half_terrain: float = terrain_width / 2.0
-	var half_chunk: float = chunk_size.x / 2.0
-	var abs_x: float = absf(world_x)
-	if abs_x > half_terrain:
-		var edge_progress: float = (abs_x - half_terrain) / (half_chunk - half_terrain)
-		height += edge_progress * edge_slope_height
+	# Add terrain noise (only in playable area)
+	var half_terrain := terrain_width / 2.0
+	var abs_x := absf(world_x)
+	var terrain_noise := 0.0
+	if abs_x < half_terrain:
+		terrain_noise = noise.get_noise_2d(world_x * 3, world_z * 3) * noise_height
+		terrain_noise += noise.get_noise_2d(world_x * 0.5, world_z * 0.5) * noise_height * 2
 	
+	var height := profile_height + terrain_noise
 	height += world_z * tan(deg_to_rad(slope_angle))
 	
 	return height

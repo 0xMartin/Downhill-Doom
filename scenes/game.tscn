@@ -40,7 +40,7 @@ directional_shadow_max_distance = 80.0
 
 [node name="TerrainGenerator" type="Node3D" parent="." unique_id=1904949631]
 script = ExtResource("3_terrain")
-chunk_size = Vector2(42, 50)
+chunk_size = Vector2(100, 50)
 chunks_behind = 1
 noise_height = 1.0
 tree_density = 0.5
