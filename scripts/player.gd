@@ -218,6 +218,10 @@ func die() -> void:
 	if is_dead:
 		return
 	
+	# Check if we're still in the scene tree
+	if not is_inside_tree():
+		return
+	
 	is_dead = true
 	
 	# Stop rolling sound
@@ -303,8 +307,8 @@ func _spawn_rock_impact_particles(impact_pos: Vector3) -> void:
 	
 	var scene_root := get_tree().current_scene
 	if scene_root:
-		particles.global_position = impact_pos
 		scene_root.add_child(particles)
+		particles.global_position = impact_pos  # Set position AFTER adding to tree
 		particles.emitting = true
 		
 		get_tree().create_timer(2.0).timeout.connect(func():

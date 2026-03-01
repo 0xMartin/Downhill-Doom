@@ -138,16 +138,132 @@ shadow_offset = Vector2(0, 8)
 [node name="HUD" type="CanvasLayer"]
 script = ExtResource("1_hud")
 
-[node name="SettingsButton" type="Button" parent="."]
+[node name="TopBar" type="PanelContainer" parent="."]
 layout_mode = 1
-anchors_preset = 1
-anchor_left = 1.0
+anchors_preset = 10
 anchor_right = 1.0
-offset_left = -85.0
-offset_top = 55.0
+offset_left = 20.0
+offset_top = 50.0
 offset_right = -20.0
-offset_bottom = 120.0
-grow_horizontal = 0
+offset_bottom = 110.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="MarginContainer" type="MarginContainer" parent="TopBar"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 8
+
+[node name="HBoxContainer" type="HBoxContainer" parent="TopBar/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="CoinsContainer" type="HBoxContainer" parent="TopBar/MarginContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_constants/separation = 8
+
+[node name="CoinIcon" type="TextureRect" parent="TopBar/MarginContainer/HBoxContainer/CoinsContainer"]
+custom_minimum_size = Vector2(36, 36)
+layout_mode = 2
+size_flags_vertical = 1
+texture = ExtResource("2_coin_icon")
+expand_mode = 1
+stretch_mode = 5
+modulate = Color(1, 0.85, 0.2, 1)
+
+[node name="Sparkle" type="TextureRect" parent="TopBar/MarginContainer/HBoxContainer/CoinsContainer/CoinIcon"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -10.0
+offset_top = -10.0
+offset_right = 10.0
+offset_bottom = 10.0
+pivot_offset = Vector2(10, 10)
+texture = ExtResource("7_sparkle")
+expand_mode = 1
+stretch_mode = 5
+modulate = Color(1, 0.9, 0.5, 0.8)
+
+[node name="CoinsLabel" type="Label" parent="TopBar/MarginContainer/HBoxContainer/CoinsContainer"]
+layout_mode = 2
+size_flags_vertical = 1
+pivot_offset = Vector2(20, 14)
+theme_override_colors/font_color = Color(1, 0.9, 0.3, 1)
+theme_override_colors/font_shadow_color = Color(0.2, 0.1, 0, 0.6)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 28
+text = "0"
+
+[node name="Separator1" type="VSeparator" parent="TopBar/MarginContainer/HBoxContainer"]
+modulate = Color(1, 1, 1, 0.3)
+layout_mode = 2
+
+[node name="HealthContainer" type="HBoxContainer" parent="TopBar/MarginContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="HealthIcon" type="TextureRect" parent="TopBar/MarginContainer/HBoxContainer/HealthContainer"]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+size_flags_vertical = 1
+texture = ExtResource("4_heart_icon")
+expand_mode = 1
+stretch_mode = 5
+modulate = Color(1, 0.4, 0.5, 1)
+
+[node name="HealthBar" type="ProgressBar" parent="TopBar/MarginContainer/HBoxContainer/HealthContainer"]
+custom_minimum_size = Vector2(100, 20)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 1
+value = 100.0
+show_percentage = false
+theme_override_styles/background = SubResource("StyleBoxFlat_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_fill")
+
+[node name="Separator2" type="VSeparator" parent="TopBar/MarginContainer/HBoxContainer"]
+modulate = Color(1, 1, 1, 0.3)
+layout_mode = 2
+
+[node name="DistanceContainer" type="HBoxContainer" parent="TopBar/MarginContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_constants/separation = 8
+
+[node name="DistanceIcon" type="TextureRect" parent="TopBar/MarginContainer/HBoxContainer/DistanceContainer"]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+size_flags_vertical = 1
+texture = ExtResource("3_distance_icon")
+expand_mode = 1
+stretch_mode = 5
+modulate = Color(0.7, 0.85, 1, 1)
+
+[node name="DistanceLabel" type="Label" parent="TopBar/MarginContainer/HBoxContainer/DistanceContainer"]
+layout_mode = 2
+size_flags_vertical = 1
+theme_override_colors/font_color = Color(0.85, 0.95, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0.1, 0.2, 0.5)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 28
+text = "0 m"
+
+[node name="SettingsButton" type="Button" parent="TopBar/MarginContainer/HBoxContainer"]
+custom_minimum_size = Vector2(44, 44)
+layout_mode = 2
+size_flags_vertical = 4
 focus_mode = 2
 mouse_filter = 0
 theme_override_styles/normal = SubResource("StyleBoxFlat_settings")
@@ -157,113 +273,12 @@ icon = ExtResource("5_settings_icon")
 icon_alignment = 1
 expand_icon = true
 
-[node name="StatsPanel" type="PanelContainer" parent="."]
+[node name="PopupContainer" type="Control" parent="."]
 layout_mode = 1
-anchors_preset = 0
-offset_left = 20.0
-offset_top = 50.0
-offset_right = 280.0
-offset_bottom = 220.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 mouse_filter = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
-
-[node name="MarginContainer" type="MarginContainer" parent="StatsPanel"]
-layout_mode = 2
-mouse_filter = 2
-theme_override_constants/margin_left = 18
-theme_override_constants/margin_top = 16
-theme_override_constants/margin_right = 18
-theme_override_constants/margin_bottom = 16
-
-[node name="VBoxContainer" type="VBoxContainer" parent="StatsPanel/MarginContainer"]
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="HealthContainer" type="HBoxContainer" parent="StatsPanel/MarginContainer/VBoxContainer"]
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="HealthIcon" type="TextureRect" parent="StatsPanel/MarginContainer/VBoxContainer/HealthContainer"]
-custom_minimum_size = Vector2(40, 40)
-layout_mode = 2
-texture = ExtResource("4_heart_icon")
-expand_mode = 1
-stretch_mode = 5
-modulate = Color(1, 0.4, 0.5, 1)
-
-[node name="HealthBar" type="ProgressBar" parent="StatsPanel/MarginContainer/VBoxContainer/HealthContainer"]
-custom_minimum_size = Vector2(160, 28)
-layout_mode = 2
-size_flags_vertical = 1
-value = 100.0
-show_percentage = false
-theme_override_styles/background = SubResource("StyleBoxFlat_bg")
-theme_override_styles/fill = SubResource("StyleBoxFlat_fill")
-
-[node name="CoinsContainer" type="HBoxContainer" parent="StatsPanel/MarginContainer/VBoxContainer"]
-layout_mode = 2
-theme_override_constants/separation = 10
-
-[node name="CoinIcon" type="TextureRect" parent="StatsPanel/MarginContainer/VBoxContainer/CoinsContainer"]
-custom_minimum_size = Vector2(44, 44)
-layout_mode = 2
-texture = ExtResource("2_coin_icon")
-expand_mode = 1
-stretch_mode = 5
-modulate = Color(1, 0.85, 0.2, 1)
-
-[node name="Sparkle" type="TextureRect" parent="StatsPanel/MarginContainer/VBoxContainer/CoinsContainer/CoinIcon"]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -12.0
-offset_top = -12.0
-offset_right = 12.0
-offset_bottom = 12.0
-pivot_offset = Vector2(12, 12)
-texture = ExtResource("7_sparkle")
-expand_mode = 1
-stretch_mode = 5
-modulate = Color(1, 0.9, 0.5, 0.8)
-
-[node name="CoinsLabel" type="Label" parent="StatsPanel/MarginContainer/VBoxContainer/CoinsContainer"]
-layout_mode = 2
-size_flags_vertical = 1
-pivot_offset = Vector2(30, 18)
-theme_override_colors/font_color = Color(1, 0.9, 0.3, 1)
-theme_override_colors/font_shadow_color = Color(0.2, 0.1, 0, 0.6)
-theme_override_colors/font_outline_color = Color(0.4, 0.25, 0, 0.4)
-theme_override_constants/shadow_offset_x = 2
-theme_override_constants/shadow_offset_y = 3
-theme_override_constants/outline_size = 2
-theme_override_font_sizes/font_size = 38
-text = "0"
-
-[node name="DistanceContainer" type="HBoxContainer" parent="StatsPanel/MarginContainer/VBoxContainer"]
-layout_mode = 2
-size_flags_horizontal = 0
-theme_override_constants/separation = 10
-
-[node name="DistanceIcon" type="TextureRect" parent="StatsPanel/MarginContainer/VBoxContainer/DistanceContainer"]
-custom_minimum_size = Vector2(38, 38)
-layout_mode = 2
-texture = ExtResource("3_distance_icon")
-expand_mode = 1
-stretch_mode = 5
-modulate = Color(0.7, 0.85, 1, 1)
-
-[node name="DistanceLabel" type="Label" parent="StatsPanel/MarginContainer/VBoxContainer/DistanceContainer"]
-layout_mode = 2
-size_flags_vertical = 1
-theme_override_colors/font_color = Color(0.85, 0.95, 1, 1)
-theme_override_colors/font_shadow_color = Color(0, 0.1, 0.2, 0.5)
-theme_override_constants/shadow_offset_x = 2
-theme_override_constants/shadow_offset_y = 2
-theme_override_font_sizes/font_size = 34
-text = "0 m"
 
 [node name="RedFlash" type="ColorRect" parent="."]
 visible = false
@@ -408,7 +423,7 @@ theme_override_font_sizes/font_size = 18
 button_pressed = true
 text = "Show Pickups"
 
-[connection signal="pressed" from="SettingsButton" to="." method="_on_settings_pressed"]
+[connection signal="pressed" from="TopBar/MarginContainer/HBoxContainer/SettingsButton" to="." method="_on_settings_pressed"]
 [connection signal="pressed" from="PauseMenu/PanelContainer/VBoxContainer/ResumeButton" to="." method="_on_resume_pressed"]
 [connection signal="pressed" from="PauseMenu/PanelContainer/VBoxContainer/RestartButton" to="." method="_on_restart_pressed"]
 [connection signal="pressed" from="PauseMenu/PanelContainer/VBoxContainer/MenuButton" to="." method="_on_menu_pressed"]

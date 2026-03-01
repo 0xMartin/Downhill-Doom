@@ -1,15 +1,16 @@
 extends CanvasLayer
 ## HUD - Displays coins, distance, health, and handles pause
 
-@onready var coins_label: Label = $StatsPanel/MarginContainer/VBoxContainer/CoinsContainer/CoinsLabel
-@onready var distance_label: Label = $StatsPanel/MarginContainer/VBoxContainer/DistanceContainer/DistanceLabel
-@onready var health_bar: ProgressBar = $StatsPanel/MarginContainer/VBoxContainer/HealthContainer/HealthBar
+@onready var coins_label: Label = $TopBar/MarginContainer/HBoxContainer/CoinsContainer/CoinsLabel
+@onready var distance_label: Label = $TopBar/MarginContainer/HBoxContainer/DistanceContainer/DistanceLabel
+@onready var health_bar: ProgressBar = $TopBar/MarginContainer/HBoxContainer/HealthContainer/HealthBar
 @onready var red_flash: ColorRect = $RedFlash
 @onready var pause_menu: Control = $PauseMenu
 @onready var music_slider: HSlider = $PauseMenu/PanelContainer/VBoxContainer/MusicSlider
 @onready var sfx_slider: HSlider = $PauseMenu/PanelContainer/VBoxContainer/SFXSlider
 @onready var popup_check: CheckButton = $PauseMenu/PanelContainer/VBoxContainer/PopupCheck
-@onready var sparkle: TextureRect = $StatsPanel/MarginContainer/VBoxContainer/CoinsContainer/CoinIcon/Sparkle
+@onready var sparkle: TextureRect = $TopBar/MarginContainer/HBoxContainer/CoinsContainer/CoinIcon/Sparkle
+@onready var popup_container: Control = $PopupContainer
 
 var gm: Node  # GameManager reference
 var audio: Node  # AudioManager reference
@@ -44,10 +45,10 @@ func _process(delta: float) -> void:
 	# Sparkle orbits around the coin
 	sparkle_time += delta * 1.5
 	if sparkle:
-		var orbit_radius := 28.0
+		var orbit_radius := 22.0
 		var orbit_x := cos(sparkle_time) * orbit_radius
 		var orbit_y := sin(sparkle_time) * orbit_radius
-		sparkle.position = Vector2(10 + orbit_x, 10 + orbit_y)
+		sparkle.position = Vector2(8 + orbit_x, 8 + orbit_y)
 		sparkle.rotation = sparkle_time  # Spin while orbiting
 		var pulse := 0.6 + 0.3 * sin(sparkle_time * 3.0)
 		sparkle.modulate.a = pulse
@@ -183,21 +184,22 @@ func show_pickup_popup(amount: int, icon_texture: Texture2D) -> void:
 	# Center the popup (estimate ~80px width for "+1" + icon)
 	popup.position = Vector2(base_x - 40 + offset_x, base_y + offset_y)
 	popup.pivot_offset = Vector2(50, 25)  # Center pivot for rotation
-	add_child(popup)
+	popup_container.add_child(popup)  # Add to container so it's behind menus
 	
-	# Random float direction
-	var angle := randf_range(-PI * 0.8, -PI * 0.2)  # Mostly upward but random angle
-	var distance := randf_range(72, 120)  # 20% more distance for faster movement
+	# Fall downward and off-screen
+	var angle := randf_range(PI * 0.3, PI * 0.7)  # Downward angles
+	var distance := design_height - base_y + 100  # Enough to exit screen at bottom
+	var duration := 1.0  # Animation duration
 	var target_offset := Vector2(cos(angle), sin(angle)) * distance
 	
 	# Random spin (mild rotation)
-	var spin_amount := randf_range(-0.3, 0.3)  # ~17 degrees max
+	var spin_amount := randf_range(-0.5, 0.5)
 	
-	# Animate: float in random direction, spin, and fade out (2x longer duration)
+	# Animate: fall down off-screen, spin, and fade out
 	var tween := create_tween()
 	tween.set_parallel(true)
-	tween.tween_property(popup, "position", popup.position + target_offset, 1.6).set_ease(Tween.EASE_OUT)
-	tween.tween_property(popup, "rotation", spin_amount, 1.6).set_ease(Tween.EASE_OUT)
-	tween.tween_property(popup, "modulate:a", 0.0, 1.6).set_delay(0.6)
+	tween.tween_property(popup, "position", popup.position + target_offset, duration).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tween.tween_property(popup, "rotation", spin_amount, duration)
+	tween.tween_property(popup, "modulate:a", 0.0, duration * 0.8).set_delay(duration * 0.2)
 	tween.set_parallel(false)
 	tween.tween_callback(popup.queue_free)
