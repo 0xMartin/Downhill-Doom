@@ -1,13 +1,26 @@
-[gd_scene format=3 uid="uid://mainmenu001"]
+[gd_scene load_steps=15 format=3 uid="uid://mainmenu001"]
 
 [ext_resource type="Script" uid="uid://d3nvasl7sdaka" path="res://scripts/main_menu.gd" id="1_menu"]
+[ext_resource type="PackedScene" uid="uid://nueg6xkn0s6b" path="res://assets/models/players/player_1.blend" id="2_player_model"]
+[ext_resource type="Texture2D" path="res://assets/icons/mountain_silhouette.svg" id="3_mountain"]
+[ext_resource type="Texture2D" path="res://assets/icons/title_decoration.svg" id="4_decoration"]
+[ext_resource type="Texture2D" path="res://assets/icons/coin.svg" id="5_coin"]
+[ext_resource type="Texture2D" path="res://assets/icons/distance.svg" id="6_distance"]
 
-[sub_resource type="Gradient" id="Gradient_1"]
-colors = PackedColorArray(0.1, 0.15, 0.2, 1, 0.2, 0.35, 0.25, 1)
+[sub_resource type="Gradient" id="Gradient_bg"]
+colors = PackedColorArray(0.05, 0.08, 0.12, 1, 0.1, 0.2, 0.15, 1, 0.15, 0.25, 0.2, 1)
+offsets = PackedFloat32Array(0, 0.5, 1)
 
-[sub_resource type="GradientTexture2D" id="GradientTexture2D_1"]
-gradient = SubResource("Gradient_1")
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_bg"]
+gradient = SubResource("Gradient_bg")
 fill_to = Vector2(0, 1)
+
+[sub_resource type="Environment" id="Environment_menu"]
+background_mode = 1
+background_color = Color(0.1, 0.15, 0.2, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.6, 0.7, 0.8, 1)
+ambient_light_energy = 0.5
 
 [sub_resource type="Animation" id="Animation_RESET"]
 resource_name = "RESET"
@@ -27,6 +40,7 @@ tracks/0/keys = {
 
 [sub_resource type="Animation" id="Animation_enter"]
 resource_name = "enter"
+length = 0.8
 tracks/0/type = "value"
 tracks/0/imported = false
 tracks/0/enabled = true
@@ -49,7 +63,19 @@ tracks/1/keys = {
 "times": PackedFloat32Array(0, 0.6),
 "transitions": PackedFloat32Array(0.3, 1),
 "update": 0,
-"values": [Vector2(0, 30), Vector2(0, 0)]
+"values": [Vector2(0, 40), Vector2(0, 0)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("PlayerViewport:modulate")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 0.8),
+"transitions": PackedFloat32Array(0.5, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 0), Color(1, 1, 1, 1)]
 }
 
 [sub_resource type="Animation" id="Animation_exit"]
@@ -75,7 +101,18 @@ _data = {
 &"exit": SubResource("Animation_exit")
 }
 
-[node name="MainMenu" type="Control" unique_id=1005671399]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button"]
+bg_color = Color(0.2, 0.35, 0.25, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.4, 0.7, 0.5, 1)
+corner_radius_left = 8
+corner_radius_right = 8
+corner_detail = 8
+
+[node name="MainMenu" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -84,92 +121,202 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_menu")
 
-[node name="Background" type="TextureRect" parent="." unique_id=1019424080]
+[node name="Background" type="TextureRect" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-texture = SubResource("GradientTexture2D_1")
+texture = SubResource("GradientTexture2D_bg")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=1753336359]
-modulate = Color(1, 1, 1, 0)
+[node name="MountainSilhouette" type="TextureRect" parent="."]
 layout_mode = 1
-anchors_preset = 15
+anchors_preset = 12
+anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_top = -200.0
+grow_horizontal = 2
+grow_vertical = 0
+texture = ExtResource("3_mountain")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="PlayerViewport" type="SubViewportContainer" parent="."]
+z_index = 10
+mouse_filter = 2
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -150.0
+offset_top = -350.0
+offset_right = 150.0
+offset_bottom = -50.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 25
+stretch = true
+
+[node name="SubViewport" type="SubViewport" parent="PlayerViewport"]
+transparent_bg = true
+handle_input_locally = false
+size = Vector2i(300, 300)
+render_target_update_mode = 4
+
+[node name="Camera3D" type="Camera3D" parent="PlayerViewport/SubViewport"]
+transform = Transform3D(1, 0, 0, 0, 0.95, 0.3, 0, -0.3, 0.95, 0, 0.3, 1.5)
+environment = SubResource("Environment_menu")
+fov = 45.0
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="PlayerViewport/SubViewport"]
+transform = Transform3D(0.866, -0.25, 0.433, 0, 0.866, 0.5, -0.5, -0.433, 0.75, 2, 3, 2)
+light_energy = 1.5
+shadow_enabled = true
+
+[node name="DirectionalLight3D2" type="DirectionalLight3D" parent="PlayerViewport/SubViewport"]
+transform = Transform3D(0.866, 0.25, -0.433, 0, 0.866, 0.5, 0.5, -0.433, 0.75, -2, 2, -1)
+light_color = Color(0.8, 0.9, 1, 1)
+light_energy = 0.5
+
+[node name="PlayerModel" type="Node3D" parent="PlayerViewport/SubViewport"]
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -100.0
+offset_right = 200.0
+offset_bottom = 300.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 15
 alignment = 1
 
-[node name="Title" type="Label" parent="VBoxContainer" unique_id=1972088813]
+[node name="TitleContainer" type="VBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="Title" type="Label" parent="VBoxContainer/TitleContainer"]
 layout_mode = 2
 size_flags_horizontal = 4
-theme_override_colors/font_color = Color(1, 0.9, 0.7, 1)
-theme_override_colors/font_shadow_color = Color(0.2, 0.1, 0, 0.8)
-theme_override_constants/shadow_offset_x = 4
-theme_override_constants/shadow_offset_y = 4
-theme_override_font_sizes/font_size = 48
+theme_override_colors/font_color = Color(1, 0.85, 0.5, 1)
+theme_override_colors/font_shadow_color = Color(0.3, 0.15, 0, 0.9)
+theme_override_colors/font_outline_color = Color(0.5, 0.3, 0.1, 1)
+theme_override_constants/shadow_offset_x = 3
+theme_override_constants/shadow_offset_y = 3
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 52
 text = "DOWNHILL DOOM"
 horizontal_alignment = 1
 
-[node name="Subtitle" type="Label" parent="VBoxContainer" unique_id=1538338323]
+[node name="Decoration" type="TextureRect" parent="VBoxContainer/TitleContainer"]
+custom_minimum_size = Vector2(300, 30)
 layout_mode = 2
 size_flags_horizontal = 4
-theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
-theme_override_font_sizes/font_size = 18
+texture = ExtResource("4_decoration")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Subtitle" type="Label" parent="VBoxContainer/TitleContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(0.8, 0.85, 0.9, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.5)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 20
 text = "Roll. Destroy. Survive."
 horizontal_alignment = 1
 
-[node name="Spacer" type="Control" parent="VBoxContainer" unique_id=311600220]
-custom_minimum_size = Vector2(0, 40)
+[node name="Spacer" type="Control" parent="VBoxContainer"]
+custom_minimum_size = Vector2(0, 30)
 layout_mode = 2
 
-[node name="PlayButton" type="Button" parent="VBoxContainer" unique_id=941300437]
-custom_minimum_size = Vector2(280, 60)
+[node name="PlayButton" type="Button" parent="VBoxContainer"]
+custom_minimum_size = Vector2(280, 65)
 layout_mode = 2
 size_flags_horizontal = 4
-theme_override_font_sizes/font_size = 28
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_hover_color = Color(1, 0.95, 0.7, 1)
+theme_override_font_sizes/font_size = 30
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
 text = "PLAY"
 
-[node name="SettingsButton" type="Button" parent="VBoxContainer" unique_id=365954633]
-custom_minimum_size = Vector2(280, 50)
+[node name="StatsButton" type="Button" parent="VBoxContainer"]
+custom_minimum_size = Vector2(280, 55)
 layout_mode = 2
 size_flags_horizontal = 4
-theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_hover_color = Color(1, 0.95, 0.7, 1)
+theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+text = "STATS"
+
+[node name="SettingsButton" type="Button" parent="VBoxContainer"]
+custom_minimum_size = Vector2(280, 55)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_hover_color = Color(1, 0.95, 0.7, 1)
+theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
 text = "SETTINGS"
 
-[node name="QuitButton" type="Button" parent="VBoxContainer" unique_id=1747867136]
-custom_minimum_size = Vector2(280, 50)
+[node name="QuitButton" type="Button" parent="VBoxContainer"]
+custom_minimum_size = Vector2(280, 55)
 layout_mode = 2
 size_flags_horizontal = 4
-theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_hover_color = Color(1, 0.95, 0.7, 1)
+theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
 text = "QUIT"
 
-[node name="VersionLabel" type="Label" parent="." unique_id=269888009]
+[node name="VersionLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = -35.0
+offset_right = 150.0
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.6, 0.65, 0.7, 0.7)
+theme_override_font_sizes/font_size = 18
+text = "v0.1.0"
+
+[node name="AuthorLabel" type="RichTextLabel" parent="."]
 layout_mode = 1
 anchors_preset = 3
 anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -100.0
-offset_top = -30.0
+offset_left = -300.0
+offset_top = -35.0
 offset_right = -10.0
 grow_horizontal = 0
 grow_vertical = 0
-theme_override_colors/font_color = Color(0.5, 0.5, 0.5, 1)
-theme_override_font_sizes/font_size = 14
-text = "v0.1.0"
-horizontal_alignment = 2
+bbcode_enabled = true
+theme_override_colors/default_color = Color(0.6, 0.65, 0.7, 0.7)
+theme_override_font_sizes/normal_font_size = 18
+text = "[right]Made by [url=https://github.com/0xMartin]0xM4R71N[/url][/right]"
+fit_content = true
+scroll_active = false
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=839275597]
-libraries/ = SubResource("AnimationLibrary_1")
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries/&"" = SubResource("AnimationLibrary_1")
 
-[node name="SettingsPanel" type="Control" parent="." unique_id=677639257]
+[node name="SettingsPanel" type="Control" parent="."]
 visible = false
+z_index = 100
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -177,16 +324,17 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Background" type="ColorRect" parent="SettingsPanel" unique_id=1434006732]
+[node name="Background" type="ColorRect" parent="SettingsPanel"]
+mouse_filter = 2
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.8)
+color = Color(0, 0, 0, 0.85)
 
-[node name="VBoxContainer" type="VBoxContainer" parent="SettingsPanel" unique_id=1688739228]
+[node name="VBoxContainer" type="VBoxContainer" parent="SettingsPanel"]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -201,20 +349,20 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 20
 
-[node name="Title" type="Label" parent="SettingsPanel/VBoxContainer" unique_id=886842906]
+[node name="Title" type="Label" parent="SettingsPanel/VBoxContainer"]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_color = Color(1, 0.9, 0.7, 1)
 theme_override_font_sizes/font_size = 36
 text = "SETTINGS"
 horizontal_alignment = 1
 
-[node name="MusicLabel" type="Label" parent="SettingsPanel/VBoxContainer" unique_id=420745396]
+[node name="MusicLabel" type="Label" parent="SettingsPanel/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
 text = "Music Volume"
 horizontal_alignment = 1
 
-[node name="MusicSlider" type="HSlider" parent="SettingsPanel/VBoxContainer" unique_id=1581101459]
+[node name="MusicSlider" type="HSlider" parent="SettingsPanel/VBoxContainer"]
 custom_minimum_size = Vector2(300, 30)
 layout_mode = 2
 size_flags_horizontal = 4
@@ -222,13 +370,13 @@ max_value = 1.0
 step = 0.05
 value = 0.7
 
-[node name="SFXLabel" type="Label" parent="SettingsPanel/VBoxContainer" unique_id=840868493]
+[node name="SFXLabel" type="Label" parent="SettingsPanel/VBoxContainer"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
 text = "Sound Effects"
 horizontal_alignment = 1
 
-[node name="SFXSlider" type="HSlider" parent="SettingsPanel/VBoxContainer" unique_id=979525057]
+[node name="SFXSlider" type="HSlider" parent="SettingsPanel/VBoxContainer"]
 custom_minimum_size = Vector2(300, 30)
 layout_mode = 2
 size_flags_horizontal = 4
@@ -236,16 +384,149 @@ max_value = 1.0
 step = 0.05
 value = 0.8
 
-[node name="BackButton" type="Button" parent="SettingsPanel/VBoxContainer" unique_id=85466579]
+[node name="BackButton" type="Button" parent="SettingsPanel/VBoxContainer"]
 custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+text = "Back"
+
+[node name="StatsPanel" type="Control" parent="."]
+visible = false
+z_index = 100
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Background" type="ColorRect" parent="StatsPanel"]
+mouse_filter = 2
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.85)
+
+[node name="VBoxContainer" type="VBoxContainer" parent="StatsPanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -220.0
+offset_top = -200.0
+offset_right = 220.0
+offset_bottom = 200.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 15
+
+[node name="Title" type="Label" parent="StatsPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.9, 0.7, 1)
+theme_override_font_sizes/font_size = 36
+text = "STATISTICS"
+horizontal_alignment = 1
+
+[node name="Spacer1" type="Control" parent="StatsPanel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+
+[node name="CoinsHeader" type="HBoxContainer" parent="StatsPanel/VBoxContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="CoinIcon" type="TextureRect" parent="StatsPanel/VBoxContainer/CoinsHeader"]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+texture = ExtResource("5_coin")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="StatsPanel/VBoxContainer/CoinsHeader"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.4, 1)
+theme_override_font_sizes/font_size = 26
+text = " COINS"
+
+[node name="MaxCoins" type="Label" parent="StatsPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Best: 0"
+horizontal_alignment = 1
+
+[node name="AvgCoins" type="Label" parent="StatsPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Average: 0"
+horizontal_alignment = 1
+
+[node name="Spacer2" type="Control" parent="StatsPanel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+
+[node name="DistanceHeader" type="HBoxContainer" parent="StatsPanel/VBoxContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="DistanceIcon" type="TextureRect" parent="StatsPanel/VBoxContainer/DistanceHeader"]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+texture = ExtResource("6_distance")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="StatsPanel/VBoxContainer/DistanceHeader"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 26
+text = " DISTANCE"
+
+[node name="MaxDistance" type="Label" parent="StatsPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Best: 0m"
+horizontal_alignment = 1
+
+[node name="AvgDistance" type="Label" parent="StatsPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Average: 0m"
+horizontal_alignment = 1
+
+[node name="Spacer3" type="Control" parent="StatsPanel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+
+[node name="GamesPlayed" type="Label" parent="StatsPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.75, 0.8, 1)
+theme_override_font_sizes/font_size = 18
+text = "Games Played: 0"
+horizontal_alignment = 1
+
+[node name="BackButton" type="Button" parent="StatsPanel/VBoxContainer"]
+custom_minimum_size = Vector2(200, 50)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
 text = "Back"
 
 [connection signal="mouse_entered" from="VBoxContainer/PlayButton" to="." method="_on_play_button_mouse_entered"]
 [connection signal="mouse_exited" from="VBoxContainer/PlayButton" to="." method="_on_play_button_mouse_exited"]
 [connection signal="pressed" from="VBoxContainer/PlayButton" to="." method="_on_play_button_pressed"]
+[connection signal="mouse_entered" from="VBoxContainer/StatsButton" to="." method="_on_stats_button_mouse_entered"]
+[connection signal="mouse_exited" from="VBoxContainer/StatsButton" to="." method="_on_stats_button_mouse_exited"]
+[connection signal="pressed" from="VBoxContainer/StatsButton" to="." method="_on_stats_button_pressed"]
+[connection signal="mouse_entered" from="VBoxContainer/SettingsButton" to="." method="_on_settings_button_mouse_entered"]
+[connection signal="mouse_exited" from="VBoxContainer/SettingsButton" to="." method="_on_settings_button_mouse_exited"]
 [connection signal="pressed" from="VBoxContainer/SettingsButton" to="." method="_on_settings_button_pressed"]
 [connection signal="mouse_entered" from="VBoxContainer/QuitButton" to="." method="_on_quit_button_mouse_entered"]
 [connection signal="mouse_exited" from="VBoxContainer/QuitButton" to="." method="_on_quit_button_mouse_exited"]
@@ -253,3 +534,5 @@ text = "Back"
 [connection signal="value_changed" from="SettingsPanel/VBoxContainer/MusicSlider" to="." method="_on_music_slider_value_changed"]
 [connection signal="value_changed" from="SettingsPanel/VBoxContainer/SFXSlider" to="." method="_on_sfx_slider_value_changed"]
 [connection signal="pressed" from="SettingsPanel/VBoxContainer/BackButton" to="." method="_on_settings_back_pressed"]
+[connection signal="pressed" from="StatsPanel/VBoxContainer/BackButton" to="." method="_on_stats_back_pressed"]
+[connection signal="meta_clicked" from="AuthorLabel" to="." method="_on_author_link_clicked"]

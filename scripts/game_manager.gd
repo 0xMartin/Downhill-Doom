@@ -67,6 +67,10 @@ func end_game() -> void:
 	if coins > best_coins:
 		best_coins = coins
 	
+	# Record stats for statistics tracking
+	var MainMenu = load("res://scripts/main_menu.gd")
+	MainMenu.record_game_stats(coins, distance)
+	
 	player_died.emit()
 
 func add_coin(amount: int = 1) -> void:
