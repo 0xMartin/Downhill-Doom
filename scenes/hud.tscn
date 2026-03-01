@@ -1,23 +1,139 @@
 [gd_scene format=3 uid="uid://hud001"]
 
 [ext_resource type="Script" path="res://scripts/hud.gd" id="1_hud"]
-[ext_resource type="Texture2D" uid="uid://coin_icon" path="res://assets/icons/coin.svg" id="2_coin_icon"]
-[ext_resource type="Texture2D" uid="uid://distance_icon" path="res://assets/icons/distance.svg" id="3_distance_icon"]
-[ext_resource type="Texture2D" uid="uid://heart_icon" path="res://assets/icons/heart.svg" id="4_heart_icon"]
+[ext_resource type="Texture2D" path="res://assets/icons/coin.svg" id="2_coin_icon"]
+[ext_resource type="Texture2D" path="res://assets/icons/distance.svg" id="3_distance_icon"]
+[ext_resource type="Texture2D" path="res://assets/icons/heart.svg" id="4_heart_icon"]
+[ext_resource type="Texture2D" path="res://assets/icons/settings.svg" id="5_settings_icon"]
+[ext_resource type="Texture2D" path="res://assets/icons/hud_panel.svg" id="6_hud_panel"]
+[ext_resource type="Texture2D" path="res://assets/icons/sparkle.svg" id="7_sparkle"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.1, 0.08, 0.18, 0.92)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.91, 0.27, 0.38, 0.6)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+shadow_color = Color(0, 0, 0, 0.4)
+shadow_size = 8
+shadow_offset = Vector2(0, 4)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
-bg_color = Color(0.2, 0.2, 0.2, 0.8)
-corner_radius_top_left = 4
-corner_radius_top_right = 4
-corner_radius_bottom_right = 4
-corner_radius_bottom_left = 4
+bg_color = Color(0.1, 0.1, 0.15, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fill"]
-bg_color = Color(0.9, 0.2, 0.2, 1)
-corner_radius_top_left = 4
-corner_radius_top_right = 4
-corner_radius_bottom_right = 4
-corner_radius_bottom_left = 4
+bg_color = Color(0.91, 0.27, 0.38, 1)
+border_width_top = 1
+border_color = Color(1, 0.5, 0.6, 0.5)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_settings"]
+bg_color = Color(0.1, 0.08, 0.18, 0.85)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.91, 0.27, 0.38, 0.5)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+content_margin_left = 12.0
+content_margin_top = 12.0
+content_margin_right = 12.0
+content_margin_bottom = 12.0
+shadow_color = Color(0, 0, 0, 0.3)
+shadow_size = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_settings_hover"]
+bg_color = Color(0.15, 0.12, 0.25, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.91, 0.27, 0.38, 0.8)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+content_margin_left = 12.0
+content_margin_top = 12.0
+content_margin_right = 12.0
+content_margin_bottom = 12.0
+shadow_color = Color(0.91, 0.27, 0.38, 0.3)
+shadow_size = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button"]
+bg_color = Color(0.12, 0.1, 0.22, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.5, 0.4, 0.9, 0.6)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+shadow_color = Color(0, 0, 0, 0.3)
+shadow_size = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_hover"]
+bg_color = Color(0.18, 0.15, 0.35, 0.98)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.6, 0.5, 1, 0.9)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+shadow_color = Color(0.5, 0.4, 0.9, 0.3)
+shadow_size = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_pressed"]
+bg_color = Color(0.25, 0.2, 0.45, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.7, 0.6, 1, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pause_panel"]
+bg_color = Color(0.08, 0.06, 0.14, 0.98)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.5, 0.4, 0.9, 0.7)
+corner_radius_top_left = 24
+corner_radius_top_right = 24
+corner_radius_bottom_right = 24
+corner_radius_bottom_left = 24
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 16
+shadow_offset = Vector2(0, 8)
 
 [node name="HUD" type="CanvasLayer"]
 script = ExtResource("1_hud")
@@ -27,97 +143,127 @@ layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -90.0
-offset_top = 60.0
+offset_left = -85.0
+offset_top = 55.0
 offset_right = -20.0
-offset_bottom = 130.0
+offset_bottom = 120.0
 grow_horizontal = 0
 focus_mode = 2
 mouse_filter = 0
-theme_override_font_sizes/font_size = 28
-text = "⚙️"
+theme_override_styles/normal = SubResource("StyleBoxFlat_settings")
+theme_override_styles/hover = SubResource("StyleBoxFlat_settings_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_settings_hover")
+icon = ExtResource("5_settings_icon")
+icon_alignment = 1
+expand_icon = true
 
-[node name="MarginContainer" type="MarginContainer" parent="."]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="StatsPanel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 0
+offset_left = 20.0
+offset_top = 50.0
+offset_right = 280.0
+offset_bottom = 220.0
 mouse_filter = 2
-theme_override_constants/margin_left = 30
-theme_override_constants/margin_top = 60
-theme_override_constants/margin_right = 30
-theme_override_constants/margin_bottom = 20
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+[node name="MarginContainer" type="MarginContainer" parent="StatsPanel"]
 layout_mode = 2
-size_flags_horizontal = 0
-size_flags_vertical = 0
-theme_override_constants/separation = 10
+mouse_filter = 2
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 16
 
-[node name="CoinsContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="StatsPanel/MarginContainer"]
 layout_mode = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 12
 
-[node name="CoinIcon" type="TextureRect" parent="MarginContainer/VBoxContainer/CoinsContainer"]
-custom_minimum_size = Vector2(48, 48)
+[node name="HealthContainer" type="HBoxContainer" parent="StatsPanel/MarginContainer/VBoxContainer"]
 layout_mode = 2
-texture = ExtResource("2_coin_icon")
-expand_mode = 1
-stretch_mode = 5
-modulate = Color(1, 0.85, 0, 1)
+theme_override_constants/separation = 12
 
-[node name="CoinsLabel" type="Label" parent="MarginContainer/VBoxContainer/CoinsContainer"]
-layout_mode = 2
-pivot_offset = Vector2(30, 16)
-theme_override_colors/font_color = Color(1, 0.85, 0, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.5)
-theme_override_constants/shadow_offset_x = 2
-theme_override_constants/shadow_offset_y = 2
-theme_override_font_sizes/font_size = 42
-text = "0"
-
-[node name="DistanceContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
-layout_mode = 2
-theme_override_constants/separation = 10
-
-[node name="DistanceIcon" type="TextureRect" parent="MarginContainer/VBoxContainer/DistanceContainer"]
-custom_minimum_size = Vector2(44, 44)
-layout_mode = 2
-texture = ExtResource("3_distance_icon")
-expand_mode = 1
-stretch_mode = 5
-modulate = Color(1, 1, 1, 1)
-
-[node name="DistanceLabel" type="Label" parent="MarginContainer/VBoxContainer/DistanceContainer"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.5)
-theme_override_constants/shadow_offset_x = 2
-theme_override_constants/shadow_offset_y = 2
-theme_override_font_sizes/font_size = 38
-text = "0 m"
-
-[node name="HealthContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
-layout_mode = 2
-theme_override_constants/separation = 10
-
-[node name="HealthIcon" type="TextureRect" parent="MarginContainer/VBoxContainer/HealthContainer"]
-custom_minimum_size = Vector2(44, 44)
+[node name="HealthIcon" type="TextureRect" parent="StatsPanel/MarginContainer/VBoxContainer/HealthContainer"]
+custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
 texture = ExtResource("4_heart_icon")
 expand_mode = 1
 stretch_mode = 5
-modulate = Color(1, 0.3, 0.3, 1)
+modulate = Color(1, 0.4, 0.5, 1)
 
-[node name="HealthBar" type="ProgressBar" parent="MarginContainer/VBoxContainer/HealthContainer"]
-custom_minimum_size = Vector2(180, 32)
+[node name="HealthBar" type="ProgressBar" parent="StatsPanel/MarginContainer/VBoxContainer/HealthContainer"]
+custom_minimum_size = Vector2(160, 28)
 layout_mode = 2
 size_flags_vertical = 1
 value = 100.0
 show_percentage = false
 theme_override_styles/background = SubResource("StyleBoxFlat_bg")
 theme_override_styles/fill = SubResource("StyleBoxFlat_fill")
+
+[node name="CoinsContainer" type="HBoxContainer" parent="StatsPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="CoinIcon" type="TextureRect" parent="StatsPanel/MarginContainer/VBoxContainer/CoinsContainer"]
+custom_minimum_size = Vector2(44, 44)
+layout_mode = 2
+texture = ExtResource("2_coin_icon")
+expand_mode = 1
+stretch_mode = 5
+modulate = Color(1, 0.85, 0.2, 1)
+
+[node name="Sparkle" type="TextureRect" parent="StatsPanel/MarginContainer/VBoxContainer/CoinsContainer/CoinIcon"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -12.0
+offset_top = -12.0
+offset_right = 12.0
+offset_bottom = 12.0
+pivot_offset = Vector2(12, 12)
+texture = ExtResource("7_sparkle")
+expand_mode = 1
+stretch_mode = 5
+modulate = Color(1, 0.9, 0.5, 0.8)
+
+[node name="CoinsLabel" type="Label" parent="StatsPanel/MarginContainer/VBoxContainer/CoinsContainer"]
+layout_mode = 2
+size_flags_vertical = 1
+pivot_offset = Vector2(30, 18)
+theme_override_colors/font_color = Color(1, 0.9, 0.3, 1)
+theme_override_colors/font_shadow_color = Color(0.2, 0.1, 0, 0.6)
+theme_override_colors/font_outline_color = Color(0.4, 0.25, 0, 0.4)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 3
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 38
+text = "0"
+
+[node name="DistanceContainer" type="HBoxContainer" parent="StatsPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_constants/separation = 10
+
+[node name="DistanceIcon" type="TextureRect" parent="StatsPanel/MarginContainer/VBoxContainer/DistanceContainer"]
+custom_minimum_size = Vector2(38, 38)
+layout_mode = 2
+texture = ExtResource("3_distance_icon")
+expand_mode = 1
+stretch_mode = 5
+modulate = Color(0.7, 0.85, 1, 1)
+
+[node name="DistanceLabel" type="Label" parent="StatsPanel/MarginContainer/VBoxContainer/DistanceContainer"]
+layout_mode = 2
+size_flags_vertical = 1
+theme_override_colors/font_color = Color(0.85, 0.95, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0.1, 0.2, 0.5)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 34
+text = "0 m"
 
 [node name="RedFlash" type="ColorRect" parent="."]
 visible = false
@@ -147,89 +293,125 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.7)
+color = Color(0.02, 0.02, 0.06, 0.85)
 
-[node name="VBoxContainer" type="VBoxContainer" parent="PauseMenu"]
+[node name="PanelContainer" type="PanelContainer" parent="PauseMenu"]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -150.0
-offset_top = -200.0
-offset_right = 150.0
-offset_bottom = 200.0
+offset_left = -180.0
+offset_top = -260.0
+offset_right = 180.0
+offset_bottom = 260.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 15
+theme_override_styles/panel = SubResource("StyleBoxFlat_pause_panel")
 
-[node name="Title" type="Label" parent="PauseMenu/VBoxContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="PauseMenu/PanelContainer"]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 48
+theme_override_constants/separation = 18
+
+[node name="TitleMargin" type="MarginContainer" parent="PauseMenu/PanelContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="Title" type="Label" parent="PauseMenu/PanelContainer/VBoxContainer/TitleMargin"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.85, 1, 1)
+theme_override_colors/font_shadow_color = Color(0.3, 0.2, 0.5, 0.5)
+theme_override_constants/shadow_offset_y = 3
+theme_override_font_sizes/font_size = 52
 text = "PAUSED"
 horizontal_alignment = 1
 
-[node name="ResumeButton" type="Button" parent="PauseMenu/VBoxContainer"]
-custom_minimum_size = Vector2(200, 50)
+[node name="ResumeButton" type="Button" parent="PauseMenu/PanelContainer/VBoxContainer"]
+custom_minimum_size = Vector2(240, 56)
 layout_mode = 2
-theme_override_font_sizes/font_size = 24
-text = "Resume"
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(0.9, 0.85, 1, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 26
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_button_pressed")
+text = "▶  Resume"
 
-[node name="RestartButton" type="Button" parent="PauseMenu/VBoxContainer"]
-custom_minimum_size = Vector2(200, 50)
+[node name="RestartButton" type="Button" parent="PauseMenu/PanelContainer/VBoxContainer"]
+custom_minimum_size = Vector2(240, 56)
 layout_mode = 2
-theme_override_font_sizes/font_size = 24
-text = "Restart"
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(0.9, 0.85, 1, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 26
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_button_pressed")
+text = "↺  Restart"
 
-[node name="MenuButton" type="Button" parent="PauseMenu/VBoxContainer"]
-custom_minimum_size = Vector2(200, 50)
+[node name="MenuButton" type="Button" parent="PauseMenu/PanelContainer/VBoxContainer"]
+custom_minimum_size = Vector2(240, 56)
 layout_mode = 2
-theme_override_font_sizes/font_size = 24
-text = "Main Menu"
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(0.9, 0.85, 1, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 26
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_button_pressed")
+text = "🏠  Main Menu"
 
-[node name="Spacer" type="Control" parent="PauseMenu/VBoxContainer"]
-custom_minimum_size = Vector2(0, 10)
+[node name="Spacer" type="Control" parent="PauseMenu/PanelContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 5)
 layout_mode = 2
 
-[node name="MusicLabel" type="Label" parent="PauseMenu/VBoxContainer"]
+[node name="MusicLabel" type="Label" parent="PauseMenu/PanelContainer/VBoxContainer"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 16
-text = "Music"
+theme_override_colors/font_color = Color(0.7, 0.65, 0.9, 1)
+theme_override_font_sizes/font_size = 18
+text = "🎵  Music"
 horizontal_alignment = 1
 
-[node name="MusicSlider" type="HSlider" parent="PauseMenu/VBoxContainer"]
-custom_minimum_size = Vector2(0, 20)
+[node name="MusicSlider" type="HSlider" parent="PauseMenu/PanelContainer/VBoxContainer"]
+custom_minimum_size = Vector2(200, 24)
 layout_mode = 2
+size_flags_horizontal = 4
 min_value = 0.0
 max_value = 1.0
 step = 0.05
 value = 0.7
 
-[node name="SFXLabel" type="Label" parent="PauseMenu/VBoxContainer"]
+[node name="SFXLabel" type="Label" parent="PauseMenu/PanelContainer/VBoxContainer"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 16
-text = "Sound Effects"
+theme_override_colors/font_color = Color(0.7, 0.65, 0.9, 1)
+theme_override_font_sizes/font_size = 18
+text = "🔊  Sound Effects"
 horizontal_alignment = 1
 
-[node name="SFXSlider" type="HSlider" parent="PauseMenu/VBoxContainer"]
-custom_minimum_size = Vector2(0, 20)
+[node name="SFXSlider" type="HSlider" parent="PauseMenu/PanelContainer/VBoxContainer"]
+custom_minimum_size = Vector2(200, 24)
 layout_mode = 2
+size_flags_horizontal = 4
 min_value = 0.0
 max_value = 1.0
 step = 0.05
 value = 0.8
 
-[node name="PopupCheck" type="CheckButton" parent="PauseMenu/VBoxContainer"]
+[node name="PopupCheck" type="CheckButton" parent="PauseMenu/PanelContainer/VBoxContainer"]
 layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(0.7, 0.65, 0.9, 1)
+theme_override_font_sizes/font_size = 18
 button_pressed = true
 text = "Show Pickups"
 
 [connection signal="pressed" from="SettingsButton" to="." method="_on_settings_pressed"]
-[connection signal="pressed" from="PauseMenu/VBoxContainer/ResumeButton" to="." method="_on_resume_pressed"]
-[connection signal="pressed" from="PauseMenu/VBoxContainer/RestartButton" to="." method="_on_restart_pressed"]
-[connection signal="pressed" from="PauseMenu/VBoxContainer/MenuButton" to="." method="_on_menu_pressed"]
-[connection signal="value_changed" from="PauseMenu/VBoxContainer/MusicSlider" to="." method="_on_music_slider_changed"]
-[connection signal="value_changed" from="PauseMenu/VBoxContainer/SFXSlider" to="." method="_on_sfx_slider_changed"]
-[connection signal="toggled" from="PauseMenu/VBoxContainer/PopupCheck" to="." method="_on_popup_check_toggled"]
+[connection signal="pressed" from="PauseMenu/PanelContainer/VBoxContainer/ResumeButton" to="." method="_on_resume_pressed"]
+[connection signal="pressed" from="PauseMenu/PanelContainer/VBoxContainer/RestartButton" to="." method="_on_restart_pressed"]
+[connection signal="pressed" from="PauseMenu/PanelContainer/VBoxContainer/MenuButton" to="." method="_on_menu_pressed"]
+[connection signal="value_changed" from="PauseMenu/PanelContainer/VBoxContainer/MusicSlider" to="." method="_on_music_slider_changed"]
+[connection signal="value_changed" from="PauseMenu/PanelContainer/VBoxContainer/SFXSlider" to="." method="_on_sfx_slider_changed"]
+[connection signal="toggled" from="PauseMenu/PanelContainer/VBoxContainer/PopupCheck" to="." method="_on_popup_check_toggled"]

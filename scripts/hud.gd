@@ -1,19 +1,21 @@
 extends CanvasLayer
 ## HUD - Displays coins, distance, health, and handles pause
 
-@onready var coins_label: Label = $MarginContainer/VBoxContainer/CoinsContainer/CoinsLabel
-@onready var distance_label: Label = $MarginContainer/VBoxContainer/DistanceContainer/DistanceLabel
-@onready var health_bar: ProgressBar = $MarginContainer/VBoxContainer/HealthContainer/HealthBar
+@onready var coins_label: Label = $StatsPanel/MarginContainer/VBoxContainer/CoinsContainer/CoinsLabel
+@onready var distance_label: Label = $StatsPanel/MarginContainer/VBoxContainer/DistanceContainer/DistanceLabel
+@onready var health_bar: ProgressBar = $StatsPanel/MarginContainer/VBoxContainer/HealthContainer/HealthBar
 @onready var red_flash: ColorRect = $RedFlash
 @onready var pause_menu: Control = $PauseMenu
-@onready var music_slider: HSlider = $PauseMenu/VBoxContainer/MusicSlider
-@onready var sfx_slider: HSlider = $PauseMenu/VBoxContainer/SFXSlider
-@onready var popup_check: CheckButton = $PauseMenu/VBoxContainer/PopupCheck
+@onready var music_slider: HSlider = $PauseMenu/PanelContainer/VBoxContainer/MusicSlider
+@onready var sfx_slider: HSlider = $PauseMenu/PanelContainer/VBoxContainer/SFXSlider
+@onready var popup_check: CheckButton = $PauseMenu/PanelContainer/VBoxContainer/PopupCheck
+@onready var sparkle: TextureRect = $StatsPanel/MarginContainer/VBoxContainer/CoinsContainer/CoinIcon/Sparkle
 
 var gm: Node  # GameManager reference
 var audio: Node  # AudioManager reference
 var coin_icon_texture: Texture2D
 var last_coin_count: int = 0
+var sparkle_time: float = 0.0
 
 func _ready() -> void:
 	gm = get_node("/root/GameManager")
@@ -38,6 +40,18 @@ func _ready() -> void:
 	_on_distance_changed(gm.distance)
 	_on_health_changed(gm.health, gm.max_health)
 
+func _process(delta: float) -> void:
+	# Sparkle orbits around the coin
+	sparkle_time += delta * 1.5
+	if sparkle:
+		var orbit_radius := 28.0
+		var orbit_x := cos(sparkle_time) * orbit_radius
+		var orbit_y := sin(sparkle_time) * orbit_radius
+		sparkle.position = Vector2(10 + orbit_x, 10 + orbit_y)
+		sparkle.rotation = sparkle_time  # Spin while orbiting
+		var pulse := 0.6 + 0.3 * sin(sparkle_time * 3.0)
+		sparkle.modulate.a = pulse
+
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
 		if gm.is_playing:
@@ -51,6 +65,17 @@ func _on_coins_changed(total: int) -> void:
 	var added := total - last_coin_count
 	if added > 0 and coin_icon_texture:
 		show_pickup_popup(added, coin_icon_texture)
+		# Sparkle burst animation
+		if sparkle:
+			var sparkle_tween := create_tween()
+			sparkle_tween.set_parallel(true)
+			sparkle_tween.tween_property(sparkle, "modulate:a", 1.0, 0.05)
+			sparkle_tween.tween_property(sparkle, "scale", Vector2(1.5, 1.5), 0.1)
+			sparkle_tween.tween_property(sparkle, "rotation", TAU, 0.4)
+			sparkle_tween.set_parallel(false)
+			sparkle_tween.tween_property(sparkle, "scale", Vector2.ONE, 0.2)
+			sparkle_tween.tween_property(sparkle, "modulate:a", 0.6, 0.3)
+			sparkle_tween.tween_property(sparkle, "rotation", 0.0, 0.0)
 	last_coin_count = total
 	
 	coins_label.text = str(total)
@@ -162,17 +187,17 @@ func show_pickup_popup(amount: int, icon_texture: Texture2D) -> void:
 	
 	# Random float direction
 	var angle := randf_range(-PI * 0.8, -PI * 0.2)  # Mostly upward but random angle
-	var distance := randf_range(60, 100)
+	var distance := randf_range(72, 120)  # 20% more distance for faster movement
 	var target_offset := Vector2(cos(angle), sin(angle)) * distance
 	
 	# Random spin (mild rotation)
 	var spin_amount := randf_range(-0.3, 0.3)  # ~17 degrees max
 	
-	# Animate: float in random direction, spin, and fade out
+	# Animate: float in random direction, spin, and fade out (2x longer duration)
 	var tween := create_tween()
 	tween.set_parallel(true)
-	tween.tween_property(popup, "position", popup.position + target_offset, 0.8).set_ease(Tween.EASE_OUT)
-	tween.tween_property(popup, "rotation", spin_amount, 0.8).set_ease(Tween.EASE_OUT)
-	tween.tween_property(popup, "modulate:a", 0.0, 0.8).set_delay(0.3)
+	tween.tween_property(popup, "position", popup.position + target_offset, 1.6).set_ease(Tween.EASE_OUT)
+	tween.tween_property(popup, "rotation", spin_amount, 1.6).set_ease(Tween.EASE_OUT)
+	tween.tween_property(popup, "modulate:a", 0.0, 1.6).set_delay(0.6)
 	tween.set_parallel(false)
 	tween.tween_callback(popup.queue_free)
