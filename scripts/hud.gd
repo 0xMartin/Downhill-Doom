@@ -15,9 +15,6 @@ var audio: Node  # AudioManager reference
 var coin_icon_texture: Texture2D
 var last_coin_count: int = 0
 
-# Debug label for tilt info
-var debug_label: Label
-
 func _ready() -> void:
 	gm = get_node("/root/GameManager")
 	audio = get_node("/root/AudioManager")
@@ -40,33 +37,6 @@ func _ready() -> void:
 	_on_coins_changed(gm.coins)
 	_on_distance_changed(gm.distance)
 	_on_health_changed(gm.health, gm.max_health)
-	
-	# Create debug label
-	debug_label = Label.new()
-	debug_label.position = Vector2(20, 400)
-	debug_label.add_theme_font_size_override("font_size", 18)
-	debug_label.add_theme_color_override("font_color", Color.YELLOW)
-	debug_label.add_theme_color_override("font_shadow_color", Color.BLACK)
-	debug_label.add_theme_constant_override("shadow_offset_x", 1)
-	debug_label.add_theme_constant_override("shadow_offset_y", 1)
-	add_child(debug_label)
-
-func _process(_delta: float) -> void:
-	# Update debug info
-	var accel: Vector3 = Input.get_accelerometer()
-	var gyro: Vector3 = Input.get_gyroscope()
-	
-	var tilt: float = accel.x / 5.0
-	var tilt_clamped: float = clamp(tilt, -1.0, 1.0) if abs(tilt) > 0.08 else 0.0
-	
-	debug_label.text = "=== DEBUG ===\n"
-	debug_label.text += "Accel X: %.2f\n" % accel.x
-	debug_label.text += "Accel Y: %.2f\n" % accel.y
-	debug_label.text += "Accel Z: %.2f\n" % accel.z
-	debug_label.text += "Gyro: %.2f, %.2f, %.2f\n" % [gyro.x, gyro.y, gyro.z]
-	debug_label.text += "Tilt raw: %.2f\n" % tilt
-	debug_label.text += "Tilt used: %.2f\n" % tilt_clamped
-	debug_label.text += "Direction: %s" % ("LEFT" if tilt_clamped < -0.1 else ("RIGHT" if tilt_clamped > 0.1 else "CENTER"))
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
@@ -175,15 +145,18 @@ func show_pickup_popup(amount: int, icon_texture: Texture2D) -> void:
 	icon.modulate = Color(1, 0.85, 0, 1)  # Gold tint
 	popup.add_child(icon)
 	
-	# Position at player area (center X, 65% from top = 35% from bottom)
-	var viewport_size: Vector2i = get_viewport().size
-	var base_x := viewport_size.x / 2 - 50
-	var base_y := viewport_size.y * 0.65
+	# Position at player area - use design resolution (720x1280 with stretch)
+	# Center horizontally, 67% from top vertically
+	var design_width: float = 720.0
+	var design_height: float = 1280.0
+	var base_x: float = design_width / 2.0
+	var base_y: float = design_height * 0.67
 	
-	# Random spawn offset (3x spread)
-	var offset_x := randf_range(-120, 120)
-	var offset_y := randf_range(-60, 60)
-	popup.position = Vector2(base_x + offset_x, base_y + offset_y)
+	# Small random offset around spawn point
+	var offset_x := randf_range(-40, 40)
+	var offset_y := randf_range(-30, 30)
+	# Center the popup (estimate ~80px width for "+1" + icon)
+	popup.position = Vector2(base_x - 40 + offset_x, base_y + offset_y)
 	popup.pivot_offset = Vector2(50, 25)  # Center pivot for rotation
 	add_child(popup)
 	

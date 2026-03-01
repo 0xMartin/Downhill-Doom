@@ -1,71 +1,63 @@
-[gd_scene load_steps=8 format=3 uid="uid://game001"]
+[gd_scene format=3 uid="uid://game001"]
 
 [ext_resource type="PackedScene" uid="uid://player001" path="res://scenes/player.tscn" id="1_player"]
-[ext_resource type="Script" path="res://scripts/camera_follow.gd" id="2_camera"]
-[ext_resource type="Script" path="res://scripts/terrain_generator.gd" id="3_terrain"]
+[ext_resource type="Script" uid="uid://b1fqoe2lmpcri" path="res://scripts/camera_follow.gd" id="2_camera"]
+[ext_resource type="Script" uid="uid://rrb4obtt7obu" path="res://scripts/terrain_generator.gd" id="3_terrain"]
 [ext_resource type="PackedScene" uid="uid://hud001" path="res://scenes/hud.tscn" id="4_hud"]
-[ext_resource type="PackedScene" uid="uid://death001" path="res://scenes/death_menu.tscn" id="5_death"]
+[ext_resource type="PackedScene" path="res://scenes/death_menu.tscn" id="5_death"]
+[ext_resource type="Texture2D" uid="uid://dhwpgg8erh5n5" path="res://assets/skybox/Epic_GloriousPink_EquiRect.png" id="6_skybox"]
 
-[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_1"]
-sky_top_color = Color(0.4, 0.6, 0.9, 1)
-sky_horizon_color = Color(0.7, 0.8, 0.95, 1)
-ground_bottom_color = Color(0.15, 0.1, 0.05, 1)
-ground_horizon_color = Color(0.3, 0.25, 0.2, 1)
-sun_angle_max = 30.0
+[sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_1"]
+panorama = ExtResource("6_skybox")
 
 [sub_resource type="Sky" id="Sky_1"]
-sky_material = SubResource("ProceduralSkyMaterial_1")
+sky_material = SubResource("PanoramaSkyMaterial_1")
 
 [sub_resource type="Environment" id="Environment_1"]
 background_mode = 2
 sky = SubResource("Sky_1")
+sky_rotation = Vector3(0.17453292, -2.469641, 0.17453292)
 ambient_light_source = 1
 ambient_light_color = Color(1, 1, 1, 1)
 ambient_light_energy = 0.6
-tonemap_mode = 0
 fog_enabled = true
 fog_light_color = Color(0.7, 0.75, 0.85, 1)
 fog_density = 0.002
 fog_sky_affect = 0.3
 
-[node name="Game" type="Node3D"]
+[node name="Game" type="Node3D" unique_id=1842668777]
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1658484920]
 environment = SubResource("Environment_1")
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=582957755]
 transform = Transform3D(1, 0, 0, 0, 0.5, 0.866, 0, -0.866, 0.5, 0, 50, 50)
 light_color = Color(1, 0.98, 0.95, 1)
 light_energy = 1.2
 shadow_enabled = true
-shadow_blur = 1.0
 directional_shadow_mode = 0
 directional_shadow_max_distance = 80.0
 
-[node name="TerrainGenerator" type="Node3D" parent="."]
+[node name="TerrainGenerator" type="Node3D" parent="." unique_id=1904949631]
 script = ExtResource("3_terrain")
 chunk_size = Vector2(24, 50)
-chunks_ahead = 5
 chunks_behind = 1
-slope_angle = 12.0
 noise_height = 1.0
 tree_density = 5.0
-rock_density = 2.0
 terrain_width = 20.0
 
-[node name="Player" parent="." instance=ExtResource("1_player")]
+[node name="Player" parent="." unique_id=1084123691 instance=ExtResource("1_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -3, -25)
 mass = 10.0
 
-[node name="Camera3D" type="Camera3D" parent="."]
+[node name="Camera3D" type="Camera3D" parent="." unique_id=568877580]
 transform = Transform3D(1, 0, 0, 0, 0.8, 0.6, 0, -0.6, 0.8, 0, 10, 12)
 fov = 55.0
 script = ExtResource("2_camera")
 target_path = NodePath("../Player")
 offset = Vector3(0, 8, 10)
-follow_speed = 5.0
 look_ahead = 8.0
 
-[node name="HUD" parent="." instance=ExtResource("4_hud")]
+[node name="HUD" parent="." unique_id=877656401 instance=ExtResource("4_hud")]
 
-[node name="DeathMenu" parent="." instance=ExtResource("5_death")]
+[node name="DeathMenu" parent="." unique_id=2145917869 instance=ExtResource("5_death")]

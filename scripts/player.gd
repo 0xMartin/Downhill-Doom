@@ -6,12 +6,16 @@ signal hit_rock(impact_position: Vector3)
 
 # Movement parameters
 @export var forward_force: float = 50.0  # Constant forward push
-@export var turn_torque: float = 120.0   # Horizontal steering torque (3x stronger)
+@export var lateral_force: float = 100.0  # Direct sideways steering force
 @export var max_angular_velocity: float = 30.0  # Cap rotation speed
 @export var max_speed: float = 25.0  # Maximum forward speed
+@export var max_lateral_speed: float = 10.0  # Cap sideways speed
 @export var death_height_offset: float = -30.0  # Y offset below terrain that triggers death
 @export var rock_damage: int = 12  # Damage taken from rocks (halved)
 @export var sphere_radius: float = 0.7  # For calculating proper roll rotation
+
+# Tilt control - SIMPLE direct mapping
+var tilt_multiplier: float = 3.0  # How much accel.x affects steering (higher = more sensitive)
 
 var is_dead := false
 var player_model: Node3D  # Visual model (separate from physics)
@@ -98,31 +102,41 @@ func _physics_process(delta: float) -> void:
 		speed_factor = clamp(speed_factor, 0.2, 1.0)
 		apply_central_force(Vector3(0, 0, -forward_force * speed_factor))
 	
-	# Get horizontal input (A/D or arrow keys)
-	var turn_input := Input.get_axis("ui_right", "ui_left")
+	# Get horizontal input (A/D or arrow keys) - for desktop testing
+	var keyboard_input: float = 0.0
+	if Input.is_action_pressed("move_left") or Input.is_action_pressed("ui_left"):
+		keyboard_input = 1.0
+	if Input.is_action_pressed("move_right") or Input.is_action_pressed("ui_right"):
+		keyboard_input = -1.0
 	
-	# Also support A/D keys directly
-	if Input.is_action_pressed("move_left"):
-		turn_input += 1.0
-	if Input.is_action_pressed("move_right"):
-		turn_input -= 1.0
-	
-	# Tilt controls for mobile - portrait mode
-	# X axis: tilt left = negative, tilt right = positive
+	# Tilt controls for mobile - SIMPLE AND DIRECT
+	# accel.x: negative when tilted left, positive when tilted right
+	# We want: tilt left = move left (negative X), tilt right = move right (positive X)
 	var accel := Input.get_accelerometer()
+	var tilt_input: float = 0.0
 	if accel != Vector3.ZERO:
-		# Simple portrait mode: use X axis directly
-		# Gravity is approximately -9.8 on Y when phone is upright
-		# X goes from about -10 (tilted left) to +10 (tilted right)
-		var tilt := accel.x / 5.0  # Higher sensitivity
-		if abs(tilt) > 0.08:  # Small dead zone
-			turn_input += clamp(tilt, -1.0, 1.0)
+		# Direct mapping: accel.x typically ranges from -10 to +10
+		# Normalize to roughly -1 to +1 and apply multiplier
+		tilt_input = clamp(accel.x / 6.0, -1.0, 1.0)
 	
-	turn_input = clamp(turn_input, -1.0, 1.0)
+	# Use tilt if present, otherwise keyboard
+	var final_input: float = tilt_input if abs(tilt_input) > 0.05 else keyboard_input
 	
-	# Apply turning torque on the Z-axis to roll left/right
-	if turn_input != 0.0:
-		apply_torque(Vector3(0, 0, turn_input * turn_torque))
+	# Apply direct lateral force - INSTANT RESPONSE
+	if final_input != 0.0:
+		# Direct sideways velocity change for immediate response
+		var target_lateral_velocity: float = final_input * max_lateral_speed
+		var current_lateral_velocity: float = linear_velocity.x
+		
+		# Smoothly move towards target (but still responsive)
+		var velocity_diff: float = target_lateral_velocity - current_lateral_velocity
+		apply_central_force(Vector3(velocity_diff * lateral_force * delta * 60.0, 0, 0))
+	else:
+		# Apply drag to stop sideways movement when not steering
+		linear_velocity.x *= 0.95
+	
+	# Hard cap lateral speed
+	linear_velocity.x = clamp(linear_velocity.x, -max_lateral_speed, max_lateral_speed)
 	
 	# Clamp angular velocity to prevent excessive spinning
 	if angular_velocity.length() > max_angular_velocity:

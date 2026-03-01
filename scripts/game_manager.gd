@@ -20,6 +20,7 @@ var is_paused := false
 # Health system
 var max_health: int = 100
 var health: int = 100
+var infinite_health: bool = false  # Debug: skip damage
 
 # Player reference
 var player: Node3D
@@ -74,6 +75,10 @@ func add_coin(amount: int = 1) -> void:
 
 func take_damage(amount: int) -> void:
 	if not is_playing or health <= 0:
+		return
+	
+	# Skip damage if infinite health enabled
+	if infinite_health:
 		return
 	
 	health = max(0, health - amount)

@@ -8,7 +8,7 @@ signal terrain_ready
 @export var chunks_ahead: int = 5
 @export var chunks_behind: int = 2
 @export var slope_angle: float = 12.0
-@export var noise_height: float = 1.5
+@export var noise_height: float = 1.0
 @export var noise_scale: float = 0.02
 @export var tree_density: float = 0.0175  # trees per 100 sq units (halved)
 @export var rock_spawn_chance: float = 0.6  # 60% chance of 1 rock per chunk
