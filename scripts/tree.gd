@@ -4,6 +4,8 @@ extends RigidBody3D
 
 @export var fall_torque: float = 50.0
 @export var coin_value: int = 1
+@export var object_id: String = "tree_unknown"
+@export var object_name: String = "Tree"
 
 var is_fallen := false
 
@@ -71,10 +73,11 @@ func fall(player_velocity: Vector3) -> void:
 	var target_pos := position + fall_direction * 2.0 + Vector3(0, -1.5, 0)
 	tween.tween_property(self, "position", target_pos, 0.8).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
 	
-	# Award coin
-	var gm = get_node_or_null("/root/GameManager")
+	# Award coin and record stats
+	var gm := get_node_or_null("/root/GameManager")
 	if gm:
 		gm.add_coin(coin_value)
+		gm.record_destroyed_object(object_id, object_name, coin_value)
 	
 	# Remove after delay
 	await tween.finished

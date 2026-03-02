@@ -8,6 +8,7 @@ signal player_hit(damage: int)
 signal player_died
 signal game_started
 signal game_paused(is_paused: bool)
+signal object_destroyed(object_id: String, object_name: String, coins: int)
 
 # Game state
 var coins: int = 0
@@ -26,6 +27,10 @@ var infinite_health: bool = false  # Debug: skip damage
 var player: Node3D
 var start_position: Vector3
 
+# Stats tracking - objects destroyed this run
+var destroyed_objects: Dictionary = {}  # {object_id: count}
+var destroyed_objects_details: Array = []  # [{id, name, coins, timestamp}]
+
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 
@@ -43,13 +48,18 @@ func start_game() -> void:
 	health = max_health
 	is_playing = true
 	is_paused = false
+	
+	# Reset stats
+	destroyed_objects.clear()
+	destroyed_objects_details.clear()
+	
 	coins_changed.emit(coins)
 	distance_changed.emit(distance)
 	health_changed.emit(health, max_health)
 	game_started.emit()
 	
 	# Start game music
-	var audio = get_node_or_null("/root/AudioManager")
+	var audio := get_node_or_null("/root/AudioManager")
 	if audio:
 		audio.start_game_music()
 
@@ -76,6 +86,45 @@ func end_game() -> void:
 func add_coin(amount: int = 1) -> void:
 	coins += amount
 	coins_changed.emit(coins)
+
+## Record a destroyed object for statistics
+func record_destroyed_object(object_id: String, object_name: String, coin_value: int) -> void:
+	# Update count
+	if destroyed_objects.has(object_id):
+		destroyed_objects[object_id] += 1
+	else:
+		destroyed_objects[object_id] = 1
+	
+	# Store details
+	destroyed_objects_details.append({
+		"id": object_id,
+		"name": object_name,
+		"coins": coin_value,
+		"distance": distance,
+		"timestamp": Time.get_ticks_msec(),
+	})
+	
+	# Emit signal for UI updates
+	object_destroyed.emit(object_id, object_name, coin_value)
+
+## Get count of destroyed objects by ID
+func get_destroyed_count(object_id: String) -> int:
+	return destroyed_objects.get(object_id, 0)
+
+## Get total destroyed objects count
+func get_total_destroyed() -> int:
+	var total := 0
+	for count in destroyed_objects.values():
+		total += count
+	return total
+
+## Get destruction stats summary
+func get_destruction_stats() -> Dictionary:
+	return {
+		"total": get_total_destroyed(),
+		"by_object": destroyed_objects.duplicate(),
+		"details": destroyed_objects_details.duplicate(),
+	}
 
 func take_damage(amount: int) -> void:
 	if not is_playing or health <= 0:

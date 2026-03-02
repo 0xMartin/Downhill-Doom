@@ -4,6 +4,8 @@ extends StaticBody3D
 
 @export var damage: int = 15
 @export var damage_cooldown: float = 1.0  # Time before can damage again
+@export var object_id: String = "enemy_unknown"
+@export var object_name: String = "Enemy"
 
 var can_damage := true
 

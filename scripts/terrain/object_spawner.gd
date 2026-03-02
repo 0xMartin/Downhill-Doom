@@ -1,79 +1,20 @@
 class_name ObjectSpawner
 extends RefCounted
 ## Handles spawning of all world objects with zone-based placement
-## Supports: trees, rocks, buildings, spikes (enemies)
+## Uses ObjectConfig for object definitions
 ## 
 ## Zone system:
-## - FOREST zones: Trees spawn here
-## - BUILDING zones: Buildings and spikes spawn here
+## - FOREST zones: Trees + Enemies
+## - BUILDING zones: Buildings + Enemies (2x density)
 ## - OPEN zones: Transition areas, only rocks
-## - Rocks spawn everywhere regardless of zone
+## - Rocks spawn everywhere
 
-# ========== OBJECT CONFIGURATION ==========
-# Each object type has configurable properties
+const ObjectConfigScript := preload("res://scripts/config/object_config.gd")
 
-var object_configs: Dictionary = {
-	"tree": {
-		"models": [
-			"res://assets/models/trees/borovice_1.blend",
-			"res://assets/models/trees/borovice_2.blend",
-			"res://assets/models/trees/borovice_3.blend",
-			"res://assets/models/trees/smrk_1.blend",
-			"res://assets/models/trees/smrk_2.blend",
-			"res://assets/models/trees/smrk_3.blend",
-			"res://assets/models/trees/strom_1.blend",
-			"res://assets/models/trees/strom_2.blend",
-			"res://assets/models/trees/strom_3.blend",
-			"res://assets/models/trees/strom_bez_listi.blend",
-			"res://assets/models/trees/strom_bez_listi_2.blend",
-		],
-		"target_height": 3.0,
-		"height_variation": 0.2,  # +/- 20%
-		"coins": 1,
-		"display_name": "Tree",
-		"collision_radius": 0.6,
-		"collision_height": 2.5,
-	},
-	"rock": {
-		"models": [
-			"res://assets/models/rocks/rock_1.blend",
-			"res://assets/models/rocks/rock_2.blend",
-			"res://assets/models/rocks/rock_3.blend",
-			"res://assets/models/rocks/rock_4.blend",
-			"res://assets/models/rocks/rock_5.blend",
-			"res://assets/models/rocks/rock_6.blend",
-			"res://assets/models/rocks/rock_7.blend",
-			"res://assets/models/rocks/rock_8.blend",
-			"res://assets/models/rocks/rock_9.blend",
-			"res://assets/models/rocks/rock_10.blend",
-		],
-		"target_height": 0.8,
-		"height_variation": 0.3,
-		"display_name": "Rock",
-		"collision_radius": 0.4,
-	},
-	"building": {
-		"models": [
-			"res://assets/models/buildings/tent.blend",
-			"res://assets/models/buildings/small_hut.blend",
-		],
-		"target_height": 2.5,
-		"height_variation": 0.15,
-		"coins": 20,
-		"display_name": "Building",
-		"collision_size": Vector3(2.0, 2.0, 2.0),  # Box collider
-	},
-	"spike": {
-		"models": [
-			"res://assets/models/enemies/spike.blend",
-		],
-		"target_height": 1.0,
-		"height_variation": 0.1,
-		"damage": 15,
-		"display_name": "Spike",
-		"collision_radius": 0.8,
-	},
-}
+# Preloaded scripts for objects
+const TreeScript := preload("res://scripts/tree.gd")
+const BuildingScript := preload("res://scripts/building.gd")
+const SpikeScript := preload("res://scripts/spike.gd")
 
 # ========== SPAWNING CONFIGURATION ==========
 
@@ -81,11 +22,14 @@ var terrain_width: float = 36.0
 var chunk_size: Vector2 = Vector2(100, 50)
 var num_lanes: int = 5
 
-# Density settings (objects per 100 square units)
+# Base density settings (objects per 100 square units)
 var tree_density: float = 0.5
-var rock_density: float = 0.15  # Rocks everywhere
-var building_density: float = 0.08
-var spike_density: float = 0.05
+var rock_density: float = 0.15
+var building_density: float = 0.2  # Increased base density
+var enemy_density: float = 0.08
+
+# Urban zone multiplier
+var urban_density_multiplier: float = 2.0
 
 # Safe chunks (no spawning for first N chunks)
 var rock_safe_chunks: int = 2
@@ -104,11 +48,6 @@ var zone_manager: RefCounted  # ZoneManager
 # Track spawned positions per chunk to prevent overlap
 var spawned_positions: Dictionary = {}  # chunk_index -> Array[Vector2] (x, z)
 
-# Preloaded scripts
-const TreeScript := preload("res://scripts/tree.gd")
-const BuildingScript := preload("res://scripts/building.gd")
-const SpikeScript := preload("res://scripts/spike.gd")
-
 func _init(config: Dictionary) -> void:
 	terrain_width = config.get("terrain_width", 36.0)
 	chunk_size = config.get("chunk_size", Vector2(100, 50))
@@ -118,13 +57,13 @@ func _init(config: Dictionary) -> void:
 	
 	_setup_material()
 	
-	# Create zone manager
+	# Create zone manager with noise-based zones
 	var ZoneManagerScript := preload("res://scripts/terrain/zone_manager.gd")
 	zone_manager = ZoneManagerScript.new({
-		"chunk_size_y": chunk_size.y,
-		"min_zone_length": 100.0,
-		"max_zone_length": 200.0,
-		"open_zone_length": 30.0,
+		"seed": config.get("seed", 42),
+		"noise_scale": 0.015,  # Larger patches
+		"forest_threshold": -0.1,
+		"building_threshold": 0.1,
 	})
 
 func _setup_material() -> void:
@@ -140,31 +79,322 @@ func set_hole_manager(manager: RefCounted) -> void:
 	hole_manager = manager
 
 ## Main spawn function - call this for each chunk
+## Uses noise-based zone sampling at each spawn position
 func spawn_objects(chunk: Node3D, chunk_index: int, get_height_func: Callable) -> void:
 	# Clear previous spawn positions for this chunk
 	spawned_positions[chunk_index] = []
 	
-	# Get zone type for this chunk
-	var zone_type: int = zone_manager.get_zone_for_chunk(chunk_index)
-	
-	# Rocks spawn everywhere (regardless of zone)
+	# Spawn rocks everywhere (regardless of zone)
 	if chunk_index >= rock_safe_chunks:
 		_spawn_rocks(chunk, chunk_index, get_height_func)
 	
-	# Zone-specific spawning
-	match zone_type:
-		0:  # FOREST
-			_spawn_trees(chunk, chunk_index, get_height_func)
-		1:  # BUILDING
-			if chunk_index >= building_safe_chunks:
-				_spawn_buildings(chunk, chunk_index, get_height_func)
-			if chunk_index >= enemy_safe_chunks:
-				_spawn_spikes(chunk, chunk_index, get_height_func)
-		2:  # OPEN
-			# Only rocks (already spawned above)
-			pass
+	# Spawn trees, buildings, and enemies based on position-level zone checking
+	_spawn_zone_objects(chunk, chunk_index, get_height_func)
 
-## Check if a position is too close to already spawned objects
+## Spawn rocks (zone-independent)
+func _spawn_rocks(chunk: Node3D, chunk_index: int, get_height_func: Callable) -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(chunk_index * 99999)
+	
+	var area := chunk_size.x * chunk_size.y
+	var object_count := int(area * rock_density / 100.0)
+	object_count = max(object_count, 1)
+	
+	for i in range(object_count):
+		var obj_data: RefCounted = ObjectConfigScript.select_random_object(ObjectConfigScript.Category.ROCK, rng)
+		if not obj_data:
+			continue
+		
+		var margin := 2.0
+		var x := rng.randf_range(-terrain_width / 2 + margin, terrain_width / 2 - margin)
+		var local_z := rng.randf_range(-chunk_size.y + margin, -margin)
+		
+		if _is_near_hole(x, local_z, chunk_index):
+			continue
+		
+		if not _is_position_available(x, local_z, chunk_index, 1.5):
+			continue
+		
+		var height: float = get_height_func.call(x, local_z, chunk_index)
+		
+		var obj: Node3D = _create_object(obj_data, rng, ObjectConfigScript.Category.ROCK)
+		if not obj:
+			continue
+		
+		obj.position = Vector3(x, height, local_z)
+		obj.rotation.y = rng.randf_range(0, TAU)
+		
+		var variation: float = obj_data.height_variation
+		var target_h: float = obj_data.target_height * rng.randf_range(1.0 - variation, 1.0 + variation)
+		_scale_to_target_height(obj, target_h)
+		
+		chunk.add_child(obj)
+		_register_spawn_position(x, local_z, chunk_index)
+
+## Spawn zone-dependent objects (trees, buildings, enemies) with per-position zone check
+func _spawn_zone_objects(chunk: Node3D, chunk_index: int, get_height_func: Callable) -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(chunk_index * 54321)
+	
+	# Calculate how many spawn attempts based on combined densities
+	var area := chunk_size.x * chunk_size.y
+	var combined_density := tree_density + building_density + enemy_density
+	var spawn_attempts := int(area * combined_density / 100.0 * 1.5)  # Extra attempts due to zone filtering
+	spawn_attempts = max(spawn_attempts, 5)
+	
+	var chunk_start_z := -chunk_index * chunk_size.y
+	
+	for i in range(spawn_attempts):
+		var margin := 3.0
+		var x := rng.randf_range(-terrain_width / 2 + margin, terrain_width / 2 - margin)
+		var local_z := rng.randf_range(-chunk_size.y + margin, -margin)
+		
+		# Convert to world Z for zone sampling
+		var world_z := chunk_start_z + local_z
+		
+		# Skip if in hole area
+		if _is_near_hole(x, local_z, chunk_index):
+			continue
+		
+		# Get zone data at this specific position
+		var zone_data: Dictionary = zone_manager.get_zone_at_position(x, world_z)
+		var forest_weight: float = zone_data.forest_weight
+		var building_weight: float = zone_data.building_weight
+		
+		# Decide what to spawn based on zone weights
+		var roll := rng.randf()
+		var category: int = -1
+		
+		if forest_weight > 0.0 and roll < forest_weight:
+			# Try to spawn tree
+			category = ObjectConfigScript.Category.TREE
+		elif building_weight > 0.0 and roll >= forest_weight:
+			# Try to spawn building (with safe chunk check)
+			if chunk_index >= building_safe_chunks:
+				category = ObjectConfigScript.Category.BUILDING
+		
+		# Additionally, try to spawn enemy with separate probability
+		var enemy_roll := rng.randf()
+		var should_spawn_enemy := false
+		if chunk_index >= enemy_safe_chunks:
+			# Enemies can spawn in both zones but more likely in building zones
+			var enemy_chance := enemy_density / 10.0  # Base chance
+			if building_weight > 0.5:
+				enemy_chance *= 1.5  # More enemies near buildings
+			should_spawn_enemy = enemy_roll < enemy_chance
+		
+		# Spawn enemy if rolled (higher priority than decoration)
+		if should_spawn_enemy:
+			_try_spawn_at_position(chunk, chunk_index, get_height_func, x, local_z, 
+								   ObjectConfigScript.Category.ENEMY, rng)
+		elif category >= 0:
+			_try_spawn_at_position(chunk, chunk_index, get_height_func, x, local_z, 
+								   category, rng)
+
+## Try to spawn a single object at a specific position
+func _try_spawn_at_position(chunk: Node3D, chunk_index: int, get_height_func: Callable,
+							x: float, local_z: float, category: int, rng: RandomNumberGenerator) -> bool:
+	# Select random object from category
+	var obj_data: RefCounted = ObjectConfigScript.select_random_object(category, rng)
+	if not obj_data:
+		return false
+	
+	# Check minimum distance based on category
+	var min_dist := min_object_distance
+	if category == ObjectConfigScript.Category.BUILDING:
+		min_dist = 4.0
+	elif category == ObjectConfigScript.Category.ROCK:
+		min_dist = 1.5
+	
+	if not _is_position_available(x, local_z, chunk_index, min_dist):
+		return false
+	
+	var height: float = get_height_func.call(x, local_z, chunk_index)
+	
+	# Create object
+	var obj: Node3D = _create_object(obj_data, rng, category)
+	if not obj:
+		return false
+	
+	obj.position = Vector3(x, height, local_z)
+	obj.rotation.y = rng.randf_range(0, TAU)
+	
+	# Scale to target height
+	var variation: float = obj_data.height_variation
+	var target_h: float = obj_data.target_height * rng.randf_range(1.0 - variation, 1.0 + variation)
+	_scale_to_target_height(obj, target_h)
+	
+	chunk.add_child(obj)
+	_register_spawn_position(x, local_z, chunk_index)
+	return true
+
+## Create an object instance based on category
+func _create_object(obj_data: RefCounted, rng: RandomNumberGenerator, category: int) -> Node3D:
+	match category:
+		ObjectConfigScript.Category.TREE:
+			return _create_tree(obj_data, rng)
+		ObjectConfigScript.Category.BUILDING:
+			return _create_building(obj_data, rng)
+		ObjectConfigScript.Category.ENEMY:
+			return _create_enemy(obj_data, rng)
+		ObjectConfigScript.Category.ROCK:
+			return _create_rock(obj_data, rng)
+	return null
+
+## Create a tree instance
+func _create_tree(obj_data: RefCounted, rng: RandomNumberGenerator) -> RigidBody3D:
+	var tree := RigidBody3D.new()
+	tree.name = "Tree"
+	tree.mass = 20.0
+	tree.freeze = true
+	tree.collision_layer = 0
+	tree.collision_mask = 1
+	tree.set_script(TreeScript)
+	tree.set("coin_value", obj_data.coins)
+	tree.set("object_id", obj_data.id)
+	tree.set("object_name", obj_data.display_name)
+	
+	# Load model
+	var model_scene := load(obj_data.model_path) as PackedScene
+	if model_scene:
+		var model := model_scene.instantiate()
+		model.name = "Model"
+		_apply_material_recursive(model)
+		tree.add_child(model)
+	
+	# Detection area
+	var detect_area := Area3D.new()
+	detect_area.name = "DetectArea"
+	detect_area.collision_layer = 0
+	detect_area.collision_mask = 2
+	detect_area.monitoring = true
+	
+	var col_shape := CollisionShape3D.new()
+	var capsule := CapsuleShape3D.new()
+	capsule.radius = obj_data.collision_radius
+	capsule.height = obj_data.collision_height
+	col_shape.shape = capsule
+	col_shape.position.y = capsule.height / 2
+	detect_area.add_child(col_shape)
+	tree.add_child(detect_area)
+	
+	return tree
+
+## Create a building instance
+func _create_building(obj_data: RefCounted, rng: RandomNumberGenerator) -> RigidBody3D:
+	var building := RigidBody3D.new()
+	building.name = "Building"
+	building.mass = 50.0
+	building.freeze = true
+	building.collision_layer = 0
+	building.collision_mask = 1
+	building.set_script(BuildingScript)
+	building.set("coin_value", obj_data.coins)
+	building.set("object_id", obj_data.id)
+	building.set("object_name", obj_data.display_name)
+	
+	# Load model
+	var model_scene := load(obj_data.model_path) as PackedScene
+	if model_scene:
+		var model := model_scene.instantiate()
+		model.name = "Model"
+		_apply_material_recursive(model)
+		building.add_child(model)
+	
+	# Detection area (trigger box)
+	var detect_area := Area3D.new()
+	detect_area.name = "DetectArea"
+	detect_area.collision_layer = 0
+	detect_area.collision_mask = 2
+	detect_area.monitoring = true
+	
+	var col_shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = obj_data.collision_size
+	col_shape.shape = box
+	col_shape.position.y = obj_data.collision_size.y / 2
+	detect_area.add_child(col_shape)
+	building.add_child(detect_area)
+	
+	return building
+
+## Create an enemy instance
+func _create_enemy(obj_data: RefCounted, rng: RandomNumberGenerator) -> StaticBody3D:
+	var enemy := StaticBody3D.new()
+	enemy.name = "Enemy"
+	enemy.add_to_group("enemies")
+	enemy.collision_layer = 1
+	enemy.collision_mask = 0
+	enemy.set_script(SpikeScript)
+	enemy.set("damage", obj_data.damage)
+	enemy.set("object_id", obj_data.id)
+	enemy.set("object_name", obj_data.display_name)
+	
+	# Load model
+	var model_scene := load(obj_data.model_path) as PackedScene
+	if model_scene:
+		var model := model_scene.instantiate()
+		model.name = "Model"
+		_apply_material_recursive(model)
+		enemy.add_child(model)
+	
+	# Physical collision
+	var phys_col := CollisionShape3D.new()
+	var phys_sphere := SphereShape3D.new()
+	phys_sphere.radius = obj_data.collision_radius * 0.6
+	phys_col.shape = phys_sphere
+	phys_col.position.y = phys_sphere.radius
+	enemy.add_child(phys_col)
+	
+	# Damage detection area
+	var damage_area := Area3D.new()
+	damage_area.name = "DamageArea"
+	damage_area.collision_layer = 0
+	damage_area.collision_mask = 2
+	damage_area.monitoring = true
+	
+	var dmg_col := CollisionShape3D.new()
+	var dmg_sphere := SphereShape3D.new()
+	dmg_sphere.radius = obj_data.collision_radius
+	dmg_col.shape = dmg_sphere
+	dmg_col.position.y = dmg_sphere.radius
+	damage_area.add_child(dmg_col)
+	enemy.add_child(damage_area)
+	
+	return enemy
+
+## Create a rock instance
+func _create_rock(obj_data: RefCounted, rng: RandomNumberGenerator) -> StaticBody3D:
+	var rock := StaticBody3D.new()
+	rock.name = "Rock"
+	rock.add_to_group("rocks")
+	rock.collision_layer = 1
+	rock.collision_mask = 0
+	
+	# Load model
+	var model_scene := load(obj_data.model_path) as PackedScene
+	if model_scene:
+		var model := model_scene.instantiate()
+		model.name = "Model"
+		_apply_material_recursive(model)
+		rock.add_child(model)
+	
+	var col_shape := CollisionShape3D.new()
+	var sphere := SphereShape3D.new()
+	sphere.radius = obj_data.collision_radius
+	col_shape.shape = sphere
+	col_shape.position.y = sphere.radius * 0.75
+	rock.add_child(col_shape)
+	
+	return rock
+
+# ========== HELPER FUNCTIONS ==========
+
+func _is_near_hole(x: float, z: float, chunk_index: int) -> bool:
+	if hole_manager:
+		return hole_manager.get_distance_to_nearest_hole(x, z, chunk_index) < 3.0
+	return false
+
 func _is_position_available(x: float, z: float, chunk_index: int, min_dist: float = -1.0) -> bool:
 	if min_dist < 0:
 		min_dist = min_object_distance
@@ -181,304 +411,10 @@ func _is_position_available(x: float, z: float, chunk_index: int, min_dist: floa
 	
 	return true
 
-## Register a spawned position
 func _register_spawn_position(x: float, z: float, chunk_index: int) -> void:
 	if not spawned_positions.has(chunk_index):
 		spawned_positions[chunk_index] = []
 	spawned_positions[chunk_index].append(Vector2(x, z))
-
-# ========== TREES ==========
-
-func _spawn_trees(chunk: Node3D, chunk_index: int, get_height_func: Callable) -> void:
-	var rng := RandomNumberGenerator.new()
-	rng.seed = hash(chunk_index * 12345)
-	
-	var area := chunk_size.x * chunk_size.y
-	var tree_count := int(area * tree_density / 100.0)
-	tree_count = max(tree_count, 1)
-	
-	var config: Dictionary = object_configs["tree"]
-	var models: Array = config["models"]
-	
-	for i in range(tree_count):
-		var x := rng.randf_range(-terrain_width / 2 + 2, terrain_width / 2 - 2)
-		var local_z := rng.randf_range(-chunk_size.y + 3, -3)
-		
-		# Skip if in hole area
-		if _is_near_hole(x, local_z, chunk_index):
-			continue
-		
-		# Skip if position is taken
-		if not _is_position_available(x, local_z, chunk_index):
-			continue
-		
-		var height: float = get_height_func.call(x, local_z, chunk_index)
-		
-		var tree := _create_tree(rng, config, models)
-		tree.position = Vector3(x, height, local_z)
-		tree.rotation.y = rng.randf_range(0, TAU)
-		
-		var variation: float = config["height_variation"]
-		var target_h: float = config["target_height"] * rng.randf_range(1.0 - variation, 1.0 + variation)
-		_scale_to_target_height(tree, target_h)
-		
-		chunk.add_child(tree)
-		_register_spawn_position(x, local_z, chunk_index)
-
-func _create_tree(rng: RandomNumberGenerator, config: Dictionary, models: Array) -> RigidBody3D:
-	var tree := RigidBody3D.new()
-	tree.name = "Tree"
-	tree.mass = 20.0
-	tree.freeze = true
-	tree.collision_layer = 0
-	tree.collision_mask = 1
-	tree.set_script(TreeScript)
-	tree.set("coin_value", config.get("coins", 1))
-	
-	var model_path: String = models[rng.randi() % models.size()]
-	var model_scene := load(model_path) as PackedScene
-	if model_scene:
-		var model := model_scene.instantiate()
-		model.name = "Model"
-		_apply_material_recursive(model)
-		tree.add_child(model)
-	
-	# Detection area
-	var detect_area := Area3D.new()
-	detect_area.name = "DetectArea"
-	detect_area.collision_layer = 0
-	detect_area.collision_mask = 2
-	detect_area.monitoring = true
-	
-	var col_shape := CollisionShape3D.new()
-	var capsule := CapsuleShape3D.new()
-	capsule.radius = config.get("collision_radius", 0.6)
-	capsule.height = config.get("collision_height", 2.5)
-	col_shape.shape = capsule
-	col_shape.position.y = capsule.height / 2
-	detect_area.add_child(col_shape)
-	tree.add_child(detect_area)
-	
-	return tree
-
-# ========== ROCKS ==========
-
-func _spawn_rocks(chunk: Node3D, chunk_index: int, get_height_func: Callable) -> void:
-	var rng := RandomNumberGenerator.new()
-	rng.seed = hash(chunk_index * 54321 + 999)
-	
-	var area := chunk_size.x * chunk_size.y
-	var rock_count := int(area * rock_density / 100.0)
-	rock_count = max(rock_count, 2)
-	
-	var config: Dictionary = object_configs["rock"]
-	var models: Array = config["models"]
-	
-	for i in range(rock_count):
-		var x := rng.randf_range(-terrain_width / 2 + 2, terrain_width / 2 - 2)
-		var local_z := rng.randf_range(-chunk_size.y + 3, -3)
-		
-		if _is_near_hole(x, local_z, chunk_index):
-			continue
-		
-		if not _is_position_available(x, local_z, chunk_index, 1.5):  # Smaller distance for rocks
-			continue
-		
-		var height: float = get_height_func.call(x, local_z, chunk_index)
-		
-		var rock := _create_rock(rng, config, models)
-		rock.position = Vector3(x, height, local_z)
-		rock.rotation.y = rng.randf_range(0, TAU)
-		
-		var variation: float = config["height_variation"]
-		var target_h: float = config["target_height"] * rng.randf_range(1.0 - variation, 1.0 + variation)
-		_scale_to_target_height(rock, target_h)
-		
-		chunk.add_child(rock)
-		_register_spawn_position(x, local_z, chunk_index)
-
-func _create_rock(rng: RandomNumberGenerator, config: Dictionary, models: Array) -> StaticBody3D:
-	var rock := StaticBody3D.new()
-	rock.name = "Rock"
-	rock.add_to_group("rocks")
-	rock.collision_layer = 1
-	rock.collision_mask = 0
-	
-	var model_path: String = models[rng.randi() % models.size()]
-	var model_scene := load(model_path) as PackedScene
-	if model_scene:
-		var model := model_scene.instantiate()
-		model.name = "Model"
-		_apply_material_recursive(model)
-		rock.add_child(model)
-	
-	var col_shape := CollisionShape3D.new()
-	var sphere := SphereShape3D.new()
-	sphere.radius = config.get("collision_radius", 0.4)
-	col_shape.shape = sphere
-	col_shape.position.y = sphere.radius * 0.75
-	rock.add_child(col_shape)
-	
-	return rock
-
-# ========== BUILDINGS ==========
-
-func _spawn_buildings(chunk: Node3D, chunk_index: int, get_height_func: Callable) -> void:
-	var rng := RandomNumberGenerator.new()
-	rng.seed = hash(chunk_index * 77777)
-	
-	var area := chunk_size.x * chunk_size.y
-	var building_count := int(area * building_density / 100.0)
-	building_count = max(building_count, 1)
-	
-	var config: Dictionary = object_configs["building"]
-	var models: Array = config["models"]
-	
-	for i in range(building_count):
-		var x := rng.randf_range(-terrain_width / 2 + 3, terrain_width / 2 - 3)
-		var local_z := rng.randf_range(-chunk_size.y + 5, -5)
-		
-		if _is_near_hole(x, local_z, chunk_index):
-			continue
-		
-		# Buildings need more space
-		if not _is_position_available(x, local_z, chunk_index, 4.0):
-			continue
-		
-		var height: float = get_height_func.call(x, local_z, chunk_index)
-		
-		var building := _create_building(rng, config, models)
-		building.position = Vector3(x, height, local_z)
-		building.rotation.y = rng.randf_range(0, TAU)
-		
-		var variation: float = config["height_variation"]
-		var target_h: float = config["target_height"] * rng.randf_range(1.0 - variation, 1.0 + variation)
-		_scale_to_target_height(building, target_h)
-		
-		chunk.add_child(building)
-		_register_spawn_position(x, local_z, chunk_index)
-
-func _create_building(rng: RandomNumberGenerator, config: Dictionary, models: Array) -> RigidBody3D:
-	var building := RigidBody3D.new()
-	building.name = "Building"
-	building.mass = 50.0
-	building.freeze = true
-	building.collision_layer = 0
-	building.collision_mask = 1
-	building.set_script(BuildingScript)
-	building.set("coin_value", config.get("coins", 20))
-	
-	var model_path: String = models[rng.randi() % models.size()]
-	var model_scene := load(model_path) as PackedScene
-	if model_scene:
-		var model := model_scene.instantiate()
-		model.name = "Model"
-		_apply_material_recursive(model)
-		building.add_child(model)
-	
-	# Detection area (trigger box)
-	var detect_area := Area3D.new()
-	detect_area.name = "DetectArea"
-	detect_area.collision_layer = 0
-	detect_area.collision_mask = 2
-	detect_area.monitoring = true
-	
-	var col_shape := CollisionShape3D.new()
-	var box := BoxShape3D.new()
-	var col_size: Vector3 = config.get("collision_size", Vector3(2.0, 2.0, 2.0))
-	box.size = col_size
-	col_shape.shape = box
-	col_shape.position.y = col_size.y / 2
-	detect_area.add_child(col_shape)
-	building.add_child(detect_area)
-	
-	return building
-
-# ========== SPIKES (ENEMIES) ==========
-
-func _spawn_spikes(chunk: Node3D, chunk_index: int, get_height_func: Callable) -> void:
-	var rng := RandomNumberGenerator.new()
-	rng.seed = hash(chunk_index * 88888)
-	
-	var area := chunk_size.x * chunk_size.y
-	var spike_count := int(area * spike_density / 100.0)
-	spike_count = max(spike_count, 1)
-	
-	var config: Dictionary = object_configs["spike"]
-	var models: Array = config["models"]
-	
-	for i in range(spike_count):
-		var x := rng.randf_range(-terrain_width / 2 + 2, terrain_width / 2 - 2)
-		var local_z := rng.randf_range(-chunk_size.y + 4, -4)
-		
-		if _is_near_hole(x, local_z, chunk_index):
-			continue
-		
-		if not _is_position_available(x, local_z, chunk_index, 3.0):
-			continue
-		
-		var height: float = get_height_func.call(x, local_z, chunk_index)
-		
-		var spike := _create_spike(rng, config, models)
-		spike.position = Vector3(x, height, local_z)
-		spike.rotation.y = rng.randf_range(0, TAU)
-		
-		var variation: float = config["height_variation"]
-		var target_h: float = config["target_height"] * rng.randf_range(1.0 - variation, 1.0 + variation)
-		_scale_to_target_height(spike, target_h)
-		
-		chunk.add_child(spike)
-		_register_spawn_position(x, local_z, chunk_index)
-
-func _create_spike(rng: RandomNumberGenerator, config: Dictionary, models: Array) -> StaticBody3D:
-	var spike := StaticBody3D.new()
-	spike.name = "Spike"
-	spike.add_to_group("enemies")
-	spike.add_to_group("spikes")
-	spike.collision_layer = 1  # Collide with player
-	spike.collision_mask = 0
-	spike.set_script(SpikeScript)
-	spike.set("damage", config.get("damage", 15))
-	
-	var model_path: String = models[rng.randi() % models.size()]
-	var model_scene := load(model_path) as PackedScene
-	if model_scene:
-		var model := model_scene.instantiate()
-		model.name = "Model"
-		_apply_material_recursive(model)
-		spike.add_child(model)
-	
-	# Physical collision (blocks player)
-	var phys_col := CollisionShape3D.new()
-	var phys_sphere := SphereShape3D.new()
-	phys_sphere.radius = config.get("collision_radius", 0.8) * 0.6
-	phys_col.shape = phys_sphere
-	phys_col.position.y = phys_sphere.radius
-	spike.add_child(phys_col)
-	
-	# Damage detection area (slightly larger)
-	var damage_area := Area3D.new()
-	damage_area.name = "DamageArea"
-	damage_area.collision_layer = 0
-	damage_area.collision_mask = 2  # Detect player
-	damage_area.monitoring = true
-	
-	var dmg_col := CollisionShape3D.new()
-	var dmg_sphere := SphereShape3D.new()
-	dmg_sphere.radius = config.get("collision_radius", 0.8)
-	dmg_col.shape = dmg_sphere
-	dmg_col.position.y = dmg_sphere.radius
-	damage_area.add_child(dmg_col)
-	spike.add_child(damage_area)
-	
-	return spike
-
-# ========== HELPER FUNCTIONS ==========
-
-func _is_near_hole(x: float, z: float, chunk_index: int) -> bool:
-	if hole_manager:
-		return hole_manager.get_distance_to_nearest_hole(x, z, chunk_index) < 3.0
-	return false
 
 func _scale_to_target_height(node: Node3D, target_height: float) -> void:
 	var model: Node = null

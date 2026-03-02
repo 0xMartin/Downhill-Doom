@@ -4,7 +4,8 @@ extends RigidBody3D
 
 @export var fall_torque: float = 40.0
 @export var coin_value: int = 20  # Default: 20 coins per building
-@export var building_name: String = "Building"
+@export var object_id: String = "building_unknown"
+@export var object_name: String = "Building"
 
 var is_destroyed := false
 
@@ -69,10 +70,11 @@ func destroy(player_velocity: Vector3) -> void:
 	# Scale down slightly (crushing effect)
 	tween.tween_property(self, "scale", scale * 0.8, 0.6).set_ease(Tween.EASE_IN)
 	
-	# Award coins
+	# Award coins and record stats
 	var gm := get_node_or_null("/root/GameManager")
 	if gm:
 		gm.add_coin(coin_value)
+		gm.record_destroyed_object(object_id, object_name, coin_value)
 	
 	# Remove after delay
 	await tween.finished
