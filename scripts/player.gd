@@ -253,26 +253,22 @@ func _on_body_entered(body: Node) -> void:
 	if is_dead or hit_cooldown > 0:
 		return
 	
-	# Check if we hit a rock (in "rocks" group or name starts with "Rock")
-	if body.is_in_group("rocks") or (body is StaticBody3D and body.name.begins_with("Rock")):
+	# Check if we hit an enemy (deals damage)
+	if body.is_in_group("enemies"):
 		hit_cooldown = 0.5  # Prevent rapid hits
-		
-		# Calculate impact position
 		var impact_pos := global_position
-		
-		# Emit signal for effects (camera shake, red flash)
 		hit_rock.emit(impact_pos)
-		
-		# Spawn impact particles
 		_spawn_rock_impact_particles(impact_pos)
-		
-		# Play hurt sound
 		if audio_manager:
 			audio_manager.play_hurt_sound()
-		
-		# Take damage
 		if game_manager:
 			game_manager.take_damage(rock_damage)
+		return
+	
+	# Rocks are decoration only - collision/slowdown but no damage
+	if body.is_in_group("rocks") or (body is StaticBody3D and body.name.begins_with("Rock")):
+		# Just visual/audio feedback, no damage
+		pass
 
 func _spawn_rock_impact_particles(impact_pos: Vector3) -> void:
 	# Check if we're in the scene tree before spawning
