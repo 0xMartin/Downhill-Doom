@@ -76,8 +76,9 @@ func _ready() -> void:
 		roll_sound_player.stream = roll_stream
 	
 	# Load menu music as looping
-	var menu_stream := load(MENU_MUSIC) as AudioStream
+	var menu_stream := load(MENU_MUSIC) as AudioStreamMP3
 	if menu_stream:
+		menu_stream.loop = true
 		menu_music_player.stream = menu_stream
 
 func _process(delta: float) -> void:
