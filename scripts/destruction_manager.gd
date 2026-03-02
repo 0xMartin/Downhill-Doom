@@ -1,0 +1,446 @@
+extends Node
+## Universal destruction manager for shattering objects into debris
+## Slices the original mesh into fragments that fly apart
+
+## Configuration for shatter effect
+const FRAGMENT_COUNT_MIN: int = 5
+const FRAGMENT_COUNT_MAX: int = 8
+const DEBRIS_VELOCITY_MIN: float = 8.0
+const DEBRIS_VELOCITY_MAX: float = 15.0
+const DEBRIS_UP_VELOCITY_MIN: float = 1.0
+const DEBRIS_UP_VELOCITY_MAX: float = 4.0
+const DEBRIS_ROTATION_SPEED: float = 12.0
+const DEBRIS_LIFETIME: float = 1.8
+const DEBRIS_FADE_START: float = 0.6
+
+## Pre-cached tools to avoid first-frame stutter
+var _mdt_cache: MeshDataTool = null
+var _st_cache: SurfaceTool = null
+var _warmed_up: bool = false
+
+
+func _ready() -> void:
+	# Pre-warm the system to avoid first-destruction freeze
+	call_deferred("_warmup")
+
+
+## Pre-initialize tools and run a dummy mesh operation to JIT compile everything
+func _warmup() -> void:
+	if _warmed_up:
+		return
+	
+	# Pre-create tools
+	_mdt_cache = MeshDataTool.new()
+	_st_cache = SurfaceTool.new()
+	
+	# Create a simple test mesh and process it to warm up the JIT
+	var test_mesh := BoxMesh.new()
+	test_mesh.size = Vector3(1, 1, 1)
+	
+	# Convert to ArrayMesh for MeshDataTool compatibility
+	var st := SurfaceTool.new()
+	st.create_from(test_mesh, 0)
+	var array_mesh := st.commit()
+	
+	# Run through the mesh processing pipeline
+	var mdt := MeshDataTool.new()
+	if mdt.create_from_surface(array_mesh, 0) == OK:
+		var _vertex_count := mdt.get_vertex_count()
+		var _face_count := mdt.get_face_count()
+		# Touch some data to ensure everything is loaded
+		if _face_count > 0:
+			var _v := mdt.get_vertex(mdt.get_face_vertex(0, 0))
+			var _n := mdt.get_vertex_normal(mdt.get_face_vertex(0, 0))
+	
+	# Build a test fragment
+	var st2 := SurfaceTool.new()
+	st2.begin(Mesh.PRIMITIVE_TRIANGLES)
+	st2.set_normal(Vector3.UP)
+	st2.set_uv(Vector2.ZERO)
+	st2.add_vertex(Vector3.ZERO)
+	st2.add_vertex(Vector3.RIGHT)
+	st2.add_vertex(Vector3.FORWARD)
+	st2.generate_normals()
+	var _test_frag := st2.commit()
+	
+	_warmed_up = true
+
+
+## Shatter an object into mesh fragments
+func shatter(target: Node3D, impact_velocity: Vector3 = Vector3.ZERO, remove_original: bool = true) -> void:
+	if not is_instance_valid(target) or not target.is_inside_tree():
+		return
+	
+	var scene_root := get_tree().current_scene
+	if not scene_root:
+		return
+	
+	# Get world transform before destruction
+	var spawn_position := target.global_position
+	var original_transform := target.global_transform
+	
+	# Find mesh instance in target
+	var source_mesh_instance := _find_mesh_instance(target)
+	if not source_mesh_instance:
+		push_warning("DestructionManager: No MeshInstance3D found in '%s'" % target.name)
+		if remove_original:
+			target.queue_free()
+		return
+	
+	# Get the mesh and material
+	var source_mesh := source_mesh_instance.mesh
+	if not source_mesh:
+		if remove_original:
+			target.queue_free()
+		return
+	
+	# Get material from the mesh instance
+	var source_material: Material = null
+	if source_mesh_instance.get_surface_override_material_count() > 0:
+		source_material = source_mesh_instance.get_surface_override_material(0)
+	if not source_material and source_mesh.get_surface_count() > 0:
+		source_material = source_mesh.surface_get_material(0)
+	
+	# Calculate mesh instance world transform
+	var mesh_world_transform := source_mesh_instance.global_transform
+	
+	# Generate fragments from the mesh
+	var fragment_count := randi_range(FRAGMENT_COUNT_MIN, FRAGMENT_COUNT_MAX)
+	var fragments := _create_mesh_fragments(source_mesh, fragment_count)
+	
+	# Spawn each fragment
+	for i in range(fragments.size()):
+		var frag_mesh: ArrayMesh = fragments[i]
+		if frag_mesh:
+			_spawn_fragment(scene_root, frag_mesh, source_material, mesh_world_transform, impact_velocity, i, fragments.size())
+	
+	# Spawn dust particles
+	var base_color := _extract_color_from_material(source_material)
+	_spawn_dust_particles(scene_root, spawn_position, base_color)
+	
+	# Remove original
+	if remove_original:
+		target.queue_free()
+
+
+## Find first MeshInstance3D in a node tree
+func _find_mesh_instance(node: Node) -> MeshInstance3D:
+	if node is MeshInstance3D:
+		return node as MeshInstance3D
+	for child in node.get_children():
+		var result := _find_mesh_instance(child)
+		if result:
+			return result
+	return null
+
+
+## Create mesh fragments by slicing the original mesh into pieces
+func _create_mesh_fragments(source_mesh: Mesh, fragment_count: int) -> Array[ArrayMesh]:
+	var fragments: Array[ArrayMesh] = []
+	
+	# Get mesh data using MeshDataTool
+	var mdt := MeshDataTool.new()
+	
+	# Try to get data from first surface
+	if source_mesh.get_surface_count() == 0:
+		return fragments
+	
+	var err := mdt.create_from_surface(source_mesh, 0)
+	if err != OK:
+		# Fallback: create simple box fragments
+		return _create_fallback_fragments(source_mesh, fragment_count)
+	
+	var vertex_count := mdt.get_vertex_count()
+	var face_count := mdt.get_face_count()
+	
+	if face_count < fragment_count:
+		fragment_count = maxi(1, face_count)
+	
+	# Calculate mesh bounds for slicing planes
+	var bounds_min := Vector3.INF
+	var bounds_max := -Vector3.INF
+	for i in range(vertex_count):
+		var v := mdt.get_vertex(i)
+		bounds_min = bounds_min.min(v)
+		bounds_max = bounds_max.max(v)
+	
+	var bounds_center := (bounds_min + bounds_max) * 0.5
+	var bounds_size := bounds_max - bounds_min
+	
+	# Assign each face to a fragment based on its position
+	var face_assignments: Array[int] = []
+	face_assignments.resize(face_count)
+	
+	# Create random cluster centers
+	var cluster_centers: Array[Vector3] = []
+	for i in range(fragment_count):
+		cluster_centers.append(Vector3(
+			randf_range(bounds_min.x, bounds_max.x),
+			randf_range(bounds_min.y, bounds_max.y),
+			randf_range(bounds_min.z, bounds_max.z)
+		))
+	
+	# Assign faces to nearest cluster (Voronoi-like partitioning)
+	for face_idx in range(face_count):
+		# Get face center
+		var v0 := mdt.get_vertex(mdt.get_face_vertex(face_idx, 0))
+		var v1 := mdt.get_vertex(mdt.get_face_vertex(face_idx, 1))
+		var v2 := mdt.get_vertex(mdt.get_face_vertex(face_idx, 2))
+		var face_center := (v0 + v1 + v2) / 3.0
+		
+		# Find nearest cluster
+		var nearest_cluster := 0
+		var nearest_dist := INF
+		for cluster_idx in range(fragment_count):
+			var dist := face_center.distance_squared_to(cluster_centers[cluster_idx])
+			if dist < nearest_dist:
+				nearest_dist = dist
+				nearest_cluster = cluster_idx
+		
+		face_assignments[face_idx] = nearest_cluster
+	
+	# Build fragment meshes
+	for cluster_idx in range(fragment_count):
+		var frag_mesh := _build_fragment_mesh(mdt, face_assignments, cluster_idx, bounds_center)
+		if frag_mesh:
+			fragments.append(frag_mesh)
+	
+	return fragments
+
+
+## Build a single fragment mesh from assigned faces
+func _build_fragment_mesh(mdt: MeshDataTool, face_assignments: Array[int], cluster_idx: int, bounds_center: Vector3) -> ArrayMesh:
+	var surface_tool := SurfaceTool.new()
+	surface_tool.begin(Mesh.PRIMITIVE_TRIANGLES)
+	
+	var has_faces := false
+	var frag_center := Vector3.ZERO
+	var frag_vertex_count := 0
+	
+	# First pass: calculate fragment center
+	for face_idx in range(face_assignments.size()):
+		if face_assignments[face_idx] != cluster_idx:
+			continue
+		
+		for i in range(3):
+			var vert_idx := mdt.get_face_vertex(face_idx, i)
+			frag_center += mdt.get_vertex(vert_idx)
+			frag_vertex_count += 1
+	
+	if frag_vertex_count == 0:
+		return null
+	
+	frag_center /= float(frag_vertex_count)
+	
+	# Second pass: build mesh with vertices relative to fragment center
+	for face_idx in range(face_assignments.size()):
+		if face_assignments[face_idx] != cluster_idx:
+			continue
+		
+		has_faces = true
+		
+		for i in range(3):
+			var vert_idx := mdt.get_face_vertex(face_idx, i)
+			var vertex := mdt.get_vertex(vert_idx) - frag_center  # Center the fragment
+			var normal := mdt.get_vertex_normal(vert_idx)
+			var uv := mdt.get_vertex_uv(vert_idx)
+			
+			surface_tool.set_normal(normal)
+			surface_tool.set_uv(uv)
+			surface_tool.add_vertex(vertex)
+	
+	if not has_faces:
+		return null
+	
+	surface_tool.generate_normals()
+	var mesh := surface_tool.commit()
+	
+	# Store fragment center as metadata for positioning
+	mesh.set_meta("fragment_center", frag_center)
+	
+	return mesh
+
+
+## Fallback: create simple box fragments when mesh processing fails
+func _create_fallback_fragments(source_mesh: Mesh, fragment_count: int) -> Array[ArrayMesh]:
+	var fragments: Array[ArrayMesh] = []
+	
+	# Get approximate size from AABB
+	var aabb := source_mesh.get_aabb()
+	var size := aabb.size
+	var frag_size := size / 2.0
+	
+	for i in range(fragment_count):
+		var box := BoxMesh.new()
+		box.size = Vector3(
+			frag_size.x * randf_range(0.3, 0.8),
+			frag_size.y * randf_range(0.3, 0.8),
+			frag_size.z * randf_range(0.3, 0.8)
+		)
+		
+		# Convert BoxMesh to ArrayMesh
+		var surface_tool := SurfaceTool.new()
+		surface_tool.create_from(box, 0)
+		var arr_mesh := surface_tool.commit()
+		
+		# Random offset within bounds
+		var offset := Vector3(
+			randf_range(-size.x * 0.3, size.x * 0.3),
+			randf_range(-size.y * 0.3, size.y * 0.3),
+			randf_range(-size.z * 0.3, size.z * 0.3)
+		)
+		arr_mesh.set_meta("fragment_center", aabb.get_center() + offset)
+		
+		fragments.append(arr_mesh)
+	
+	return fragments
+
+
+## Spawn a fragment with physics animation
+func _spawn_fragment(
+	scene_root: Node,
+	frag_mesh: ArrayMesh,
+	material: Material,
+	world_transform: Transform3D,
+	impact_velocity: Vector3,
+	index: int,
+	total_count: int
+) -> void:
+	var debris := MeshInstance3D.new()
+	debris.name = "Fragment_%d" % index
+	debris.mesh = frag_mesh
+	
+	# Apply material with transparency support
+	var fade_material: StandardMaterial3D
+	if material is StandardMaterial3D:
+		fade_material = (material as StandardMaterial3D).duplicate() as StandardMaterial3D
+	else:
+		fade_material = StandardMaterial3D.new()
+		if material:
+			fade_material.albedo_color = Color(0.6, 0.5, 0.4)
+	
+	fade_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	debris.material_override = fade_material
+	
+	# Position fragment
+	var frag_center: Vector3 = frag_mesh.get_meta("fragment_center", Vector3.ZERO)
+	var world_pos := world_transform * frag_center
+	debris.global_position = world_pos
+	debris.rotation = Vector3(randf() * 0.3, randf() * TAU, randf() * 0.3)
+	
+	# Calculate velocity (outward from center + impact direction) - mostly horizontal
+	var outward_dir := frag_center
+	outward_dir.y = 0  # Force horizontal
+	outward_dir = outward_dir.normalized()
+	if outward_dir.length() < 0.1:
+		# Random horizontal direction
+		var rand_angle := randf() * TAU
+		outward_dir = Vector3(cos(rand_angle), 0, sin(rand_angle))
+	
+	# Add random spread to outward direction
+	var spread_angle := randf_range(-0.8, 0.8)
+	outward_dir = outward_dir.rotated(Vector3.UP, spread_angle)
+	
+	var velocity_dir: Vector3
+	if impact_velocity.length() > 0.1:
+		var impact_horizontal := impact_velocity
+		impact_horizontal.y = 0
+		impact_horizontal = impact_horizontal.normalized()
+		# Blend impact direction with outward spread
+		velocity_dir = (impact_horizontal * 0.6 + outward_dir * 0.8).normalized()
+	else:
+		velocity_dir = outward_dir
+	
+	var velocity_mag := randf_range(DEBRIS_VELOCITY_MIN, DEBRIS_VELOCITY_MAX)
+	var up_velocity := randf_range(DEBRIS_UP_VELOCITY_MIN, DEBRIS_UP_VELOCITY_MAX)
+	var velocity := velocity_dir * velocity_mag + Vector3.UP * up_velocity
+	
+	var rotation_velocity := Vector3(
+		randf_range(-DEBRIS_ROTATION_SPEED, DEBRIS_ROTATION_SPEED),
+		randf_range(-DEBRIS_ROTATION_SPEED, DEBRIS_ROTATION_SPEED),
+		randf_range(-DEBRIS_ROTATION_SPEED, DEBRIS_ROTATION_SPEED)
+	)
+	
+	scene_root.add_child(debris)
+	_animate_fragment(debris, fade_material, velocity, rotation_velocity)
+
+
+## Animate fragment flying and fading
+func _animate_fragment(debris: MeshInstance3D, material: StandardMaterial3D, velocity: Vector3, rotation_velocity: Vector3) -> void:
+	var elapsed := 0.0
+	var gravity := 18.0
+	var current_velocity := velocity
+	var original_color := material.albedo_color
+	
+	while elapsed < DEBRIS_LIFETIME and is_instance_valid(debris) and debris.is_inside_tree():
+		var delta := get_process_delta_time()
+		elapsed += delta
+		
+		current_velocity.y -= gravity * delta
+		debris.position += current_velocity * delta
+		debris.rotation += rotation_velocity * delta
+		
+		# Air resistance
+		current_velocity.x *= 0.995
+		current_velocity.z *= 0.995
+		
+		# Fade out
+		if elapsed > DEBRIS_LIFETIME * DEBRIS_FADE_START:
+			var fade_progress := (elapsed - DEBRIS_LIFETIME * DEBRIS_FADE_START) / (DEBRIS_LIFETIME * (1.0 - DEBRIS_FADE_START))
+			material.albedo_color.a = (1.0 - fade_progress) * original_color.a
+		
+		await get_tree().process_frame
+	
+	if is_instance_valid(debris):
+		debris.queue_free()
+
+
+## Extract color from material
+func _extract_color_from_material(material: Material) -> Color:
+	if material is StandardMaterial3D:
+		return (material as StandardMaterial3D).albedo_color
+	return Color(0.6, 0.5, 0.4)
+
+
+## Spawn dust particles
+func _spawn_dust_particles(scene_root: Node, position: Vector3, base_color: Color) -> void:
+	var particles := GPUParticles3D.new()
+	particles.name = "ShatterDust"
+	particles.one_shot = true
+	particles.explosiveness = 0.95
+	particles.amount = 30
+	particles.lifetime = 1.2
+	
+	var proc_material := ParticleProcessMaterial.new()
+	proc_material.direction = Vector3(0, 1, 0)
+	proc_material.spread = 85.0
+	proc_material.initial_velocity_min = 2.0
+	proc_material.initial_velocity_max = 6.0
+	proc_material.gravity = Vector3(0, -6, 0)
+	proc_material.scale_min = 0.08
+	proc_material.scale_max = 0.2
+	var dust_color := Color(
+		minf(base_color.r + 0.3, 1.0),
+		minf(base_color.g + 0.3, 1.0),
+		minf(base_color.b + 0.2, 1.0),
+		0.7
+	)
+	proc_material.color = dust_color
+	particles.process_material = proc_material
+	
+	var mesh := BoxMesh.new()
+	mesh.size = Vector3(1.0, 1.0, 1.0)
+	var mesh_material := StandardMaterial3D.new()
+	mesh_material.albedo_color = dust_color
+	mesh_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mesh.material = mesh_material
+	particles.draw_pass_1 = mesh
+	
+	particles.position = position + Vector3(0, 0.5, 0)
+	scene_root.add_child(particles)
+	particles.emitting = true
+	
+	get_tree().create_timer(2.5).timeout.connect(func() -> void:
+		if is_instance_valid(particles):
+			particles.queue_free()
+	)

@@ -56,14 +56,7 @@ func fall(player_velocity: Vector3) -> void:
 	var tween := create_tween()
 	tween.set_parallel(true)
 	
-	# Calculate rotation axis (perpendicular to fall direction)
-	var rotation_axis := fall_direction.cross(Vector3.UP).normalized()
-	
-	# Current rotation
-	var start_rotation := rotation
-	
 	# Target rotation - rotate 90 degrees around the axis
-	# We need to rotate around the local X axis (pitch forward)
 	var target_angle := -PI / 2  # 90 degrees forward
 	
 	# Animate rotation - tree tips over
@@ -84,13 +77,13 @@ func fall(player_velocity: Vector3) -> void:
 	await get_tree().create_timer(2.0).timeout
 	queue_free()
 
+
 func _spawn_fall_particles() -> void:
 	# Check if we're in the scene tree before spawning
 	if not is_inside_tree():
 		return
 	
 	# Create simple particle effect - spawn at global position, not as child
-	# (because tree is scaled down, child particles would be tiny)
 	var particles := GPUParticles3D.new()
 	particles.name = "FallParticles"
 	particles.one_shot = true
@@ -112,14 +105,14 @@ func _spawn_fall_particles() -> void:
 	
 	# Create visible mesh for particles with material
 	var mesh := BoxMesh.new()
-	mesh.size = Vector3(1.0, 1.0, 1.0)  # Base size, scaled by proc_material
+	mesh.size = Vector3(1.0, 1.0, 1.0)
 	var mesh_material := StandardMaterial3D.new()
-	mesh_material.albedo_color = Color(0.55, 0.4, 0.2)  # Brown wood
+	mesh_material.albedo_color = Color(0.55, 0.4, 0.2)
 	mesh_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	mesh.material = mesh_material
 	particles.draw_pass_1 = mesh
 	
-	# Add to scene root at global position (not as child - tree is scaled)
+	# Add to scene root at global position
 	var scene_root := get_tree().current_scene
 	if scene_root:
 		var spawn_pos := global_position + Vector3(0, 0.5, 0)
@@ -132,3 +125,4 @@ func _spawn_fall_particles() -> void:
 			if is_instance_valid(particles):
 				particles.queue_free()
 		)
+

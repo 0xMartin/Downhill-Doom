@@ -37,88 +37,22 @@ func destroy(player_velocity: Vector3) -> void:
 	
 	is_destroyed = true
 	
-	# Store position before doing anything else
-	var spawn_pos := global_position
-	
 	# Play destruction sound (use tree sound for now)
 	var audio := get_node_or_null("/root/AudioManager")
 	if audio:
 		audio.play_tree_hit_sound()  # TODO: Add building destruction sound
 	
-	# Spawn destruction particles
-	_spawn_destruction_particles(spawn_pos)
-	
-	# Calculate fall direction
-	var fall_direction := player_velocity.normalized()
-	fall_direction.y = 0
-	if fall_direction.length() < 0.1:
-		fall_direction = Vector3(0, 0, -1)
-	fall_direction = fall_direction.normalized()
-	
-	# Animate destruction - building tips and collapses
-	var tween := create_tween()
-	tween.set_parallel(true)
-	
-	# Rotate forward (tip over)
-	var target_angle := -PI / 2.5  # Less than 90 degrees
-	tween.tween_property(self, "rotation:x", rotation.x + target_angle, 0.6).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
-	
-	# Move in fall direction and down
-	var target_pos := position + fall_direction * 1.5 + Vector3(0, -1.0, 0)
-	tween.tween_property(self, "position", target_pos, 0.6).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
-	
-	# Scale down slightly (crushing effect)
-	tween.tween_property(self, "scale", scale * 0.8, 0.6).set_ease(Tween.EASE_IN)
-	
-	# Award coins and record stats
+	# Award coins and record stats BEFORE destruction
 	var gm := get_node_or_null("/root/GameManager")
 	if gm:
 		gm.add_coin(coin_value)
 		gm.record_destroyed_object(object_id, object_name, coin_value)
 	
-	# Remove after delay
-	await tween.finished
-	await get_tree().create_timer(1.5).timeout
-	queue_free()
+	# Use DestructionManager to shatter the building
+	var destruction := get_node_or_null("/root/DestructionManager")
+	if destruction:
+		destruction.shatter(self, player_velocity, true)
+	else:
+		# Fallback: just remove the object
+		queue_free()
 
-func _spawn_destruction_particles(spawn_pos: Vector3) -> void:
-	if not is_inside_tree():
-		return
-	
-	var scene_root := get_tree().current_scene
-	if not scene_root:
-		return
-	
-	var particles := GPUParticles3D.new()
-	particles.name = "DestructionParticles"
-	particles.one_shot = true
-	particles.explosiveness = 0.9
-	particles.amount = 30
-	particles.lifetime = 1.5
-	
-	var proc_material := ParticleProcessMaterial.new()
-	proc_material.direction = Vector3(0, 1, 0)
-	proc_material.spread = 45.0
-	proc_material.initial_velocity_min = 3.0
-	proc_material.initial_velocity_max = 6.0
-	proc_material.gravity = Vector3(0, -12, 0)
-	proc_material.scale_min = 0.1
-	proc_material.scale_max = 0.3
-	proc_material.color = Color(0.6, 0.5, 0.4)  # Brown/wood color
-	particles.process_material = proc_material
-	
-	# Simple mesh for particles
-	var mesh := BoxMesh.new()
-	mesh.size = Vector3(0.15, 0.15, 0.15)
-	particles.draw_pass_1 = mesh
-	
-	# Set position BEFORE adding to tree (use position, not global_position)
-	particles.position = spawn_pos + Vector3(0, 1.0, 0)
-	scene_root.add_child(particles)
-	
-	# Auto-cleanup
-	var cleanup_timer := get_tree().create_timer(2.0)
-	cleanup_timer.timeout.connect(func() -> void:
-		if is_instance_valid(particles):
-			particles.queue_free()
-	)

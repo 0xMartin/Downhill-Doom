@@ -239,7 +239,7 @@ static func _init_objects() -> void:
 		"spawn_chance": 1.0,
 		"damage": 15,
 		"destructible": false,
-		"col_radius": 1.3,  # Scaled up with height
+		"col_radius": 2.0,  # Increased for better hit detection
 	})
 	
 	# ===== ROCKS (decoration) =====
