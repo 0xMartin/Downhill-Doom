@@ -124,6 +124,20 @@ func _ready() -> void:
 	await get_tree().process_frame
 	player = get_tree().get_first_node_in_group("player")
 
+func _exit_tree() -> void:
+	# Cleanup all chunks when terrain generator is removed
+	var all_chunks := chunks.keys().duplicate()
+	for chunk_index in all_chunks:
+		_cleanup_chunk(chunk_index)
+	
+	# Clear dictionaries
+	chunks.clear()
+	chunk_holes.clear()
+	
+	# Clear shared resources
+	color_palette_material = null
+	fog_texture = null
+
 func _process(_delta: float) -> void:
 	if not player:
 		player = get_tree().get_first_node_in_group("player")
@@ -148,9 +162,61 @@ func _update_chunks() -> void:
 			chunks_to_remove.append(chunk_index)
 	
 	for chunk_index in chunks_to_remove:
-		chunks[chunk_index].queue_free()
-		chunks.erase(chunk_index)
-		chunk_holes.erase(chunk_index)  # Clean up hole data too
+		_cleanup_chunk(chunk_index)
+
+# Properly cleanup a chunk and all its resources
+func _cleanup_chunk(chunk_index: int) -> void:
+	if not chunks.has(chunk_index):
+		return
+	
+	var chunk: Node3D = chunks[chunk_index]
+	
+	# Recursively cleanup all children
+	_cleanup_node_recursive(chunk)
+	
+	# Free the chunk
+	chunk.queue_free()
+	
+	# Remove from dictionaries
+	chunks.erase(chunk_index)
+	chunk_holes.erase(chunk_index)
+
+# Recursively cleanup nodes - stop particles, disconnect signals
+func _cleanup_node_recursive(node: Node) -> void:
+	if node == null:
+		return
+	
+	# Stop and cleanup GPUParticles3D
+	if node is GPUParticles3D:
+		var particles := node as GPUParticles3D
+		particles.emitting = false
+		# Clear the process material to free resources
+		particles.process_material = null
+		particles.draw_pass_1 = null
+	
+	# Disconnect death zone signals
+	if node is Area3D and node.name == "DeathZone":
+		var area := node as Area3D
+		if area.body_entered.is_connected(_on_death_zone_body_entered):
+			area.body_entered.disconnect(_on_death_zone_body_entered)
+		area.monitoring = false
+	
+	# Clear mesh resources from MeshInstance3D
+	if node is MeshInstance3D:
+		var mesh_instance := node as MeshInstance3D
+		# Clear override materials
+		if mesh_instance.mesh:
+			for i in range(mesh_instance.get_surface_override_material_count()):
+				mesh_instance.set_surface_override_material(i, null)
+	
+	# Cleanup collision shapes
+	if node is CollisionShape3D:
+		var col_shape := node as CollisionShape3D
+		col_shape.disabled = true
+	
+	# Recursively process children
+	for child in node.get_children():
+		_cleanup_node_recursive(child)
 
 func _generate_chunk(chunk_index: int) -> void:
 	if chunks.has(chunk_index):
