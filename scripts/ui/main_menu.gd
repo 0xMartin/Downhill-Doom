@@ -39,8 +39,13 @@ var stats := {
 	"max_distance": 0.0,
 	"total_time": 0.0,
 	"max_time": 0.0,
+	"coin_balance": 0,  # Player's accumulated coin balance
 	"destroyed_objects": {}  # {object_id: count}
 }
+
+# Balance display references
+var balance_container: HBoxContainer
+var balance_label: Label
 
 func _ready() -> void:
 	audio_manager = get_node("/root/AudioManager")
@@ -54,6 +59,10 @@ func _ready() -> void:
 	
 	# Load stats
 	_load_stats()
+	
+	# Setup balance display
+	_setup_balance_display()
+	_apply_safe_area_offset()
 	
 	# Setup 3D player model
 	_setup_player_model()
@@ -90,6 +99,79 @@ func _setup_player_model() -> void:
 		player_model_instance = PLAYER_MODEL_SCENE.instantiate()
 		player_model_instance.scale = Vector3(0.3, 0.3, 0.3)
 		player_model_container.add_child(player_model_instance)
+
+func _setup_balance_display() -> void:
+	# Create a container for the coin balance in top-right corner
+	balance_container = HBoxContainer.new()
+	balance_container.name = "BalanceContainer"
+	balance_container.anchors_preset = Control.PRESET_TOP_RIGHT
+	balance_container.anchor_left = 1.0
+	balance_container.anchor_right = 1.0
+	balance_container.offset_left = -200
+	balance_container.offset_top = 20
+	balance_container.offset_right = -20
+	balance_container.offset_bottom = 60
+	balance_container.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	balance_container.add_theme_constant_override("separation", 10)
+	balance_container.alignment = BoxContainer.ALIGNMENT_END
+	add_child(balance_container)
+	
+	# Coin icon
+	var coin_icon := TextureRect.new()
+	var coin_texture: Texture2D = load("res://assets/icons/coin.svg")
+	if coin_texture:
+		coin_icon.texture = coin_texture
+	coin_icon.custom_minimum_size = Vector2(40, 40)
+	coin_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	coin_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	coin_icon.modulate = Color(1, 0.85, 0.2, 1)  # Gold tint
+	balance_container.add_child(coin_icon)
+	
+	# Balance label
+	balance_label = Label.new()
+	balance_label.text = _format_balance(stats.get("coin_balance", 0))
+	balance_label.add_theme_font_size_override("font_size", 32)
+	balance_label.add_theme_color_override("font_color", Color(1, 0.9, 0.3, 1))  # Gold
+	balance_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.7))
+	balance_label.add_theme_constant_override("shadow_offset_x", 2)
+	balance_label.add_theme_constant_override("shadow_offset_y", 2)
+	balance_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	balance_container.add_child(balance_label)
+
+func _format_balance(amount: int) -> String:
+	if amount >= 1000000:
+		return "%.1fM" % (amount / 1000000.0)
+	elif amount >= 1000:
+		return "%.1fK" % (amount / 1000.0)
+	return str(amount)
+
+func _apply_safe_area_offset() -> void:
+	# Get safe area rect from OS (accounts for notch, status bar, etc.)
+	var safe_area: Rect2i = DisplayServer.get_display_safe_area()
+	var screen_size: Vector2i = DisplayServer.screen_get_size()
+	
+	# Get viewport (design) size
+	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
+	
+	# Calculate scale factor from screen to viewport coordinates
+	var scale_y: float = viewport_size.y / float(screen_size.y) if screen_size.y > 0 else 1.0
+	
+	# Calculate top inset and scale to viewport coordinates
+	var top_inset_screen: float = float(safe_area.position.y)
+	var top_inset_viewport: float = top_inset_screen * scale_y
+	
+	# On desktop or if no safe area, use a minimum margin
+	var min_top_offset: float = 20.0
+	var actual_top_offset: float = maxf(top_inset_viewport, min_top_offset)
+	
+	# Apply offset to balance container
+	if balance_container:
+		balance_container.offset_top = actual_top_offset
+		balance_container.offset_bottom = actual_top_offset + 40.0
+
+func _update_balance_display() -> void:
+	if balance_label:
+		balance_label.text = _format_balance(stats.get("coin_balance", 0))
 
 func _setup_snow_particles() -> void:
 	var viewport_size: Vector2i = get_viewport().size
@@ -559,6 +641,7 @@ static func record_game_stats(coins: int, distance: float, game_time: float = 0.
 	var prev_max_distance: float = float(stats_data.get("max_distance", 0.0))
 	var prev_time: float = float(stats_data.get("total_time", 0.0))
 	var prev_max_time: float = float(stats_data.get("max_time", 0.0))
+	var prev_balance: int = int(stats_data.get("coin_balance", 0))
 	
 	stats_data["games_played"] = prev_games + 1
 	stats_data["total_coins"] = prev_coins + coins
@@ -567,6 +650,7 @@ static func record_game_stats(coins: int, distance: float, game_time: float = 0.
 	stats_data["max_distance"] = max(prev_max_distance, distance)
 	stats_data["total_time"] = prev_time + game_time
 	stats_data["max_time"] = max(prev_max_time, game_time)
+	stats_data["coin_balance"] = prev_balance + coins  # Add collected coins to balance
 	
 	# Copy destroyed objects from GameManager
 	var gm := Engine.get_singleton("GameManager") if Engine.has_singleton("GameManager") else null

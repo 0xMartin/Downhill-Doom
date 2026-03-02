@@ -1,6 +1,5 @@
 # Downhill Doom
 
-* Ukladani ziskanych coinu na ucet
 * Pridat vice modelu pro vice friend npc
 * Pridat a implementovat enemy_npc (budou aktivne utocit na hrace, kdyz bude pobliz)
 * Implementovat system odemykani objektu pro spawnuti
