@@ -18,8 +18,25 @@ var _mdt_cache: MeshDataTool = null
 var _st_cache: SurfaceTool = null
 var _warmed_up: bool = false
 
+## Cached color palette texture and base material (loaded once, used for all fragments)
+var _cached_texture: Texture2D = null
+var _cached_base_material: StandardMaterial3D = null
+
 
 func _ready() -> void:
+	# Load color palette texture once at startup
+	_cached_texture = load("res://assets/textures/color-palette.png") as Texture2D
+	
+	# Create base material template with cached texture
+	_cached_base_material = StandardMaterial3D.new()
+	_cached_base_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	_cached_base_material.cull_mode = BaseMaterial3D.CULL_DISABLED  # Double-sided
+	if _cached_texture:
+		_cached_base_material.albedo_texture = _cached_texture
+		_cached_base_material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	else:
+		_cached_base_material.albedo_color = Color(0.6, 0.5, 0.4)
+	
 	# Pre-warm the system to avoid first-destruction freeze
 	call_deferred("_warmup")
 
@@ -62,6 +79,11 @@ func _warmup() -> void:
 	st2.add_vertex(Vector3.FORWARD)
 	st2.generate_normals()
 	var _test_frag := st2.commit()
+	
+	# Warm up material duplication (JIT compile duplicate() method)
+	if _cached_base_material:
+		var _test_mat := _cached_base_material.duplicate() as StandardMaterial3D
+		_test_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	
 	_warmed_up = true
 
@@ -312,15 +334,8 @@ func _spawn_fragment(
 	debris.name = "Fragment_%d" % index
 	debris.mesh = frag_mesh
 	
-	# Apply material with transparency support
-	var fade_material: StandardMaterial3D
-	if material is StandardMaterial3D:
-		fade_material = (material as StandardMaterial3D).duplicate() as StandardMaterial3D
-	else:
-		fade_material = StandardMaterial3D.new()
-		if material:
-			fade_material.albedo_color = Color(0.6, 0.5, 0.4)
-	
+	# Apply material - use cached base material (much faster than duplicating each time)
+	var fade_material: StandardMaterial3D = _cached_base_material.duplicate() as StandardMaterial3D
 	fade_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	debris.material_override = fade_material
 	
