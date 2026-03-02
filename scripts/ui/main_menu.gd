@@ -249,10 +249,11 @@ func _create_global_stats_section() -> VBoxContainer:
 func _populate_object_cards(grid: GridContainer) -> void:
 	object_viewports.clear()
 	
-	# Get all destructible objects (trees and buildings)
+	# Get all destructible objects (trees, buildings, and friend NPCs)
 	var objects: Array = []
 	objects.append_array(ObjectConfigScript.get_trees())
 	objects.append_array(ObjectConfigScript.get_buildings())
+	objects.append_array(ObjectConfigScript.get_npcs_friend())
 	
 	var destroyed: Dictionary = stats.get("destroyed_objects", {})
 	

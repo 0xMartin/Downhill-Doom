@@ -52,19 +52,26 @@ func fall(player_velocity: Vector3) -> void:
 		fall_direction = Vector3(0, 0, -1)  # Default forward
 	fall_direction = fall_direction.normalized()
 	
+	# Calculate the angle to rotate the tree to face fall direction
+	var fall_angle := atan2(fall_direction.x, fall_direction.z)
+	
 	# Instead of physics, use a tween to animate the tree toppling
 	var tween := create_tween()
 	tween.set_parallel(true)
 	
-	# Target rotation - rotate 90 degrees around the axis
-	var target_angle := -PI / 2  # 90 degrees forward
+	# First orient the tree to face the fall direction (instant or very fast)
+	rotation.y = fall_angle
 	
-	# Animate rotation - tree tips over
-	tween.tween_property(self, "rotation:x", rotation.x + target_angle, 0.8).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+	# Target rotation - rotate 90 degrees forward (around local X axis after Y rotation)
+	# Positive X rotation tips the tree forward in its facing direction
+	var target_rotation_x := PI / 2  # 90 degrees tip forward
+	
+	# Animate rotation - tree tips over in the direction it's facing
+	tween.tween_property(self, "rotation:x", target_rotation_x, 0.48).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
 	
 	# Move slightly in fall direction and down
 	var target_pos := position + fall_direction * 2.0 + Vector3(0, -1.5, 0)
-	tween.tween_property(self, "position", target_pos, 0.8).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+	tween.tween_property(self, "position", target_pos, 0.48).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
 	
 	# Award coin and record stats
 	var gm := get_node_or_null("/root/GameManager")

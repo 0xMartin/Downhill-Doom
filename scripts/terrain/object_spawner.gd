@@ -15,6 +15,7 @@ const ObjectConfigScript := preload("res://scripts/config/object_config.gd")
 const TreeScript := preload("res://scripts/objects/tree.gd")
 const BuildingScript := preload("res://scripts/objects/building.gd")
 const SpikeScript := preload("res://scripts/objects/spike.gd")
+const FriendNPCScript := preload("res://scripts/objects/friend_npc.gd")
 
 # ========== SPAWNING CONFIGURATION ==========
 
@@ -26,7 +27,8 @@ var num_lanes: int = 5
 var tree_density: float = 0.5
 var rock_density: float = 0.15
 var building_density: float = 0.2  # Increased base density
-var enemy_density: float = 0.08
+var enemy_density: float = 0.24  # 3x increased
+var npc_friend_density: float = 0.03
 
 # Urban zone multiplier
 var urban_density_multiplier: float = 2.0
@@ -35,6 +37,7 @@ var urban_density_multiplier: float = 2.0
 var rock_safe_chunks: int = 2
 var enemy_safe_chunks: int = 4
 var building_safe_chunks: int = 3
+var npc_friend_safe_chunks: int = 2
 
 # Minimum distance between objects to prevent overlap
 var min_object_distance: float = 2.5
@@ -88,6 +91,10 @@ func spawn_objects(chunk: Node3D, chunk_index: int, get_height_func: Callable) -
 	if chunk_index >= rock_safe_chunks:
 		_spawn_rocks(chunk, chunk_index, get_height_func)
 	
+	# Spawn NPC clusters (random meadows with animals)
+	if chunk_index >= npc_friend_safe_chunks:
+		_spawn_npc_clusters(chunk, chunk_index, get_height_func)
+	
 	# Spawn trees, buildings, and enemies based on position-level zone checking
 	_spawn_zone_objects(chunk, chunk_index, get_height_func)
 
@@ -131,6 +138,65 @@ func _spawn_rocks(chunk: Node3D, chunk_index: int, get_height_func: Callable) ->
 		chunk.add_child(obj)
 		_register_spawn_position(x, local_z, chunk_index)
 
+## Spawn NPC clusters - random meadows with groups of animals
+func _spawn_npc_clusters(chunk: Node3D, chunk_index: int, get_height_func: Callable) -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(chunk_index * 77777)
+	
+	# 70% chance to have an NPC cluster in this chunk (was 30%)
+	if rng.randf() > 0.7:
+		return
+	
+	# Pick random center position for the cluster
+	var margin := 8.0
+	var cluster_x := rng.randf_range(-terrain_width / 2 + margin, terrain_width / 2 - margin)
+	var cluster_z := rng.randf_range(-chunk_size.y + margin, -margin)
+	
+	# Skip if near hole
+	if _is_near_hole(cluster_x, cluster_z, chunk_index):
+		return
+	
+	# Spawn 4-10 animals in the cluster (was 2-5)
+	var animal_count := rng.randi_range(4, 10)
+	var cluster_radius := 6.0
+	
+	for i in range(animal_count):
+		var obj_data: RefCounted = ObjectConfigScript.select_random_object(ObjectConfigScript.Category.NPC_FRIEND, rng)
+		if not obj_data:
+			continue
+		
+		# Random position within cluster
+		var angle := rng.randf_range(0, TAU)
+		var dist := rng.randf_range(0.5, cluster_radius)
+		var x := cluster_x + cos(angle) * dist
+		var local_z := cluster_z + sin(angle) * dist
+		
+		# Clamp to terrain bounds
+		x = clampf(x, -terrain_width / 2 + 2.0, terrain_width / 2 - 2.0)
+		local_z = clampf(local_z, -chunk_size.y + 2.0, -2.0)
+		
+		if _is_near_hole(x, local_z, chunk_index):
+			continue
+		
+		if not _is_position_available(x, local_z, chunk_index, 2.0):
+			continue
+		
+		var height: float = get_height_func.call(x, local_z, chunk_index)
+		
+		var obj: Node3D = _create_object(obj_data, rng, ObjectConfigScript.Category.NPC_FRIEND)
+		if not obj:
+			continue
+		
+		obj.position = Vector3(x, height, local_z)
+		obj.rotation.y = rng.randf_range(0, TAU)
+		
+		# Scale to target height
+		var variation: float = obj_data.height_variation
+		var target_h: float = obj_data.target_height * rng.randf_range(1.0 - variation, 1.0 + variation)
+		_scale_to_target_height(obj, target_h)
+		
+		chunk.add_child(obj)
+		_register_spawn_position(x, local_z, chunk_index)
 ## Spawn zone-dependent objects (trees, buildings, enemies) with per-position zone check
 func _spawn_zone_objects(chunk: Node3D, chunk_index: int, get_height_func: Callable) -> void:
 	var rng := RandomNumberGenerator.new()
@@ -205,6 +271,8 @@ func _try_spawn_at_position(chunk: Node3D, chunk_index: int, get_height_func: Ca
 		min_dist = 4.0
 	elif category == ObjectConfigScript.Category.ROCK:
 		min_dist = 1.5
+	elif category == ObjectConfigScript.Category.NPC_FRIEND:
+		min_dist = 3.0  # NPCs need space to wander
 	
 	if not _is_position_available(x, local_z, chunk_index, min_dist):
 		return false
@@ -239,6 +307,8 @@ func _create_object(obj_data: RefCounted, rng: RandomNumberGenerator, category: 
 			return _create_enemy(obj_data, rng)
 		ObjectConfigScript.Category.ROCK:
 			return _create_rock(obj_data, rng)
+		ObjectConfigScript.Category.NPC_FRIEND:
+			return _create_friend_npc(obj_data, rng)
 	return null
 
 ## Create a tree instance
@@ -431,6 +501,64 @@ func _create_rock(obj_data: RefCounted, rng: RandomNumberGenerator) -> StaticBod
 	
 	return rock
 
+## Create a friend NPC instance (chicken, rabbit, etc.)
+func _create_friend_npc(obj_data: RefCounted, rng: RandomNumberGenerator) -> CharacterBody3D:
+	var npc := CharacterBody3D.new()
+	npc.name = "FriendNPC"
+	npc.add_to_group("npcs")
+	npc.add_to_group("friend_npcs")
+	npc.collision_layer = 0  # Don't block anything
+	npc.collision_mask = 1   # Collide with terrain for walking
+	npc.set_script(FriendNPCScript)
+	npc.set("coin_value", obj_data.coins)
+	npc.set("object_id", obj_data.id)
+	npc.set("object_name", obj_data.display_name)
+	
+	# Terrain collision shape (invisible capsule for walking)
+	var terrain_col := CollisionShape3D.new()
+	terrain_col.name = "TerrainCollision"
+	var capsule := CapsuleShape3D.new()
+	capsule.radius = 0.2
+	capsule.height = obj_data.collision_height
+	terrain_col.shape = capsule
+	terrain_col.position.y = obj_data.collision_height / 2
+	npc.add_child(terrain_col)
+	
+	# Load model (separate from collision, will hop)
+	var model: Node3D = null
+	var model_scene := load(obj_data.model_path) as PackedScene
+	if model_scene:
+		model = model_scene.instantiate()
+		model.name = "Model"
+		_apply_material_recursive(model)
+		npc.add_child(model)
+	
+	# Calculate AABB from model for detection area
+	var aabb := AABB()
+	if model:
+		aabb = _get_model_aabb(model)
+	
+	# Detection area for player collision
+	var detect_area := Area3D.new()
+	detect_area.name = "DetectArea"
+	detect_area.collision_layer = 0
+	detect_area.collision_mask = 2
+	detect_area.monitoring = true
+	
+	var col_shape := CollisionShape3D.new()
+	var sphere := SphereShape3D.new()
+	if aabb.size != Vector3.ZERO:
+		sphere.radius = max(aabb.size.x, aabb.size.z) * 0.6
+		col_shape.position = aabb.get_center()
+	else:
+		sphere.radius = obj_data.collision_radius
+		col_shape.position.y = obj_data.collision_height / 2
+	col_shape.shape = sphere
+	detect_area.add_child(col_shape)
+	npc.add_child(detect_area)
+	
+	return npc
+
 # ========== HELPER FUNCTIONS ==========
 
 func _is_near_hole(x: float, z: float, chunk_index: int) -> bool:
@@ -460,11 +588,15 @@ func _register_spawn_position(x: float, z: float, chunk_index: int) -> void:
 	spawned_positions[chunk_index].append(Vector2(x, z))
 
 func _scale_to_target_height(node: Node3D, target_height: float) -> void:
-	var model: Node = null
-	for child in node.get_children():
-		if child.name == "Model" or child is Node3D:
-			model = child
-			break
+	# For CharacterBody3D (NPCs), specifically find the Model child
+	var model: Node3D = null
+	if node is CharacterBody3D:
+		model = node.get_node_or_null("Model")
+	else:
+		for child in node.get_children():
+			if child.name == "Model" or child is MeshInstance3D:
+				model = child
+				break
 	
 	if not model:
 		node.scale = Vector3.ONE * 0.5
@@ -477,7 +609,15 @@ func _scale_to_target_height(node: Node3D, target_height: float) -> void:
 	
 	var current_height := aabb.size.y
 	var scale_factor := target_height / current_height
-	node.scale = Vector3(scale_factor, scale_factor, scale_factor)
+	
+	# For CharacterBody3D (NPCs), scale only the Model child, not the physics body
+	if node is CharacterBody3D:
+		model.scale = Vector3(scale_factor, scale_factor, scale_factor)
+		# Also set the target_height property for dynamic hop calculation
+		if node.has_method("set"):
+			node.set("model_height", target_height)
+	else:
+		node.scale = Vector3(scale_factor, scale_factor, scale_factor)
 
 func _get_model_aabb(node: Node) -> AABB:
 	var combined_aabb := AABB()

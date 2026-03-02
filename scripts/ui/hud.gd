@@ -1,6 +1,7 @@
 extends CanvasLayer
 ## HUD - Displays coins, distance, health, and handles pause
 
+@onready var top_bar: PanelContainer = $TopBar
 @onready var coins_label: Label = $TopBar/MarginContainer/HBoxContainer/CoinsContainer/CoinsLabel
 @onready var distance_label: Label = $TopBar/MarginContainer/HBoxContainer/DistanceContainer/DistanceLabel
 @onready var health_bar: ProgressBar = $TopBar/MarginContainer/HBoxContainer/HealthContainer/HealthBar
@@ -27,6 +28,9 @@ func _ready() -> void:
 	gm.game_paused.connect(_on_game_paused)
 	gm.health_changed.connect(_on_health_changed)
 	gm.player_hit.connect(_on_player_hit)
+	
+	# Adjust top bar position for mobile safe area (notch, status bar)
+	_apply_safe_area_offset()
 	
 	# Initialize sliders with current volume values
 	if audio:
@@ -203,3 +207,30 @@ func show_pickup_popup(amount: int, icon_texture: Texture2D) -> void:
 	tween.tween_property(popup, "modulate:a", 0.0, duration * 0.8).set_delay(duration * 0.2)
 	tween.set_parallel(false)
 	tween.tween_callback(popup.queue_free)
+
+
+## Adjust top bar offset for mobile safe area (notch, status bar, etc.)
+func _apply_safe_area_offset() -> void:
+	# Get safe area rect from OS (accounts for notch, status bar, etc.)
+	var safe_area: Rect2i = DisplayServer.get_display_safe_area()
+	var screen_size: Vector2i = DisplayServer.screen_get_size()
+	
+	# Get viewport (design) size
+	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
+	
+	# Calculate scale factor from screen to viewport coordinates
+	var scale_y: float = viewport_size.y / float(screen_size.y) if screen_size.y > 0 else 1.0
+	
+	# Calculate top inset and scale to viewport coordinates
+	var top_inset_screen: float = float(safe_area.position.y)
+	var top_inset_viewport: float = top_inset_screen * scale_y
+	
+	# On desktop or if no safe area, use a minimum margin
+	var min_top_offset: float = 20.0
+	var actual_top_offset: float = maxf(top_inset_viewport, min_top_offset)
+	
+	# Apply offset to top bar
+	if top_bar:
+		top_bar.offset_top = actual_top_offset
+		# Adjust bottom offset to maintain panel height (~64px)
+		top_bar.offset_bottom = actual_top_offset + 64.0

@@ -10,6 +10,7 @@ enum Category {
 	BUILDING,
 	ENEMY,
 	ROCK,
+	NPC_FRIEND,
 }
 
 # ========== OBJECT DATA STRUCTURE ==========
@@ -234,12 +235,12 @@ static func _init_objects() -> void:
 		"name": "Spike",
 		"category": Category.ENEMY,
 		"model": "res://assets/models/enemies/spike.blend",
-		"height": 1.95,  # Increased by 30% from 1.5
+		"height": 1.95, 
 		"height_var": 0.1,
 		"spawn_chance": 1.0,
 		"damage": 15,
 		"destructible": false,
-		"col_radius": 2.0,  # Increased for better hit detection
+		"col_radius": 1.6,  
 	})
 	
 	# ===== ROCKS (decoration) =====
@@ -353,6 +354,34 @@ static func _init_objects() -> void:
 		"destructible": false,
 		"col_radius": 0.4,
 	})
+	
+	# ===== FRIEND NPCs =====
+	_register_object({
+		"id": "npc_chicken",
+		"name": "Kuře",
+		"category": Category.NPC_FRIEND,
+		"model": "res://assets/models/npc_friend/chicken.blend",
+		"height": 0.7,
+		"height_var": 0.1,
+		"spawn_chance": 1.0,
+		"coins": 5,
+		"destructible": true,
+		"col_radius": 0.3,
+		"col_height": 0.4,
+	})
+	_register_object({
+		"id": "npc_rabbit",
+		"name": "Králík",
+		"category": Category.NPC_FRIEND,
+		"model": "res://assets/models/npc_friend/rabbit.blend",
+		"height": 0.7,
+		"height_var": 0.1,
+		"spawn_chance": 0.8,
+		"coins": 8,
+		"destructible": true,
+		"col_radius": 0.25,
+		"col_height": 0.35,
+	})
 
 static func _register_object(data: Dictionary) -> void:
 	var obj := ObjectData.new(data)
@@ -391,6 +420,10 @@ static func get_enemies() -> Array:
 static func get_rocks() -> Array:
 	return get_objects_by_category(Category.ROCK)
 
+## Get all friend NPCs
+static func get_npcs_friend() -> Array:
+	return get_objects_by_category(Category.NPC_FRIEND)
+
 ## Select random object from category based on spawn_chance weights
 static func select_random_object(category: int, rng: RandomNumberGenerator) -> ObjectData:
 	_ensure_initialized()
@@ -428,4 +461,6 @@ static func get_category_name(category: int) -> String:
 			return "Enemy"
 		Category.ROCK:
 			return "Rock"
+		Category.NPC_FRIEND:
+			return "Friend NPC"
 	return "Unknown"
