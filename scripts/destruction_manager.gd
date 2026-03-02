@@ -67,7 +67,7 @@ func _warmup() -> void:
 
 
 ## Shatter an object into mesh fragments
-func shatter(target: Node3D, impact_velocity: Vector3 = Vector3.ZERO, remove_original: bool = true) -> void:
+func shatter(target: Node3D, impact_velocity: Vector3 = Vector3.ZERO, remove_original: bool = true, fly_upward: bool = false) -> void:
 	if not is_instance_valid(target) or not target.is_inside_tree():
 		return
 	
@@ -112,11 +112,12 @@ func shatter(target: Node3D, impact_velocity: Vector3 = Vector3.ZERO, remove_ori
 	for i in range(fragments.size()):
 		var frag_mesh: ArrayMesh = fragments[i]
 		if frag_mesh:
-			_spawn_fragment(scene_root, frag_mesh, source_material, mesh_world_transform, impact_velocity, i, fragments.size())
+			_spawn_fragment(scene_root, frag_mesh, source_material, mesh_world_transform, impact_velocity, i, fragments.size(), fly_upward)
 	
-	# Spawn dust particles
-	var base_color := _extract_color_from_material(source_material)
-	_spawn_dust_particles(scene_root, spawn_position, base_color)
+	# Spawn dust particles (skip for upward shatter like player death)
+	if not fly_upward:
+		var base_color := _extract_color_from_material(source_material)
+		_spawn_dust_particles(scene_root, spawn_position, base_color)
 	
 	# Remove original
 	if remove_original:
@@ -304,7 +305,8 @@ func _spawn_fragment(
 	world_transform: Transform3D,
 	impact_velocity: Vector3,
 	index: int,
-	total_count: int
+	total_count: int,
+	fly_upward: bool = false
 ) -> void:
 	var debris := MeshInstance3D.new()
 	debris.name = "Fragment_%d" % index
@@ -352,7 +354,12 @@ func _spawn_fragment(
 		velocity_dir = outward_dir
 	
 	var velocity_mag := randf_range(DEBRIS_VELOCITY_MIN, DEBRIS_VELOCITY_MAX)
-	var up_velocity := randf_range(DEBRIS_UP_VELOCITY_MIN, DEBRIS_UP_VELOCITY_MAX)
+	var up_velocity: float
+	if fly_upward:
+		# For upward shatter (player death), debris flies up strongly
+		up_velocity = randf_range(12.0, 20.0)
+	else:
+		up_velocity = randf_range(DEBRIS_UP_VELOCITY_MIN, DEBRIS_UP_VELOCITY_MAX)
 	var velocity := velocity_dir * velocity_mag + Vector3.UP * up_velocity
 	
 	var rotation_velocity := Vector3(
@@ -362,13 +369,14 @@ func _spawn_fragment(
 	)
 	
 	scene_root.add_child(debris)
-	_animate_fragment(debris, fade_material, velocity, rotation_velocity)
+	_animate_fragment(debris, fade_material, velocity, rotation_velocity, fly_upward)
 
 
 ## Animate fragment flying and fading
-func _animate_fragment(debris: MeshInstance3D, material: StandardMaterial3D, velocity: Vector3, rotation_velocity: Vector3) -> void:
+func _animate_fragment(debris: MeshInstance3D, material: StandardMaterial3D, velocity: Vector3, rotation_velocity: Vector3, fly_upward: bool = false) -> void:
 	var elapsed := 0.0
-	var gravity := 18.0
+	# For upward shatter, use lower gravity so debris floats up longer
+	var gravity := 6.0 if fly_upward else 18.0
 	var current_velocity := velocity
 	var original_color := material.albedo_color
 	

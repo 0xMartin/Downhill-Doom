@@ -55,8 +55,16 @@ func _physics_process(delta: float) -> void:
 func shake(intensity: float = 0.5) -> void:
 	shake_intensity = intensity
 
+
+## Extended shake with custom decay rate for longer shakes
+func shake_extended(intensity: float, decay: float) -> void:
+	shake_intensity = intensity
+	shake_decay = decay
+
+
 func _on_player_hit(_damage: int) -> void:
 	shake(0.6)
+	shake_decay = 5.0  # Reset to default decay
 
 func _on_player_died() -> void:
 	is_following = false

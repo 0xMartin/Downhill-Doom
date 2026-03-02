@@ -232,13 +232,24 @@ func die() -> void:
 	# Freeze physics immediately
 	freeze = true
 	
-	# Spawn explosion particles at player position
-	var explosion_scene := preload("res://scenes/explosion_effect.tscn")
-	var explosion := explosion_scene.instantiate()
-	explosion.global_position = global_position
-	get_tree().current_scene.add_child(explosion)
+	# Shatter the player model using mesh destruction - fly upward for dramatic effect
+	var player_model: Node3D = get_node_or_null("PlayerModel")
+	if player_model:
+		# Impact velocity is downhill direction for debris spread
+		var impact_direction := linear_velocity.normalized()
+		var impact_velocity := impact_direction * 10.0
+		# fly_upward=true makes debris fly up instead of falling
+		DestructionManager.shatter(player_model, impact_velocity, false, true)
 	
-	# Hide the ball
+	# Big and long screen shake on death
+	var camera := get_viewport().get_camera_3d()
+	if camera and camera.has_method("shake_extended"):
+		camera.shake_extended(1.5, 1.2)  # High intensity, slow decay for long shake
+	
+	# Strong and long vibration on death
+	Input.vibrate_handheld(500)  # 500ms vibration
+	
+	# Hide the ball (model already hidden by shatter)
 	visible = false
 	
 	# Wait before showing death menu (2 seconds)
