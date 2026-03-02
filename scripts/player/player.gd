@@ -32,6 +32,10 @@ var terrain_slope: float = 15.0  # Will be set from terrain generator
 var audio_manager: Node
 var jump_cooldown: float = 0.0  # Time until next jump allowed
 var is_on_ground: bool = true  # Track if player is touching ground
+var was_on_ground: bool = true  # Previous frame ground state
+
+# Dust particles
+var dust_particles: GPUParticles3D
 
 func _ready() -> void:
 	# Get autoload references
@@ -46,6 +50,9 @@ func _ready() -> void:
 		player_model.global_position = global_position
 		# Disable shadows and make unshaded
 		_setup_unshaded_materials(player_model)
+	
+	# Setup dust particles (under ball when on ground)
+	_setup_dust_particles()
 	
 	# Enable continuous collision detection for fast-moving physics
 	continuous_cd = true
@@ -177,6 +184,17 @@ func _physics_process(delta: float) -> void:
 		# Apply rotation to visual model
 		player_model.rotate_x(forward_angular * delta)
 		player_model.rotate_z(side_angular * delta)
+	
+	# Update particle effects
+	_update_particles(current_forward_speed)
+
+func _update_particles(speed: float) -> void:
+	var speed_ratio := speed / max_speed
+	
+	# Dust: emit when on ground and moving
+	if dust_particles:
+		dust_particles.emitting = is_on_ground and speed_ratio > 0.2
+		dust_particles.amount_ratio = clampf(speed_ratio * 0.8, 0.2, 1.0)
 
 func _update_ground_state() -> void:
 	# Simple ground check: raycast downward (small tolerance for easier jumping)
@@ -247,7 +265,8 @@ func die() -> void:
 		camera.shake_extended(1.5, 1.2)  # High intensity, slow decay for long shake
 	
 	# Strong and long vibration on death
-	Input.vibrate_handheld(500)  # 500ms vibration
+	if audio_manager:
+		audio_manager.vibrate(500)
 	
 	# Hide the ball (model already hidden by shatter)
 	visible = false
@@ -349,3 +368,41 @@ func _setup_unshaded_materials(node: Node) -> void:
 	# Recurse to children
 	for child in node.get_children():
 		_setup_unshaded_materials(child)
+
+## Setup dust particles when touching ground
+func _setup_dust_particles() -> void:
+	dust_particles = GPUParticles3D.new()
+	dust_particles.name = "DustParticles"
+	dust_particles.amount = 25
+	dust_particles.lifetime = 0.8
+	dust_particles.explosiveness = 0.0
+	dust_particles.emitting = false
+	
+	var proc_mat := ParticleProcessMaterial.new()
+	proc_mat.direction = Vector3(0, 1, 0)  # Upward
+	proc_mat.spread = 60.0
+	proc_mat.initial_velocity_min = 2.0
+	proc_mat.initial_velocity_max = 4.0
+	proc_mat.gravity = Vector3(0, -3, 0)
+	proc_mat.scale_min = 0.1
+	proc_mat.scale_max = 0.25
+	proc_mat.color = Color(0.95, 0.97, 1.0, 0.6)  # Bright snow/dust color
+	var color_ramp := Gradient.new()
+	color_ramp.set_color(0, Color(0.95, 0.97, 1.0, 0.7))
+	color_ramp.set_color(1, Color(0.95, 0.97, 1.0, 0.0))
+	var color_tex := GradientTexture1D.new()
+	color_tex.gradient = color_ramp
+	proc_mat.color_ramp = color_tex
+	dust_particles.process_material = proc_mat
+	
+	var mesh := SphereMesh.new()
+	mesh.radius = 0.5
+	mesh.height = 1.0
+	var mesh_mat := StandardMaterial3D.new()
+	mesh_mat.albedo_color = Color(0.98, 0.98, 1.0)
+	mesh_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mesh.material = mesh_mat
+	dust_particles.draw_pass_1 = mesh
+	
+	add_child(dust_particles)
+	dust_particles.position = Vector3(0, -sphere_radius, 0)  # At the bottom of the ball

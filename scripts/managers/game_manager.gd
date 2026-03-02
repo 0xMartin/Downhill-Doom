@@ -9,10 +9,12 @@ signal player_died
 signal game_started
 signal game_paused(is_paused: bool)
 signal object_destroyed(object_id: String, object_name: String, coins: int)
+signal time_changed(time: float)
 
 # Game state
 var coins: int = 0
 var distance: float = 0.0
+var game_time: float = 0.0  # Time in seconds
 var best_distance: float = 0.0
 var best_coins: int = 0
 var is_playing := false
@@ -33,9 +35,20 @@ var destroyed_objects_details: Array = []  # [{id, name, coins, timestamp}]
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	
+	# Auto-pause when app goes to background
+	get_tree().root.connect("focus_exited", _on_focus_lost)
+
+func _on_focus_lost() -> void:
+	if is_playing and not is_paused:
+		pause_game()
 
 func _process(_delta: float) -> void:
 	if is_playing and player and not is_paused:
+		# Update game time
+		game_time += _delta
+		time_changed.emit(game_time)
+		
 		# Calculate distance traveled (negative Z direction)
 		var current_distance := -player.global_position.z
 		if current_distance > distance:
@@ -45,6 +58,7 @@ func _process(_delta: float) -> void:
 func start_game() -> void:
 	coins = 0
 	distance = 0.0
+	game_time = 0.0
 	health = max_health
 	is_playing = true
 	is_paused = false
@@ -55,6 +69,7 @@ func start_game() -> void:
 	
 	coins_changed.emit(coins)
 	distance_changed.emit(distance)
+	time_changed.emit(game_time)
 	health_changed.emit(health, max_health)
 	game_started.emit()
 	
@@ -79,7 +94,7 @@ func end_game() -> void:
 	
 	# Record stats for statistics tracking
 	var MainMenu = load("res://scripts/ui/main_menu.gd")
-	MainMenu.record_game_stats(coins, distance)
+	MainMenu.record_game_stats(coins, distance, game_time)
 	
 	player_died.emit()
 
@@ -138,8 +153,10 @@ func take_damage(amount: int) -> void:
 	health_changed.emit(health, max_health)
 	player_hit.emit(amount)
 	
-	# Vibrate on mobile devices
-	Input.vibrate_handheld(150)  # 150ms vibration (longer for better feel)
+	# Vibrate on mobile devices (respects haptic setting)
+	var audio = get_node_or_null("/root/AudioManager")
+	if audio:
+		audio.vibrate(150)
 	
 	if health <= 0:
 		# Call player's die() method which handles explosion, sound, and delay
@@ -192,3 +209,17 @@ func get_formatted_distance() -> String:
 	if distance >= 1000:
 		return "%.1f km" % (distance / 1000.0)
 	return "%d m" % int(distance)
+
+func get_formatted_time() -> String:
+	var total_seconds := int(game_time)
+	var hours := total_seconds / 3600
+	var minutes := (total_seconds % 3600) / 60
+	var seconds := total_seconds % 60
+	return "%02d:%02d:%02d" % [hours, minutes, seconds]
+
+static func format_time_static(time_seconds: float) -> String:
+	var total_seconds := int(time_seconds)
+	var hours := total_seconds / 3600
+	var minutes := (total_seconds % 3600) / 60
+	var seconds := total_seconds % 60
+	return "%02d:%02d:%02d" % [hours, minutes, seconds]

@@ -7,6 +7,7 @@ const SETTINGS_PATH := "user://settings.cfg"
 var music_volume: float = 0.7
 var sfx_volume: float = 0.8
 var show_pickup_popup: bool = true  # Show +1 coin popup on pickup
+var haptic_enabled: bool = true  # Enable vibration feedback
 
 # Sound paths
 const BUTTON_CLICK := "res://assets/sounds/ui/button_click.mp3"
@@ -311,6 +312,18 @@ func set_show_pickup_popup(value: bool) -> void:
 func get_show_pickup_popup() -> bool:
 	return show_pickup_popup
 
+func set_haptic_enabled(value: bool) -> void:
+	haptic_enabled = value
+	_save_settings()
+
+func get_haptic_enabled() -> bool:
+	return haptic_enabled
+
+## Vibrate if haptic is enabled
+func vibrate(duration_ms: int = 100) -> void:
+	if haptic_enabled:
+		Input.vibrate_handheld(duration_ms)
+
 func _get_music_db(base_db: float = 0.0) -> float:
 	if music_volume <= 0.0:
 		return -80.0
@@ -335,6 +348,7 @@ func _save_settings() -> void:
 	config.set_value("audio", "music_volume", music_volume)
 	config.set_value("audio", "sfx_volume", sfx_volume)
 	config.set_value("ui", "show_pickup_popup", show_pickup_popup)
+	config.set_value("ui", "haptic_enabled", haptic_enabled)
 	config.save(SETTINGS_PATH)
 
 func _load_settings() -> void:
@@ -343,3 +357,4 @@ func _load_settings() -> void:
 		music_volume = config.get_value("audio", "music_volume", 0.7)
 		sfx_volume = config.get_value("audio", "sfx_volume", 0.8)
 		show_pickup_popup = config.get_value("ui", "show_pickup_popup", true)
+		haptic_enabled = config.get_value("ui", "haptic_enabled", true)

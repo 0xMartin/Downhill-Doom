@@ -24,6 +24,12 @@ var model_rotation_speed := 0.5
 # Object preview viewports
 var object_viewports: Array[SubViewportContainer] = []
 
+# Stats sections for destroyed objects
+const OBJECT_SECTIONS := ["Trees", "Buildings", "Friend NPC", "Enemy NPC", "Enemy Building"]
+var current_section_index: int = 0
+var object_grid: GridContainer  # Reference for section switching
+var section_label: Label  # Reference for section label
+
 # Stats data
 var stats := {
 	"games_played": 0,
@@ -31,6 +37,8 @@ var stats := {
 	"max_coins": 0,
 	"total_distance": 0.0,
 	"max_distance": 0.0,
+	"total_time": 0.0,
+	"max_time": 0.0,
 	"destroyed_objects": {}  # {object_id: count}
 }
 
@@ -152,6 +160,36 @@ func _rebuild_stats_panel() -> void:
 	obj_header.add_theme_color_override("font_color", Color(0.8, 0.85, 0.9, 1))
 	vbox.add_child(obj_header)
 	
+	# Section Navigation (< Section Name >)
+	var nav_container := HBoxContainer.new()
+	nav_container.alignment = BoxContainer.ALIGNMENT_CENTER
+	nav_container.add_theme_constant_override("separation", 20)
+	vbox.add_child(nav_container)
+	
+	var prev_btn := Button.new()
+	prev_btn.text = "<"
+	prev_btn.custom_minimum_size = Vector2(50, 40)
+	prev_btn.add_theme_font_size_override("font_size", 24)
+	_apply_button_style(prev_btn)
+	prev_btn.pressed.connect(_on_section_prev)
+	nav_container.add_child(prev_btn)
+	
+	section_label = Label.new()
+	section_label.text = OBJECT_SECTIONS[current_section_index]
+	section_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	section_label.custom_minimum_size = Vector2(200, 40)
+	section_label.add_theme_font_size_override("font_size", 22)
+	section_label.add_theme_color_override("font_color", Color(1, 0.95, 0.8, 1))
+	nav_container.add_child(section_label)
+	
+	var next_btn := Button.new()
+	next_btn.text = ">"
+	next_btn.custom_minimum_size = Vector2(50, 40)
+	next_btn.add_theme_font_size_override("font_size", 24)
+	_apply_button_style(next_btn)
+	next_btn.pressed.connect(_on_section_next)
+	nav_container.add_child(next_btn)
+	
 	# Scrollable Object List - use available screen space
 	var scroll := ScrollContainer.new()
 	var screen_height: float = get_viewport().get_visible_rect().size.y
@@ -161,15 +199,15 @@ func _rebuild_stats_panel() -> void:
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	vbox.add_child(scroll)
 	
-	var grid := GridContainer.new()
-	grid.columns = 2
-	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	grid.add_theme_constant_override("h_separation", 15)
-	grid.add_theme_constant_override("v_separation", 15)
-	scroll.add_child(grid)
+	object_grid = GridContainer.new()
+	object_grid.columns = 2
+	object_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	object_grid.add_theme_constant_override("h_separation", 15)
+	object_grid.add_theme_constant_override("v_separation", 15)
+	scroll.add_child(object_grid)
 	
 	# Add object cards
-	_populate_object_cards(grid)
+	_populate_object_cards(object_grid)
 	
 	# Back Button
 	var back_btn := Button.new()
@@ -244,18 +282,76 @@ func _create_global_stats_section() -> VBoxContainer:
 	dist_label.add_theme_font_size_override("font_size", 18)
 	dist_row.add_child(dist_label)
 	
+	# Time row
+	var time_row := HBoxContainer.new()
+	time_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	section.add_child(time_row)
+	
+	var time_icon_label := Label.new()
+	time_icon_label.text = "⏱"
+	time_icon_label.add_theme_font_size_override("font_size", 20)
+	time_row.add_child(time_icon_label)
+	
+	var max_t: float = stats.get("max_time", 0.0)
+	var total_t: float = stats.get("total_time", 0.0)
+	var avg_t: float = 0.0
+	if games_count > 0:
+		avg_t = total_t / games_count
+	
+	var time_label := Label.new()
+	time_label.text = "  Best: %s  |  Avg: %s  |  Total: %s" % [_format_time(max_t), _format_time(avg_t), _format_time(total_t)]
+	time_label.add_theme_font_size_override("font_size", 18)
+	time_row.add_child(time_label)
+	
 	return section
 
+func _format_time(time_seconds: float) -> String:
+	var total_seconds := int(time_seconds)
+	var hours := total_seconds / 3600
+	var minutes := (total_seconds % 3600) / 60
+	var seconds := total_seconds % 60
+	if hours > 0:
+		return "%d:%02d:%02d" % [hours, minutes, seconds]
+	return "%02d:%02d" % [minutes, seconds]
+
 func _populate_object_cards(grid: GridContainer) -> void:
+	# Clear existing cards
+	for child in grid.get_children():
+		child.queue_free()
 	object_viewports.clear()
 	
-	# Get all destructible objects (trees, buildings, and friend NPCs)
+	# Get objects based on current section
+	# OBJECT_SECTIONS = ["Trees", "Buildings", "Friend NPC", "Enemy NPC", "Enemy Building"]
 	var objects: Array = []
-	objects.append_array(ObjectConfigScript.get_trees())
-	objects.append_array(ObjectConfigScript.get_buildings())
-	objects.append_array(ObjectConfigScript.get_npcs_friend())
+	match current_section_index:
+		0:  # Trees
+			objects = ObjectConfigScript.get_trees()
+		1:  # Buildings
+			objects = ObjectConfigScript.get_buildings()
+		2:  # Friend NPC
+			objects = ObjectConfigScript.get_npcs_friend()
+		3:  # Enemy NPC (enemies that aren't structures)
+			for obj in ObjectConfigScript.get_enemies():
+				var o: RefCounted = obj
+				if not o.id.begins_with("enemy_spike") and not o.id.begins_with("enemy_building"):
+					objects.append(obj)
+		4:  # Enemy Building (spikes, structures)
+			for obj in ObjectConfigScript.get_enemies():
+				var o: RefCounted = obj
+				if o.id.begins_with("enemy_spike") or o.id.begins_with("enemy_building"):
+					objects.append(obj)
 	
 	var destroyed: Dictionary = stats.get("destroyed_objects", {})
+	
+	if objects.is_empty():
+		# Show "No objects" message
+		var empty_label := Label.new()
+		empty_label.text = "No objects in this category"
+		empty_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		empty_label.add_theme_font_size_override("font_size", 18)
+		empty_label.add_theme_color_override("font_color", Color(0.6, 0.6, 0.7, 1))
+		grid.add_child(empty_label)
+		return
 	
 	for obj_data in objects:
 		var card := _create_object_card(obj_data, destroyed.get(obj_data.id, 0))
@@ -440,7 +536,7 @@ func _update_stats_display() -> void:
 	_rebuild_stats_panel()
 
 # Static method to record game results (called from game_manager)
-static func record_game_stats(coins: int, distance: float) -> void:
+static func record_game_stats(coins: int, distance: float, game_time: float = 0.0) -> void:
 	var stats_data := {}
 	
 	# Load existing stats
@@ -461,12 +557,16 @@ static func record_game_stats(coins: int, distance: float) -> void:
 	var prev_max_coins: int = int(stats_data.get("max_coins", 0))
 	var prev_distance: float = float(stats_data.get("total_distance", 0.0))
 	var prev_max_distance: float = float(stats_data.get("max_distance", 0.0))
+	var prev_time: float = float(stats_data.get("total_time", 0.0))
+	var prev_max_time: float = float(stats_data.get("max_time", 0.0))
 	
 	stats_data["games_played"] = prev_games + 1
 	stats_data["total_coins"] = prev_coins + coins
 	stats_data["max_coins"] = max(prev_max_coins, coins)
 	stats_data["total_distance"] = prev_distance + distance
 	stats_data["max_distance"] = max(prev_max_distance, distance)
+	stats_data["total_time"] = prev_time + game_time
+	stats_data["max_time"] = max(prev_max_time, game_time)
 	
 	# Copy destroyed objects from GameManager
 	var gm := Engine.get_singleton("GameManager") if Engine.has_singleton("GameManager") else null
@@ -514,6 +614,26 @@ func _on_stats_button_pressed() -> void:
 	_update_stats_display()
 	stats_panel.visible = true
 	main_content.visible = false
+
+func _on_section_prev() -> void:
+	audio_manager.play_button_click()
+	current_section_index -= 1
+	if current_section_index < 0:
+		current_section_index = OBJECT_SECTIONS.size() - 1
+	_update_section_display()
+
+func _on_section_next() -> void:
+	audio_manager.play_button_click()
+	current_section_index += 1
+	if current_section_index >= OBJECT_SECTIONS.size():
+		current_section_index = 0
+	_update_section_display()
+
+func _update_section_display() -> void:
+	if section_label:
+		section_label.text = OBJECT_SECTIONS[current_section_index]
+	if object_grid:
+		_populate_object_cards(object_grid)
 
 func _on_stats_back_pressed() -> void:
 	audio_manager.play_button_click()

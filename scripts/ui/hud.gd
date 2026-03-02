@@ -10,8 +10,10 @@ extends CanvasLayer
 @onready var music_slider: HSlider = $PauseMenu/PanelContainer/VBoxContainer/MusicSlider
 @onready var sfx_slider: HSlider = $PauseMenu/PanelContainer/VBoxContainer/SFXSlider
 @onready var popup_check: CheckButton = $PauseMenu/PanelContainer/VBoxContainer/PopupCheck
+@onready var haptic_check: CheckButton = $PauseMenu/PanelContainer/VBoxContainer/HapticCheck
 @onready var sparkle: TextureRect = $TopBar/MarginContainer/HBoxContainer/CoinsContainer/CoinIcon/Sparkle
 @onready var popup_container: Control = $PopupContainer
+@onready var timer_label: Label = $TimerLabel
 
 var gm: Node  # GameManager reference
 var audio: Node  # AudioManager reference
@@ -28,6 +30,7 @@ func _ready() -> void:
 	gm.game_paused.connect(_on_game_paused)
 	gm.health_changed.connect(_on_health_changed)
 	gm.player_hit.connect(_on_player_hit)
+	gm.time_changed.connect(_on_time_changed)
 	
 	# Adjust top bar position for mobile safe area (notch, status bar)
 	_apply_safe_area_offset()
@@ -37,6 +40,7 @@ func _ready() -> void:
 		music_slider.value = audio.get_music_volume()
 		sfx_slider.value = audio.get_sfx_volume()
 		popup_check.button_pressed = audio.get_show_pickup_popup()
+		haptic_check.button_pressed = audio.get_haptic_enabled()
 	
 	pause_menu.visible = false
 	red_flash.visible = false
@@ -93,6 +97,9 @@ func _on_coins_changed(total: int) -> void:
 func _on_distance_changed(_dist: float) -> void:
 	distance_label.text = gm.get_formatted_distance()
 
+func _on_time_changed(time: float) -> void:
+	timer_label.text = gm.format_time_static(time)
+
 func _on_game_paused(is_paused: bool) -> void:
 	pause_menu.visible = is_paused
 
@@ -145,6 +152,10 @@ func _on_sfx_slider_changed(value: float) -> void:
 func _on_popup_check_toggled(toggled_on: bool) -> void:
 	if audio:
 		audio.set_show_pickup_popup(toggled_on)
+
+func _on_haptic_check_toggled(toggled_on: bool) -> void:
+	if audio:
+		audio.set_haptic_enabled(toggled_on)
 
 # ========== Floating Pickup Popup ==========
 

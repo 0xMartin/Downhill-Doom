@@ -1,11 +1,15 @@
 # Downhill Doom
 
-* Zprovnoznit zaklad hry, spravne generovani zon, optimalizace, rozmanitost, configorovatelnost
-* Zprovozneni statistik: pocet zabiti, cas hry
-* Chodici npc (mirumilovne, enemy)
+* Ukladani ziskanych coinu na ucet
+* Pridat vice modelu pro vice friend npc
+* Pridat a implementovat enemy_npc (budou aktivne utocit na hrace, kdyz bude pobliz)
+* Implementovat system odemykani objektu pro spawnuti
+* Implementovat system ktery bude npc s nizsi pravdepodobnosti spawnuti zacinat spawnovat az kdyz hrace ujede urcitou vzdalenost
+ 
+* Velepsovani hrace (max zivoty, ..)
+* Shop pro boosty do hry (extra hp, double coins, ...)
+
+* Zprovoznit daily questy (dosazeni coinu, vzdalenost, zabiti, za jeden run, za vice runu) + system odmen (penize / boosty)
 
 * Sbirani itemu a spawnovani itemu (heal potion, shield, zbrane)
 
-* Zprovoznit daily questy (dosazeni coinu, vzdalenost, zabiti, za jeden run, za vice runu) + system odmen (penize / boosty)
-* Shop pro boosty do hry (extra hp, double coins, ...)
-* Velepsovani hrace (max zivoty, ..)
