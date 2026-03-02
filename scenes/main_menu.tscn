@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://mainmenu001"]
 
-[ext_resource type="Script" uid="uid://d3nvasl7sdaka" path="res://scripts/main_menu.gd" id="1_menu"]
+[ext_resource type="Script" uid="uid://d3nvasl7sdaka" path="res://scripts/ui/main_menu.gd" id="1_menu"]
 [ext_resource type="Texture2D" uid="uid://yu42hxl32cq4" path="res://assets/icons/mountain_silhouette.svg" id="3_mountain"]
 [ext_resource type="Texture2D" uid="uid://dww0xdl3vbmn5" path="res://assets/icons/title_decoration.svg" id="4_decoration"]
 [ext_resource type="Texture2D" uid="uid://jepsdf0och2h" path="res://assets/icons/coin.svg" id="5_coin"]

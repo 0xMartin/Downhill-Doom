@@ -17,10 +17,10 @@ config/icon="res://icon.svg"
 
 [autoload]
 
-GameManager="*res://scripts/game_manager.gd"
+GameManager="*res://scripts/managers/game_manager.gd"
 SceneTransition="*res://scenes/scene_transition.tscn"
-AudioManager="*res://scripts/audio_manager.gd"
-DestructionManager="*res://scripts/destruction_manager.gd"
+AudioManager="*res://scripts/managers/audio_manager.gd"
+DestructionManager="*res://scripts/managers/destruction_manager.gd"
 
 [display]
 

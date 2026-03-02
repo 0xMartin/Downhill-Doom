@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://hud001"]
 
-[ext_resource type="Script" uid="uid://cbekfycqe4dca" path="res://scripts/hud.gd" id="1_hud"]
+[ext_resource type="Script" uid="uid://cbekfycqe4dca" path="res://scripts/ui/hud.gd" id="1_hud"]
 [ext_resource type="Texture2D" uid="uid://jepsdf0och2h" path="res://assets/icons/coin.svg" id="2_coin_icon"]
 [ext_resource type="Texture2D" uid="uid://c8ih408eiw1t2" path="res://assets/icons/distance.svg" id="3_distance_icon"]
 [ext_resource type="Texture2D" uid="uid://u2tmdx761hu8" path="res://assets/icons/heart.svg" id="4_heart_icon"]

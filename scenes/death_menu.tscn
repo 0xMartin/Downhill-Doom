@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://death001"]
 
-[ext_resource type="Script" path="res://scripts/death_menu.gd" id="1_death"]
+[ext_resource type="Script" path="res://scripts/ui/death_menu.gd" id="1_death"]
 
 [sub_resource type="Animation" id="Animation_hide"]
 resource_name = "hide"

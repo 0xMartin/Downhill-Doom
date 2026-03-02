@@ -12,9 +12,9 @@ extends RefCounted
 const ObjectConfigScript := preload("res://scripts/config/object_config.gd")
 
 # Preloaded scripts for objects
-const TreeScript := preload("res://scripts/tree.gd")
-const BuildingScript := preload("res://scripts/building.gd")
-const SpikeScript := preload("res://scripts/spike.gd")
+const TreeScript := preload("res://scripts/objects/tree.gd")
+const BuildingScript := preload("res://scripts/objects/building.gd")
+const SpikeScript := preload("res://scripts/objects/spike.gd")
 
 # ========== SPAWNING CONFIGURATION ==========
 

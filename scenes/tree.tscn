@@ -1,6 +1,6 @@
 [gd_scene load_steps=7 format=3 uid="uid://tree001"]
 
-[ext_resource type="Script" path="res://scripts/tree.gd" id="1_tree"]
+[ext_resource type="Script" path="res://scripts/objects/tree.gd" id="1_tree"]
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_trunk"]
 top_radius = 0.3
