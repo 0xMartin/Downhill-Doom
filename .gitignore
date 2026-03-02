@@ -1,3 +1,35 @@
 # Godot 4+ specific ignores
 .godot/
 /android/
+
+# Imported textures and samples
+.import/
+
+# Mono-specific ignores
+.mono/
+data_*/
+mono_crash.*.json
+
+# Blender backup files
+*.blend1
+*.blend2
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Editor backup files
+*~
+\#*\#
+*.swp
+*.swo
+
+# Build/export folders
+build/
+export/
+exports/
