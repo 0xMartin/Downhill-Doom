@@ -34,7 +34,7 @@ signal terrain_ready
 @export var narrow_hole_width: float = 8.0  # Width of narrow holes to jump over (doubled)
 @export var narrow_hole_irregularity: float = 3.0  # How much the narrow hole varies
 @export var hole_depth: float = 8.0  # How deep holes are (5-10)
-@export var narrow_hole_chance: float = 0.6  # 60% chance of narrow vs random hole
+@export var narrow_hole_chance: float = 0.4  # 40% chance of narrow vs 60% random hole
 @export var random_hole_min_radius: float = 6.0  # Min radius of random holes (doubled)
 @export var random_hole_max_radius: float = 10.0  # Max radius of random holes (doubled)
 
@@ -354,11 +354,12 @@ func _create_lowpoly_terrain(chunk_index: int) -> StaticBody3D:
 	if hole_vertex_count > 0:
 		var floor_y := hole_min_y - hole_depth
 		
-		# Create solid floor quad covering all hole area with extra margin
-		var floor_v0 := Vector3(hole_min_x - 1.0, floor_y, hole_min_z - 1.0)
-		var floor_v1 := Vector3(hole_max_x + 1.0, floor_y, hole_min_z - 1.0)
-		var floor_v2 := Vector3(hole_min_x - 1.0, floor_y, hole_max_z + 1.0)
-		var floor_v3 := Vector3(hole_max_x + 1.0, floor_y, hole_max_z + 1.0)
+		# Create solid floor quad covering all hole area with large margin to prevent escape
+		var floor_margin := 10.0  # Large margin to ensure no escape
+		var floor_v0 := Vector3(hole_min_x - floor_margin, floor_y, hole_min_z - floor_margin)
+		var floor_v1 := Vector3(hole_max_x + floor_margin, floor_y, hole_min_z - floor_margin)
+		var floor_v2 := Vector3(hole_min_x - floor_margin, floor_y, hole_max_z + floor_margin)
+		var floor_v3 := Vector3(hole_max_x + floor_margin, floor_y, hole_max_z + floor_margin)
 		
 		# Floor visible from above (player looking down) - use DOWN normal with reversed winding
 		hole_st.set_color(hole_color)
@@ -928,7 +929,7 @@ func _precalculate_holes(chunk_index: int) -> void:
 		return
 	
 	# Random chance to skip even if spacing is ok (variation)
-	if rng.randf() > 0.7:  # 70% chance to spawn when eligible
+	if rng.randf() > 0.4:  # 40% chance to spawn when eligible
 		chunk_holes[chunk_index] = []
 		return
 	
@@ -1104,10 +1105,11 @@ func _spawn_holes(chunk: Node3D, chunk_index: int) -> void:
 		chunk.add_child(hole_container)
 		
 		if hole["type"] == "narrow":
-			# Death collider for narrow hole - covers entire width
+			# Death collider for narrow hole - only at the bottom floor
+			# Player must fall deep into the hole to die
 			_create_death_collider(hole_container, 
-				Vector3(0, floor_y + 1.5, local_z),
-				Vector3(terrain_width - 2, 3.0, narrow_hole_width + 6))
+				Vector3(0, floor_y + 1.0, local_z),
+				Vector3(terrain_width + 4, 2.0, narrow_hole_width + 6))
 			
 			# Fog particles
 			_create_hole_particles(hole_container,
@@ -1121,10 +1123,10 @@ func _spawn_holes(chunk: Node3D, chunk_index: int) -> void:
 			terrain_y = _get_decoration_height(hole_x, local_z, chunk_index)
 			floor_y = terrain_y - hole_depth
 			
-			# Death collider for random hole
+			# Death collider for random hole - only at the bottom floor
 			_create_death_collider(hole_container,
-				Vector3(hole_x, floor_y + 1.5, local_z),
-				Vector3(radius * 2.2, 3.0, radius * 2.2))
+				Vector3(hole_x, floor_y + 1.0, local_z),
+				Vector3(radius * 2.5, 2.0, radius * 2.5))
 			
 			# Fog particles
 			_create_hole_particles(hole_container,
