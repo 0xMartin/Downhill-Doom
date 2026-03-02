@@ -8,6 +8,9 @@
 * Velepsovani hrace (max zivoty, ..)
 * Shop pro boosty do hry (extra hp, double coins, ...)
 
+* Lepsi sound fx a soundtrack
+* Lepsi vfx a animace
+
 * Zprovoznit daily questy (dosazeni coinu, vzdalenost, zabiti, za jeden run, za vice runu) + system odmen (penize / boosty)
 
 * Sbirani itemu a spawnovani itemu (heal potion, shield, zbrane)
