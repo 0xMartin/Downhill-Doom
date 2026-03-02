@@ -5,22 +5,20 @@ const STATS_FILE := "user://stats.json"
 const PLAYER_MODEL_SCENE := preload("res://assets/models/players/player_1.blend")
 
 @onready var animation_player: AnimationPlayer = $AnimationPlayer
-@onready var play_button: Button = $VBoxContainer/PlayButton
-@onready var stats_button: Button = $VBoxContainer/StatsButton
-@onready var settings_button: Button = $VBoxContainer/SettingsButton
-@onready var quit_button: Button = $VBoxContainer/QuitButton
+@onready var play_button: Button = $MainContent/ButtonGrid/PlayButton
+@onready var stats_button: Button = $MainContent/ButtonGrid/StatsButton
+@onready var settings_button: Button = $MainContent/ButtonGrid/SettingsButton
+@onready var quit_button: Button = $MainContent/ButtonGrid/QuitButton
 @onready var settings_panel: Control = $SettingsPanel
 @onready var stats_panel: Control = $StatsPanel
-@onready var main_vbox: VBoxContainer = $VBoxContainer
+@onready var main_content: VBoxContainer = $MainContent
 @onready var music_slider: HSlider = $SettingsPanel/VBoxContainer/MusicSlider
 @onready var sfx_slider: HSlider = $SettingsPanel/VBoxContainer/SFXSlider
 @onready var player_model_container: Node3D = $PlayerViewport/SubViewport/PlayerModel
 
 # Stats labels
-@onready var max_coins_label: Label = $StatsPanel/VBoxContainer/MaxCoins
-@onready var avg_coins_label: Label = $StatsPanel/VBoxContainer/AvgCoins
-@onready var max_distance_label: Label = $StatsPanel/VBoxContainer/MaxDistance
-@onready var avg_distance_label: Label = $StatsPanel/VBoxContainer/AvgDistance
+@onready var coins_label: Label = $StatsPanel/VBoxContainer/CoinsRow/MaxCoins
+@onready var distance_label: Label = $StatsPanel/VBoxContainer/DistanceRow/MaxDistance
 @onready var games_played_label: Label = $StatsPanel/VBoxContainer/GamesPlayed
 
 var audio_manager: Node
@@ -138,10 +136,8 @@ func _update_stats_display() -> void:
 		avg_coins = int(total_c / games)
 		avg_distance = total_d / games
 	
-	max_coins_label.text = "Best: %d" % max_c
-	avg_coins_label.text = "Average: %d" % avg_coins
-	max_distance_label.text = "Best: %dm" % int(max_d)
-	avg_distance_label.text = "Average: %dm" % int(avg_distance)
+	coins_label.text = "  Best: %d  |  Avg: %d" % [max_c, avg_coins]
+	distance_label.text = "  Best: %dm  |  Avg: %dm" % [int(max_d), int(avg_distance)]
 	games_played_label.text = "Games Played: %d" % games
 
 # Static method to record game results (called from game_manager)
@@ -194,22 +190,22 @@ func _on_stats_button_pressed() -> void:
 	_load_stats()
 	_update_stats_display()
 	stats_panel.visible = true
-	main_vbox.visible = false
+	main_content.visible = false
 
 func _on_stats_back_pressed() -> void:
 	audio_manager.play_button_click()
 	stats_panel.visible = false
-	main_vbox.visible = true
+	main_content.visible = true
 
 func _on_settings_button_pressed() -> void:
 	audio_manager.play_button_click()
 	settings_panel.visible = true
-	main_vbox.visible = false
+	main_content.visible = false
 
 func _on_settings_back_pressed() -> void:
 	audio_manager.play_button_click()
 	settings_panel.visible = false
-	main_vbox.visible = true
+	main_content.visible = true
 
 func _on_quit_button_pressed() -> void:
 	audio_manager.play_button_click()
@@ -217,40 +213,6 @@ func _on_quit_button_pressed() -> void:
 		animation_player.play("exit")
 		await animation_player.animation_finished
 	get_tree().quit()
-
-# ========== Button Hover Effects ==========
-
-func _button_hover(button: Button) -> void:
-	var tween := create_tween()
-	tween.tween_property(button, "scale", Vector2(1.05, 1.05), 0.1)
-
-func _button_exit(button: Button) -> void:
-	var tween := create_tween()
-	tween.tween_property(button, "scale", Vector2.ONE, 0.1)
-
-func _on_play_button_mouse_entered() -> void:
-	_button_hover(play_button)
-
-func _on_play_button_mouse_exited() -> void:
-	_button_exit(play_button)
-
-func _on_stats_button_mouse_entered() -> void:
-	_button_hover(stats_button)
-
-func _on_stats_button_mouse_exited() -> void:
-	_button_exit(stats_button)
-
-func _on_settings_button_mouse_entered() -> void:
-	_button_hover(settings_button)
-
-func _on_settings_button_mouse_exited() -> void:
-	_button_exit(settings_button)
-
-func _on_quit_button_mouse_entered() -> void:
-	_button_hover(quit_button)
-
-func _on_quit_button_mouse_exited() -> void:
-	_button_exit(quit_button)
 
 # ========== Settings ==========
 

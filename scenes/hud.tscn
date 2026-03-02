@@ -1,12 +1,11 @@
 [gd_scene format=3 uid="uid://hud001"]
 
-[ext_resource type="Script" path="res://scripts/hud.gd" id="1_hud"]
-[ext_resource type="Texture2D" path="res://assets/icons/coin.svg" id="2_coin_icon"]
-[ext_resource type="Texture2D" path="res://assets/icons/distance.svg" id="3_distance_icon"]
-[ext_resource type="Texture2D" path="res://assets/icons/heart.svg" id="4_heart_icon"]
-[ext_resource type="Texture2D" path="res://assets/icons/settings.svg" id="5_settings_icon"]
-[ext_resource type="Texture2D" path="res://assets/icons/hud_panel.svg" id="6_hud_panel"]
-[ext_resource type="Texture2D" path="res://assets/icons/sparkle.svg" id="7_sparkle"]
+[ext_resource type="Script" uid="uid://cbekfycqe4dca" path="res://scripts/hud.gd" id="1_hud"]
+[ext_resource type="Texture2D" uid="uid://jepsdf0och2h" path="res://assets/icons/coin.svg" id="2_coin_icon"]
+[ext_resource type="Texture2D" uid="uid://c8ih408eiw1t2" path="res://assets/icons/distance.svg" id="3_distance_icon"]
+[ext_resource type="Texture2D" uid="uid://u2tmdx761hu8" path="res://assets/icons/heart.svg" id="4_heart_icon"]
+[ext_resource type="Texture2D" uid="uid://dj64mjtua4avs" path="res://assets/icons/settings.svg" id="5_settings_icon"]
+[ext_resource type="Texture2D" uid="uid://c6btm31ygwnlm" path="res://assets/icons/sparkle.svg" id="7_sparkle"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
 bg_color = Color(0.1, 0.08, 0.18, 0.92)
@@ -45,6 +44,10 @@ corner_radius_bottom_right = 12
 corner_radius_bottom_left = 12
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_settings"]
+content_margin_left = 12.0
+content_margin_top = 12.0
+content_margin_right = 12.0
+content_margin_bottom = 12.0
 bg_color = Color(0.1, 0.08, 0.18, 0.85)
 border_width_left = 2
 border_width_top = 2
@@ -55,14 +58,14 @@ corner_radius_top_left = 16
 corner_radius_top_right = 16
 corner_radius_bottom_right = 16
 corner_radius_bottom_left = 16
-content_margin_left = 12.0
-content_margin_top = 12.0
-content_margin_right = 12.0
-content_margin_bottom = 12.0
 shadow_color = Color(0, 0, 0, 0.3)
 shadow_size = 4
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_settings_hover"]
+content_margin_left = 12.0
+content_margin_top = 12.0
+content_margin_right = 12.0
+content_margin_bottom = 12.0
 bg_color = Color(0.15, 0.12, 0.25, 0.95)
 border_width_left = 2
 border_width_top = 2
@@ -73,52 +76,8 @@ corner_radius_top_left = 16
 corner_radius_top_right = 16
 corner_radius_bottom_right = 16
 corner_radius_bottom_left = 16
-content_margin_left = 12.0
-content_margin_top = 12.0
-content_margin_right = 12.0
-content_margin_bottom = 12.0
 shadow_color = Color(0.91, 0.27, 0.38, 0.3)
 shadow_size = 6
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button"]
-bg_color = Color(0.12, 0.1, 0.22, 0.95)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.5, 0.4, 0.9, 0.6)
-corner_radius_top_left = 14
-corner_radius_top_right = 14
-corner_radius_bottom_right = 14
-corner_radius_bottom_left = 14
-shadow_color = Color(0, 0, 0, 0.3)
-shadow_size = 4
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_hover"]
-bg_color = Color(0.18, 0.15, 0.35, 0.98)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.6, 0.5, 1, 0.9)
-corner_radius_top_left = 14
-corner_radius_top_right = 14
-corner_radius_bottom_right = 14
-corner_radius_bottom_left = 14
-shadow_color = Color(0.5, 0.4, 0.9, 0.3)
-shadow_size = 6
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_pressed"]
-bg_color = Color(0.25, 0.2, 0.45, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.7, 0.6, 1, 1)
-corner_radius_top_left = 14
-corner_radius_top_right = 14
-corner_radius_bottom_right = 14
-corner_radius_bottom_left = 14
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pause_panel"]
 bg_color = Color(0.08, 0.06, 0.14, 0.98)
@@ -135,11 +94,50 @@ shadow_color = Color(0, 0, 0, 0.5)
 shadow_size = 16
 shadow_offset = Vector2(0, 8)
 
-[node name="HUD" type="CanvasLayer"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button"]
+bg_color = Color(0.12, 0.1, 0.22, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.5, 0.4, 0.9, 0.6)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+shadow_color = Color(0, 0, 0, 0.3)
+shadow_size = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_pressed"]
+bg_color = Color(0.25, 0.2, 0.45, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.7, 0.6, 1, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_hover"]
+bg_color = Color(0.18, 0.15, 0.35, 0.98)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.6, 0.5, 1, 0.9)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+shadow_color = Color(0.5, 0.4, 0.9, 0.3)
+shadow_size = 6
+
+[node name="HUD" type="CanvasLayer" unique_id=304451578]
 script = ExtResource("1_hud")
 
-[node name="TopBar" type="PanelContainer" parent="."]
-layout_mode = 1
+[node name="TopBar" type="PanelContainer" parent="." unique_id=551658155]
 anchors_preset = 10
 anchor_right = 1.0
 offset_left = 20.0
@@ -150,7 +148,7 @@ grow_horizontal = 2
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
-[node name="MarginContainer" type="MarginContainer" parent="TopBar"]
+[node name="MarginContainer" type="MarginContainer" parent="TopBar" unique_id=398696740]
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/margin_left = 16
@@ -158,25 +156,25 @@ theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 16
 theme_override_constants/margin_bottom = 8
 
-[node name="HBoxContainer" type="HBoxContainer" parent="TopBar/MarginContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="TopBar/MarginContainer" unique_id=312236492]
 layout_mode = 2
 theme_override_constants/separation = 20
 
-[node name="CoinsContainer" type="HBoxContainer" parent="TopBar/MarginContainer/HBoxContainer"]
+[node name="CoinsContainer" type="HBoxContainer" parent="TopBar/MarginContainer/HBoxContainer" unique_id=172274906]
 layout_mode = 2
 size_flags_horizontal = 0
 theme_override_constants/separation = 8
 
-[node name="CoinIcon" type="TextureRect" parent="TopBar/MarginContainer/HBoxContainer/CoinsContainer"]
+[node name="CoinIcon" type="TextureRect" parent="TopBar/MarginContainer/HBoxContainer/CoinsContainer" unique_id=128081865]
+modulate = Color(1, 0.85, 0.2, 1)
 custom_minimum_size = Vector2(36, 36)
 layout_mode = 2
-size_flags_vertical = 1
 texture = ExtResource("2_coin_icon")
 expand_mode = 1
 stretch_mode = 5
-modulate = Color(1, 0.85, 0.2, 1)
 
-[node name="Sparkle" type="TextureRect" parent="TopBar/MarginContainer/HBoxContainer/CoinsContainer/CoinIcon"]
+[node name="Sparkle" type="TextureRect" parent="TopBar/MarginContainer/HBoxContainer/CoinsContainer/CoinIcon" unique_id=821128093]
+modulate = Color(1, 0.9, 0.5, 0.8)
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -187,16 +185,16 @@ offset_left = -10.0
 offset_top = -10.0
 offset_right = 10.0
 offset_bottom = 10.0
+grow_horizontal = 2
+grow_vertical = 2
 pivot_offset = Vector2(10, 10)
 texture = ExtResource("7_sparkle")
 expand_mode = 1
 stretch_mode = 5
-modulate = Color(1, 0.9, 0.5, 0.8)
 
-[node name="CoinsLabel" type="Label" parent="TopBar/MarginContainer/HBoxContainer/CoinsContainer"]
+[node name="CoinsLabel" type="Label" parent="TopBar/MarginContainer/HBoxContainer/CoinsContainer" unique_id=224209103]
 layout_mode = 2
 size_flags_vertical = 1
-pivot_offset = Vector2(20, 14)
 theme_override_colors/font_color = Color(1, 0.9, 0.3, 1)
 theme_override_colors/font_shadow_color = Color(0.2, 0.1, 0, 0.6)
 theme_override_constants/shadow_offset_x = 1
@@ -204,53 +202,51 @@ theme_override_constants/shadow_offset_y = 2
 theme_override_font_sizes/font_size = 28
 text = "0"
 
-[node name="Separator1" type="VSeparator" parent="TopBar/MarginContainer/HBoxContainer"]
+[node name="Separator1" type="VSeparator" parent="TopBar/MarginContainer/HBoxContainer" unique_id=1805106782]
 modulate = Color(1, 1, 1, 0.3)
 layout_mode = 2
 
-[node name="HealthContainer" type="HBoxContainer" parent="TopBar/MarginContainer/HBoxContainer"]
+[node name="HealthContainer" type="HBoxContainer" parent="TopBar/MarginContainer/HBoxContainer" unique_id=1264983076]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 8
 
-[node name="HealthIcon" type="TextureRect" parent="TopBar/MarginContainer/HBoxContainer/HealthContainer"]
+[node name="HealthIcon" type="TextureRect" parent="TopBar/MarginContainer/HBoxContainer/HealthContainer" unique_id=442324254]
+modulate = Color(1, 0.4, 0.5, 1)
 custom_minimum_size = Vector2(32, 32)
 layout_mode = 2
-size_flags_vertical = 1
 texture = ExtResource("4_heart_icon")
 expand_mode = 1
 stretch_mode = 5
-modulate = Color(1, 0.4, 0.5, 1)
 
-[node name="HealthBar" type="ProgressBar" parent="TopBar/MarginContainer/HBoxContainer/HealthContainer"]
+[node name="HealthBar" type="ProgressBar" parent="TopBar/MarginContainer/HBoxContainer/HealthContainer" unique_id=855289037]
 custom_minimum_size = Vector2(100, 20)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 1
-value = 100.0
-show_percentage = false
 theme_override_styles/background = SubResource("StyleBoxFlat_bg")
 theme_override_styles/fill = SubResource("StyleBoxFlat_fill")
+value = 100.0
+show_percentage = false
 
-[node name="Separator2" type="VSeparator" parent="TopBar/MarginContainer/HBoxContainer"]
+[node name="Separator2" type="VSeparator" parent="TopBar/MarginContainer/HBoxContainer" unique_id=1040663433]
 modulate = Color(1, 1, 1, 0.3)
 layout_mode = 2
 
-[node name="DistanceContainer" type="HBoxContainer" parent="TopBar/MarginContainer/HBoxContainer"]
+[node name="DistanceContainer" type="HBoxContainer" parent="TopBar/MarginContainer/HBoxContainer" unique_id=68147577]
 layout_mode = 2
 size_flags_horizontal = 0
 theme_override_constants/separation = 8
 
-[node name="DistanceIcon" type="TextureRect" parent="TopBar/MarginContainer/HBoxContainer/DistanceContainer"]
+[node name="DistanceIcon" type="TextureRect" parent="TopBar/MarginContainer/HBoxContainer/DistanceContainer" unique_id=612579531]
+modulate = Color(0.7, 0.85, 1, 1)
 custom_minimum_size = Vector2(32, 32)
 layout_mode = 2
-size_flags_vertical = 1
 texture = ExtResource("3_distance_icon")
 expand_mode = 1
 stretch_mode = 5
-modulate = Color(0.7, 0.85, 1, 1)
 
-[node name="DistanceLabel" type="Label" parent="TopBar/MarginContainer/HBoxContainer/DistanceContainer"]
+[node name="DistanceLabel" type="Label" parent="TopBar/MarginContainer/HBoxContainer/DistanceContainer" unique_id=1102101282]
 layout_mode = 2
 size_flags_vertical = 1
 theme_override_colors/font_color = Color(0.85, 0.95, 1, 1)
@@ -260,29 +256,28 @@ theme_override_constants/shadow_offset_y = 2
 theme_override_font_sizes/font_size = 28
 text = "0 m"
 
-[node name="SettingsButton" type="Button" parent="TopBar/MarginContainer/HBoxContainer"]
+[node name="SettingsButton" type="Button" parent="TopBar/MarginContainer/HBoxContainer" unique_id=1446207044]
 custom_minimum_size = Vector2(44, 44)
 layout_mode = 2
 size_flags_vertical = 4
-focus_mode = 2
-mouse_filter = 0
 theme_override_styles/normal = SubResource("StyleBoxFlat_settings")
-theme_override_styles/hover = SubResource("StyleBoxFlat_settings_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_settings_hover")
+theme_override_styles/hover = SubResource("StyleBoxFlat_settings_hover")
 icon = ExtResource("5_settings_icon")
 icon_alignment = 1
 expand_icon = true
 
-[node name="PopupContainer" type="Control" parent="."]
-layout_mode = 1
+[node name="PopupContainer" type="Control" parent="." unique_id=637929400]
+layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
 
-[node name="RedFlash" type="ColorRect" parent="."]
+[node name="RedFlash" type="ColorRect" parent="." unique_id=486647456]
 visible = false
-layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -291,7 +286,8 @@ grow_vertical = 2
 mouse_filter = 2
 color = Color(1, 0, 0, 0.4)
 
-[node name="PauseMenu" type="Control" parent="."]
+[node name="PauseMenu" type="Control" parent="." unique_id=160735412]
+process_mode = 2
 visible = false
 layout_mode = 3
 anchors_preset = 15
@@ -299,9 +295,8 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-process_mode = 2
 
-[node name="Background" type="ColorRect" parent="PauseMenu"]
+[node name="Background" type="ColorRect" parent="PauseMenu" unique_id=446619858]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -310,7 +305,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.02, 0.02, 0.06, 0.85)
 
-[node name="PanelContainer" type="PanelContainer" parent="PauseMenu"]
+[node name="PanelContainer" type="PanelContainer" parent="PauseMenu" unique_id=2042012326]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -325,16 +320,16 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_pause_panel")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="PauseMenu/PanelContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="PauseMenu/PanelContainer" unique_id=1767489396]
 layout_mode = 2
 theme_override_constants/separation = 18
 
-[node name="TitleMargin" type="MarginContainer" parent="PauseMenu/PanelContainer/VBoxContainer"]
+[node name="TitleMargin" type="MarginContainer" parent="PauseMenu/PanelContainer/VBoxContainer" unique_id=312083044]
 layout_mode = 2
 theme_override_constants/margin_top = 10
 theme_override_constants/margin_bottom = 10
 
-[node name="Title" type="Label" parent="PauseMenu/PanelContainer/VBoxContainer/TitleMargin"]
+[node name="Title" type="Label" parent="PauseMenu/PanelContainer/VBoxContainer/TitleMargin" unique_id=2054909385]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.9, 0.85, 1, 1)
 theme_override_colors/font_shadow_color = Color(0.3, 0.2, 0.5, 0.5)
@@ -343,7 +338,7 @@ theme_override_font_sizes/font_size = 52
 text = "PAUSED"
 horizontal_alignment = 1
 
-[node name="ResumeButton" type="Button" parent="PauseMenu/PanelContainer/VBoxContainer"]
+[node name="ResumeButton" type="Button" parent="PauseMenu/PanelContainer/VBoxContainer" unique_id=1589495864]
 custom_minimum_size = Vector2(240, 56)
 layout_mode = 2
 size_flags_horizontal = 4
@@ -351,11 +346,11 @@ theme_override_colors/font_color = Color(0.9, 0.85, 1, 1)
 theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 26
 theme_override_styles/normal = SubResource("StyleBoxFlat_button")
-theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_button_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
 text = "▶  Resume"
 
-[node name="RestartButton" type="Button" parent="PauseMenu/PanelContainer/VBoxContainer"]
+[node name="RestartButton" type="Button" parent="PauseMenu/PanelContainer/VBoxContainer" unique_id=1679294168]
 custom_minimum_size = Vector2(240, 56)
 layout_mode = 2
 size_flags_horizontal = 4
@@ -363,11 +358,11 @@ theme_override_colors/font_color = Color(0.9, 0.85, 1, 1)
 theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 26
 theme_override_styles/normal = SubResource("StyleBoxFlat_button")
-theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_button_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
 text = "↺  Restart"
 
-[node name="MenuButton" type="Button" parent="PauseMenu/PanelContainer/VBoxContainer"]
+[node name="MenuButton" type="Button" parent="PauseMenu/PanelContainer/VBoxContainer" unique_id=900883753]
 custom_minimum_size = Vector2(240, 56)
 layout_mode = 2
 size_flags_horizontal = 4
@@ -375,47 +370,45 @@ theme_override_colors/font_color = Color(0.9, 0.85, 1, 1)
 theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 26
 theme_override_styles/normal = SubResource("StyleBoxFlat_button")
-theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_button_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
 text = "🏠  Main Menu"
 
-[node name="Spacer" type="Control" parent="PauseMenu/PanelContainer/VBoxContainer"]
+[node name="Spacer" type="Control" parent="PauseMenu/PanelContainer/VBoxContainer" unique_id=780206511]
 custom_minimum_size = Vector2(0, 5)
 layout_mode = 2
 
-[node name="MusicLabel" type="Label" parent="PauseMenu/PanelContainer/VBoxContainer"]
+[node name="MusicLabel" type="Label" parent="PauseMenu/PanelContainer/VBoxContainer" unique_id=868770555]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.65, 0.9, 1)
 theme_override_font_sizes/font_size = 18
 text = "🎵  Music"
 horizontal_alignment = 1
 
-[node name="MusicSlider" type="HSlider" parent="PauseMenu/PanelContainer/VBoxContainer"]
+[node name="MusicSlider" type="HSlider" parent="PauseMenu/PanelContainer/VBoxContainer" unique_id=286828278]
 custom_minimum_size = Vector2(200, 24)
 layout_mode = 2
 size_flags_horizontal = 4
-min_value = 0.0
 max_value = 1.0
 step = 0.05
 value = 0.7
 
-[node name="SFXLabel" type="Label" parent="PauseMenu/PanelContainer/VBoxContainer"]
+[node name="SFXLabel" type="Label" parent="PauseMenu/PanelContainer/VBoxContainer" unique_id=65503028]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.65, 0.9, 1)
 theme_override_font_sizes/font_size = 18
 text = "🔊  Sound Effects"
 horizontal_alignment = 1
 
-[node name="SFXSlider" type="HSlider" parent="PauseMenu/PanelContainer/VBoxContainer"]
+[node name="SFXSlider" type="HSlider" parent="PauseMenu/PanelContainer/VBoxContainer" unique_id=1384883902]
 custom_minimum_size = Vector2(200, 24)
 layout_mode = 2
 size_flags_horizontal = 4
-min_value = 0.0
 max_value = 1.0
 step = 0.05
 value = 0.8
 
-[node name="PopupCheck" type="CheckButton" parent="PauseMenu/PanelContainer/VBoxContainer"]
+[node name="PopupCheck" type="CheckButton" parent="PauseMenu/PanelContainer/VBoxContainer" unique_id=121308334]
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_colors/font_color = Color(0.7, 0.65, 0.9, 1)

@@ -1,15 +1,18 @@
-[gd_scene load_steps=15 format=3 uid="uid://mainmenu001"]
+[gd_scene format=3 uid="uid://mainmenu001"]
 
 [ext_resource type="Script" uid="uid://d3nvasl7sdaka" path="res://scripts/main_menu.gd" id="1_menu"]
-[ext_resource type="PackedScene" uid="uid://nueg6xkn0s6b" path="res://assets/models/players/player_1.blend" id="2_player_model"]
-[ext_resource type="Texture2D" path="res://assets/icons/mountain_silhouette.svg" id="3_mountain"]
-[ext_resource type="Texture2D" path="res://assets/icons/title_decoration.svg" id="4_decoration"]
-[ext_resource type="Texture2D" path="res://assets/icons/coin.svg" id="5_coin"]
-[ext_resource type="Texture2D" path="res://assets/icons/distance.svg" id="6_distance"]
+[ext_resource type="Texture2D" uid="uid://yu42hxl32cq4" path="res://assets/icons/mountain_silhouette.svg" id="3_mountain"]
+[ext_resource type="Texture2D" uid="uid://dww0xdl3vbmn5" path="res://assets/icons/title_decoration.svg" id="4_decoration"]
+[ext_resource type="Texture2D" uid="uid://jepsdf0och2h" path="res://assets/icons/coin.svg" id="5_coin"]
+[ext_resource type="Texture2D" uid="uid://c8ih408eiw1t2" path="res://assets/icons/distance.svg" id="6_distance"]
+[ext_resource type="Texture2D" uid="uid://bj3ptgqc2yoc0" path="res://assets/icons/play.svg" id="7_play"]
+[ext_resource type="Texture2D" uid="uid://cbmjrgtoexwle" path="res://assets/icons/stats.svg" id="8_stats"]
+[ext_resource type="Texture2D" uid="uid://dj64mjtua4avs" path="res://assets/icons/settings.svg" id="9_settings"]
+[ext_resource type="Texture2D" uid="uid://cpumyhj7tioid" path="res://assets/icons/quit.svg" id="10_quit"]
 
 [sub_resource type="Gradient" id="Gradient_bg"]
-colors = PackedColorArray(0.05, 0.08, 0.12, 1, 0.1, 0.2, 0.15, 1, 0.15, 0.25, 0.2, 1)
 offsets = PackedFloat32Array(0, 0.5, 1)
+colors = PackedColorArray(0.05, 0.08, 0.12, 1, 0.1, 0.2, 0.15, 1, 0.15, 0.25, 0.2, 1)
 
 [sub_resource type="GradientTexture2D" id="GradientTexture2D_bg"]
 gradient = SubResource("Gradient_bg")
@@ -19,87 +22,7 @@ fill_to = Vector2(0, 1)
 background_mode = 1
 background_color = Color(0.1, 0.15, 0.2, 1)
 ambient_light_source = 2
-ambient_light_color = Color(0.6, 0.7, 0.8, 1)
-ambient_light_energy = 0.5
-
-[sub_resource type="Animation" id="Animation_RESET"]
-resource_name = "RESET"
-length = 0.01
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("VBoxContainer:modulate")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Color(1, 1, 1, 0)]
-}
-
-[sub_resource type="Animation" id="Animation_enter"]
-resource_name = "enter"
-length = 0.8
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("VBoxContainer:modulate")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0, 0.6),
-"transitions": PackedFloat32Array(0.5, 1),
-"update": 0,
-"values": [Color(1, 1, 1, 0), Color(1, 1, 1, 1)]
-}
-tracks/1/type = "value"
-tracks/1/imported = false
-tracks/1/enabled = true
-tracks/1/path = NodePath("VBoxContainer:position")
-tracks/1/interp = 1
-tracks/1/loop_wrap = true
-tracks/1/keys = {
-"times": PackedFloat32Array(0, 0.6),
-"transitions": PackedFloat32Array(0.3, 1),
-"update": 0,
-"values": [Vector2(0, 40), Vector2(0, 0)]
-}
-tracks/2/type = "value"
-tracks/2/imported = false
-tracks/2/enabled = true
-tracks/2/path = NodePath("PlayerViewport:modulate")
-tracks/2/interp = 1
-tracks/2/loop_wrap = true
-tracks/2/keys = {
-"times": PackedFloat32Array(0, 0.8),
-"transitions": PackedFloat32Array(0.5, 1),
-"update": 0,
-"values": [Color(1, 1, 1, 0), Color(1, 1, 1, 1)]
-}
-
-[sub_resource type="Animation" id="Animation_exit"]
-resource_name = "exit"
-length = 0.5
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath(".:modulate")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0, 0.5),
-"transitions": PackedFloat32Array(2, 1),
-"update": 0,
-"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0)]
-}
-
-[sub_resource type="AnimationLibrary" id="AnimationLibrary_1"]
-_data = {
-&"RESET": SubResource("Animation_RESET"),
-&"enter": SubResource("Animation_enter"),
-&"exit": SubResource("Animation_exit")
-}
+ambient_light_color = Color(1, 1, 1, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button"]
 bg_color = Color(0.2, 0.35, 0.25, 0.9)
@@ -108,11 +31,16 @@ border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
 border_color = Color(0.4, 0.7, 0.5, 1)
-corner_radius_left = 8
-corner_radius_right = 8
-corner_detail = 8
 
-[node name="MainMenu" type="Control"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_hover"]
+bg_color = Color(0.25, 0.45, 0.3, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.5, 0.85, 0.6, 1)
+
+[node name="MainMenu" type="Control" unique_id=192352750]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -121,7 +49,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_menu")
 
-[node name="Background" type="TextureRect" parent="."]
+[node name="Background" type="TextureRect" parent="." unique_id=910566383]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -130,7 +58,7 @@ grow_horizontal = 2
 grow_vertical = 2
 texture = SubResource("GradientTexture2D_bg")
 
-[node name="MountainSilhouette" type="TextureRect" parent="."]
+[node name="MountainSilhouette" type="TextureRect" parent="." unique_id=180369109]
 layout_mode = 1
 anchors_preset = 12
 anchor_top = 1.0
@@ -143,9 +71,8 @@ texture = ExtResource("3_mountain")
 expand_mode = 1
 stretch_mode = 6
 
-[node name="PlayerViewport" type="SubViewportContainer" parent="."]
+[node name="PlayerViewport" type="SubViewportContainer" parent="." unique_id=907300757]
 z_index = 10
-mouse_filter = 2
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -158,32 +85,31 @@ offset_right = 150.0
 offset_bottom = -50.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 stretch = true
 
-[node name="SubViewport" type="SubViewport" parent="PlayerViewport"]
+[node name="SubViewport" type="SubViewport" parent="PlayerViewport" unique_id=2042405159]
 transparent_bg = true
 handle_input_locally = false
 size = Vector2i(300, 300)
 render_target_update_mode = 4
 
-[node name="Camera3D" type="Camera3D" parent="PlayerViewport/SubViewport"]
+[node name="Camera3D" type="Camera3D" parent="PlayerViewport/SubViewport" unique_id=1980383864]
 transform = Transform3D(1, 0, 0, 0, 0.95, 0.3, 0, -0.3, 0.95, 0, 0.3, 1.5)
 environment = SubResource("Environment_menu")
 fov = 45.0
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="PlayerViewport/SubViewport"]
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="PlayerViewport/SubViewport" unique_id=319311396]
 transform = Transform3D(0.866, -0.25, 0.433, 0, 0.866, 0.5, -0.5, -0.433, 0.75, 2, 3, 2)
-light_energy = 1.5
-shadow_enabled = true
 
-[node name="DirectionalLight3D2" type="DirectionalLight3D" parent="PlayerViewport/SubViewport"]
+[node name="DirectionalLight3D2" type="DirectionalLight3D" parent="PlayerViewport/SubViewport" unique_id=1376853932]
 transform = Transform3D(0.866, 0.25, -0.433, 0, 0.866, 0.5, 0.5, -0.433, 0.75, -2, 2, -1)
-light_color = Color(0.8, 0.9, 1, 1)
-light_energy = 0.5
+light_color = Color(0.9, 0.95, 1, 1)
+light_energy = 0.8
 
-[node name="PlayerModel" type="Node3D" parent="PlayerViewport/SubViewport"]
+[node name="PlayerModel" type="Node3D" parent="PlayerViewport/SubViewport" unique_id=1300107317]
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
+[node name="MainContent" type="VBoxContainer" parent="." unique_id=862113358]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -191,19 +117,19 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -200.0
-offset_top = -100.0
+offset_top = -80.0
 offset_right = 200.0
-offset_bottom = 300.0
+offset_bottom = 320.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 15
+theme_override_constants/separation = 20
 alignment = 1
 
-[node name="TitleContainer" type="VBoxContainer" parent="VBoxContainer"]
+[node name="TitleContainer" type="VBoxContainer" parent="MainContent" unique_id=1179714107]
 layout_mode = 2
 theme_override_constants/separation = 5
 
-[node name="Title" type="Label" parent="VBoxContainer/TitleContainer"]
+[node name="Title" type="Label" parent="MainContent/TitleContainer" unique_id=786976837]
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_colors/font_color = Color(1, 0.85, 0.5, 1)
@@ -216,7 +142,7 @@ theme_override_font_sizes/font_size = 52
 text = "DOWNHILL DOOM"
 horizontal_alignment = 1
 
-[node name="Decoration" type="TextureRect" parent="VBoxContainer/TitleContainer"]
+[node name="Decoration" type="TextureRect" parent="MainContent/TitleContainer" unique_id=1838795786]
 custom_minimum_size = Vector2(300, 30)
 layout_mode = 2
 size_flags_horizontal = 4
@@ -224,7 +150,7 @@ texture = ExtResource("4_decoration")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="Subtitle" type="Label" parent="VBoxContainer/TitleContainer"]
+[node name="Subtitle" type="Label" parent="MainContent/TitleContainer" unique_id=1149572528]
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_colors/font_color = Color(0.8, 0.85, 0.9, 1)
@@ -235,51 +161,158 @@ theme_override_font_sizes/font_size = 20
 text = "Roll. Destroy. Survive."
 horizontal_alignment = 1
 
-[node name="Spacer" type="Control" parent="VBoxContainer"]
-custom_minimum_size = Vector2(0, 30)
+[node name="Spacer" type="Control" parent="MainContent" unique_id=1198465547]
+custom_minimum_size = Vector2(0, 20)
 layout_mode = 2
 
-[node name="PlayButton" type="Button" parent="VBoxContainer"]
-custom_minimum_size = Vector2(280, 65)
+[node name="ButtonGrid" type="GridContainer" parent="MainContent" unique_id=1513390448]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_constants/h_separation = 20
+theme_override_constants/v_separation = 20
+columns = 2
+
+[node name="PlayButton" type="Button" parent="MainContent/ButtonGrid" unique_id=1593505502]
+custom_minimum_size = Vector2(130, 130)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
+icon_alignment = 1
+expand_icon = true
+
+[node name="VBox" type="VBoxContainer" parent="MainContent/ButtonGrid/PlayButton" unique_id=1630843574]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 5
+alignment = 1
+
+[node name="Icon" type="TextureRect" parent="MainContent/ButtonGrid/PlayButton/VBox" unique_id=781317656]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+size_flags_horizontal = 4
+texture = ExtResource("7_play")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="MainContent/ButtonGrid/PlayButton/VBox" unique_id=1437475290]
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_hover_color = Color(1, 0.95, 0.7, 1)
-theme_override_font_sizes/font_size = 30
-theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+theme_override_font_sizes/font_size = 18
 text = "PLAY"
+horizontal_alignment = 1
 
-[node name="StatsButton" type="Button" parent="VBoxContainer"]
-custom_minimum_size = Vector2(280, 55)
+[node name="StatsButton" type="Button" parent="MainContent/ButtonGrid" unique_id=1307067660]
+custom_minimum_size = Vector2(130, 130)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
+icon_alignment = 1
+expand_icon = true
+
+[node name="VBox" type="VBoxContainer" parent="MainContent/ButtonGrid/StatsButton" unique_id=217483467]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 5
+alignment = 1
+
+[node name="Icon" type="TextureRect" parent="MainContent/ButtonGrid/StatsButton/VBox" unique_id=993814823]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+size_flags_horizontal = 4
+texture = ExtResource("8_stats")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="MainContent/ButtonGrid/StatsButton/VBox" unique_id=605977049]
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_hover_color = Color(1, 0.95, 0.7, 1)
-theme_override_font_sizes/font_size = 24
-theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+theme_override_font_sizes/font_size = 18
 text = "STATS"
+horizontal_alignment = 1
 
-[node name="SettingsButton" type="Button" parent="VBoxContainer"]
-custom_minimum_size = Vector2(280, 55)
+[node name="SettingsButton" type="Button" parent="MainContent/ButtonGrid" unique_id=1434405297]
+custom_minimum_size = Vector2(130, 130)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
+icon_alignment = 1
+expand_icon = true
+
+[node name="VBox" type="VBoxContainer" parent="MainContent/ButtonGrid/SettingsButton" unique_id=341408340]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 5
+alignment = 1
+
+[node name="Icon" type="TextureRect" parent="MainContent/ButtonGrid/SettingsButton/VBox" unique_id=328460989]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+size_flags_horizontal = 4
+texture = ExtResource("9_settings")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="MainContent/ButtonGrid/SettingsButton/VBox" unique_id=788814416]
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_hover_color = Color(1, 0.95, 0.7, 1)
-theme_override_font_sizes/font_size = 24
-theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+theme_override_font_sizes/font_size = 18
 text = "SETTINGS"
+horizontal_alignment = 1
 
-[node name="QuitButton" type="Button" parent="VBoxContainer"]
-custom_minimum_size = Vector2(280, 55)
+[node name="QuitButton" type="Button" parent="MainContent/ButtonGrid" unique_id=1854472498]
+custom_minimum_size = Vector2(130, 130)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
+icon_alignment = 1
+expand_icon = true
+
+[node name="VBox" type="VBoxContainer" parent="MainContent/ButtonGrid/QuitButton" unique_id=833203604]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 5
+alignment = 1
+
+[node name="Icon" type="TextureRect" parent="MainContent/ButtonGrid/QuitButton/VBox" unique_id=1022778854]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+size_flags_horizontal = 4
+texture = ExtResource("10_quit")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="MainContent/ButtonGrid/QuitButton/VBox" unique_id=1253240563]
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_hover_color = Color(1, 0.95, 0.7, 1)
-theme_override_font_sizes/font_size = 24
-theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+theme_override_font_sizes/font_size = 18
 text = "QUIT"
+horizontal_alignment = 1
 
-[node name="VersionLabel" type="Label" parent="."]
+[node name="VersionLabel" type="Label" parent="." unique_id=2010898226]
 layout_mode = 1
 anchors_preset = 2
 anchor_top = 1.0
@@ -292,7 +325,7 @@ theme_override_colors/font_color = Color(0.6, 0.65, 0.7, 0.7)
 theme_override_font_sizes/font_size = 18
 text = "v0.1.0"
 
-[node name="AuthorLabel" type="RichTextLabel" parent="."]
+[node name="AuthorLabel" type="RichTextLabel" parent="." unique_id=176834441]
 layout_mode = 1
 anchors_preset = 3
 anchor_left = 1.0
@@ -304,17 +337,18 @@ offset_top = -35.0
 offset_right = -10.0
 grow_horizontal = 0
 grow_vertical = 0
-bbcode_enabled = true
 theme_override_colors/default_color = Color(0.6, 0.65, 0.7, 0.7)
 theme_override_font_sizes/normal_font_size = 18
+bbcode_enabled = true
 text = "[right]Made by [url=https://github.com/0xMartin]0xM4R71N[/url][/right]"
 fit_content = true
 scroll_active = false
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
-libraries/&"" = SubResource("AnimationLibrary_1")
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=779087468]
 
-[node name="SettingsPanel" type="Control" parent="."]
+[node name="AnimationPlayer2" type="AnimationPlayer" parent="." unique_id=173210384]
+
+[node name="SettingsPanel" type="Control" parent="." unique_id=1450676988]
 visible = false
 z_index = 100
 layout_mode = 1
@@ -324,17 +358,17 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Background" type="ColorRect" parent="SettingsPanel"]
-mouse_filter = 2
+[node name="Background" type="ColorRect" parent="SettingsPanel" unique_id=66102511]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 color = Color(0, 0, 0, 0.85)
 
-[node name="VBoxContainer" type="VBoxContainer" parent="SettingsPanel"]
+[node name="VBoxContainer" type="VBoxContainer" parent="SettingsPanel" unique_id=1145911627]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -349,20 +383,20 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 20
 
-[node name="Title" type="Label" parent="SettingsPanel/VBoxContainer"]
+[node name="Title" type="Label" parent="SettingsPanel/VBoxContainer" unique_id=984423732]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.9, 0.7, 1)
 theme_override_font_sizes/font_size = 36
 text = "SETTINGS"
 horizontal_alignment = 1
 
-[node name="MusicLabel" type="Label" parent="SettingsPanel/VBoxContainer"]
+[node name="MusicLabel" type="Label" parent="SettingsPanel/VBoxContainer" unique_id=1131387304]
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
 text = "Music Volume"
 horizontal_alignment = 1
 
-[node name="MusicSlider" type="HSlider" parent="SettingsPanel/VBoxContainer"]
+[node name="MusicSlider" type="HSlider" parent="SettingsPanel/VBoxContainer" unique_id=794687868]
 custom_minimum_size = Vector2(300, 30)
 layout_mode = 2
 size_flags_horizontal = 4
@@ -370,13 +404,13 @@ max_value = 1.0
 step = 0.05
 value = 0.7
 
-[node name="SFXLabel" type="Label" parent="SettingsPanel/VBoxContainer"]
+[node name="SFXLabel" type="Label" parent="SettingsPanel/VBoxContainer" unique_id=83790771]
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
 text = "Sound Effects"
 horizontal_alignment = 1
 
-[node name="SFXSlider" type="HSlider" parent="SettingsPanel/VBoxContainer"]
+[node name="SFXSlider" type="HSlider" parent="SettingsPanel/VBoxContainer" unique_id=192894745]
 custom_minimum_size = Vector2(300, 30)
 layout_mode = 2
 size_flags_horizontal = 4
@@ -384,15 +418,16 @@ max_value = 1.0
 step = 0.05
 value = 0.8
 
-[node name="BackButton" type="Button" parent="SettingsPanel/VBoxContainer"]
+[node name="BackButton" type="Button" parent="SettingsPanel/VBoxContainer" unique_id=1170826605]
 custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 22
 theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
 text = "Back"
 
-[node name="StatsPanel" type="Control" parent="."]
+[node name="StatsPanel" type="Control" parent="." unique_id=2016013254]
 visible = false
 z_index = 100
 layout_mode = 1
@@ -401,138 +436,94 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-
-[node name="Background" type="ColorRect" parent="StatsPanel"]
 mouse_filter = 2
+
+[node name="Background" type="ColorRect" parent="StatsPanel" unique_id=1395719042]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 color = Color(0, 0, 0, 0.85)
 
-[node name="VBoxContainer" type="VBoxContainer" parent="StatsPanel"]
+[node name="VBoxContainer" type="VBoxContainer" parent="StatsPanel" unique_id=894110121]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -220.0
-offset_top = -200.0
-offset_right = 220.0
-offset_bottom = 200.0
+offset_left = -200.0
+offset_top = -150.0
+offset_right = 200.0
+offset_bottom = 150.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 15
+theme_override_constants/separation = 20
 
-[node name="Title" type="Label" parent="StatsPanel/VBoxContainer"]
+[node name="Title" type="Label" parent="StatsPanel/VBoxContainer" unique_id=1443350055]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.9, 0.7, 1)
 theme_override_font_sizes/font_size = 36
 text = "STATISTICS"
 horizontal_alignment = 1
 
-[node name="Spacer1" type="Control" parent="StatsPanel/VBoxContainer"]
-custom_minimum_size = Vector2(0, 10)
-layout_mode = 2
-
-[node name="CoinsHeader" type="HBoxContainer" parent="StatsPanel/VBoxContainer"]
+[node name="CoinsRow" type="HBoxContainer" parent="StatsPanel/VBoxContainer" unique_id=1766598272]
 layout_mode = 2
 alignment = 1
 
-[node name="CoinIcon" type="TextureRect" parent="StatsPanel/VBoxContainer/CoinsHeader"]
-custom_minimum_size = Vector2(32, 32)
+[node name="CoinIcon" type="TextureRect" parent="StatsPanel/VBoxContainer/CoinsRow" unique_id=781154308]
+custom_minimum_size = Vector2(28, 28)
 layout_mode = 2
 texture = ExtResource("5_coin")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="Label" type="Label" parent="StatsPanel/VBoxContainer/CoinsHeader"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.85, 0.4, 1)
-theme_override_font_sizes/font_size = 26
-text = " COINS"
-
-[node name="MaxCoins" type="Label" parent="StatsPanel/VBoxContainer"]
+[node name="MaxCoins" type="Label" parent="StatsPanel/VBoxContainer/CoinsRow" unique_id=294016537]
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
-text = "Best: 0"
-horizontal_alignment = 1
+text = "  Best: 0  |  Avg: 0"
 
-[node name="AvgCoins" type="Label" parent="StatsPanel/VBoxContainer"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 20
-text = "Average: 0"
-horizontal_alignment = 1
-
-[node name="Spacer2" type="Control" parent="StatsPanel/VBoxContainer"]
-custom_minimum_size = Vector2(0, 10)
-layout_mode = 2
-
-[node name="DistanceHeader" type="HBoxContainer" parent="StatsPanel/VBoxContainer"]
+[node name="DistanceRow" type="HBoxContainer" parent="StatsPanel/VBoxContainer" unique_id=99458183]
 layout_mode = 2
 alignment = 1
 
-[node name="DistanceIcon" type="TextureRect" parent="StatsPanel/VBoxContainer/DistanceHeader"]
-custom_minimum_size = Vector2(32, 32)
+[node name="DistanceIcon" type="TextureRect" parent="StatsPanel/VBoxContainer/DistanceRow" unique_id=758478113]
+custom_minimum_size = Vector2(28, 28)
 layout_mode = 2
 texture = ExtResource("6_distance")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="Label" type="Label" parent="StatsPanel/VBoxContainer/DistanceHeader"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.6, 0.85, 1, 1)
-theme_override_font_sizes/font_size = 26
-text = " DISTANCE"
-
-[node name="MaxDistance" type="Label" parent="StatsPanel/VBoxContainer"]
+[node name="MaxDistance" type="Label" parent="StatsPanel/VBoxContainer/DistanceRow" unique_id=729416466]
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
-text = "Best: 0m"
-horizontal_alignment = 1
+text = "  Best: 0m  |  Avg: 0m"
 
-[node name="AvgDistance" type="Label" parent="StatsPanel/VBoxContainer"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 20
-text = "Average: 0m"
-horizontal_alignment = 1
-
-[node name="Spacer3" type="Control" parent="StatsPanel/VBoxContainer"]
-custom_minimum_size = Vector2(0, 10)
-layout_mode = 2
-
-[node name="GamesPlayed" type="Label" parent="StatsPanel/VBoxContainer"]
+[node name="GamesPlayed" type="Label" parent="StatsPanel/VBoxContainer" unique_id=1078961603]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.75, 0.8, 1)
 theme_override_font_sizes/font_size = 18
 text = "Games Played: 0"
 horizontal_alignment = 1
 
-[node name="BackButton" type="Button" parent="StatsPanel/VBoxContainer"]
+[node name="BackButton" type="Button" parent="StatsPanel/VBoxContainer" unique_id=1884092285]
 custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 22
 theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
 text = "Back"
 
-[connection signal="mouse_entered" from="VBoxContainer/PlayButton" to="." method="_on_play_button_mouse_entered"]
-[connection signal="mouse_exited" from="VBoxContainer/PlayButton" to="." method="_on_play_button_mouse_exited"]
-[connection signal="pressed" from="VBoxContainer/PlayButton" to="." method="_on_play_button_pressed"]
-[connection signal="mouse_entered" from="VBoxContainer/StatsButton" to="." method="_on_stats_button_mouse_entered"]
-[connection signal="mouse_exited" from="VBoxContainer/StatsButton" to="." method="_on_stats_button_mouse_exited"]
-[connection signal="pressed" from="VBoxContainer/StatsButton" to="." method="_on_stats_button_pressed"]
-[connection signal="mouse_entered" from="VBoxContainer/SettingsButton" to="." method="_on_settings_button_mouse_entered"]
-[connection signal="mouse_exited" from="VBoxContainer/SettingsButton" to="." method="_on_settings_button_mouse_exited"]
-[connection signal="pressed" from="VBoxContainer/SettingsButton" to="." method="_on_settings_button_pressed"]
-[connection signal="mouse_entered" from="VBoxContainer/QuitButton" to="." method="_on_quit_button_mouse_entered"]
-[connection signal="mouse_exited" from="VBoxContainer/QuitButton" to="." method="_on_quit_button_mouse_exited"]
-[connection signal="pressed" from="VBoxContainer/QuitButton" to="." method="_on_quit_button_pressed"]
+[connection signal="pressed" from="MainContent/ButtonGrid/PlayButton" to="." method="_on_play_button_pressed"]
+[connection signal="pressed" from="MainContent/ButtonGrid/StatsButton" to="." method="_on_stats_button_pressed"]
+[connection signal="pressed" from="MainContent/ButtonGrid/SettingsButton" to="." method="_on_settings_button_pressed"]
+[connection signal="pressed" from="MainContent/ButtonGrid/QuitButton" to="." method="_on_quit_button_pressed"]
+[connection signal="meta_clicked" from="AuthorLabel" to="." method="_on_author_link_clicked"]
 [connection signal="value_changed" from="SettingsPanel/VBoxContainer/MusicSlider" to="." method="_on_music_slider_value_changed"]
 [connection signal="value_changed" from="SettingsPanel/VBoxContainer/SFXSlider" to="." method="_on_sfx_slider_value_changed"]
 [connection signal="pressed" from="SettingsPanel/VBoxContainer/BackButton" to="." method="_on_settings_back_pressed"]
 [connection signal="pressed" from="StatsPanel/VBoxContainer/BackButton" to="." method="_on_stats_back_pressed"]
-[connection signal="meta_clicked" from="AuthorLabel" to="." method="_on_author_link_clicked"]
