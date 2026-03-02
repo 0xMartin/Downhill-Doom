@@ -255,14 +255,15 @@ func _create_tree(obj_data: RefCounted, rng: RandomNumberGenerator) -> RigidBody
 	tree.set("object_name", obj_data.display_name)
 	
 	# Load model
+	var model: Node3D = null
 	var model_scene := load(obj_data.model_path) as PackedScene
 	if model_scene:
-		var model := model_scene.instantiate()
+		model = model_scene.instantiate()
 		model.name = "Model"
 		_apply_material_recursive(model)
 		tree.add_child(model)
 	
-	# Detection area
+	# Detection area with AABB-based collision
 	var detect_area := Area3D.new()
 	detect_area.name = "DetectArea"
 	detect_area.collision_layer = 0
@@ -270,11 +271,23 @@ func _create_tree(obj_data: RefCounted, rng: RandomNumberGenerator) -> RigidBody
 	detect_area.monitoring = true
 	
 	var col_shape := CollisionShape3D.new()
-	var capsule := CapsuleShape3D.new()
-	capsule.radius = obj_data.collision_radius
-	capsule.height = obj_data.collision_height
-	col_shape.shape = capsule
-	col_shape.position.y = capsule.height / 2
+	var box := BoxShape3D.new()
+	
+	# Calculate bounding box from model
+	if model:
+		var aabb := _get_model_aabb(model)
+		if aabb.size != Vector3.ZERO:
+			box.size = aabb.size * 1.1  # Slightly larger for better detection
+			col_shape.position = aabb.get_center()
+		else:
+			# Fallback to config values
+			box.size = Vector3(obj_data.collision_radius * 2, obj_data.collision_height, obj_data.collision_radius * 2)
+			col_shape.position.y = obj_data.collision_height / 2
+	else:
+		box.size = Vector3(obj_data.collision_radius * 2, obj_data.collision_height, obj_data.collision_radius * 2)
+		col_shape.position.y = obj_data.collision_height / 2
+	
+	col_shape.shape = box
 	detect_area.add_child(col_shape)
 	tree.add_child(detect_area)
 	
@@ -294,14 +307,15 @@ func _create_building(obj_data: RefCounted, rng: RandomNumberGenerator) -> Rigid
 	building.set("object_name", obj_data.display_name)
 	
 	# Load model
+	var model: Node3D = null
 	var model_scene := load(obj_data.model_path) as PackedScene
 	if model_scene:
-		var model := model_scene.instantiate()
+		model = model_scene.instantiate()
 		model.name = "Model"
 		_apply_material_recursive(model)
 		building.add_child(model)
 	
-	# Detection area (trigger box)
+	# Detection area with AABB-based collision
 	var detect_area := Area3D.new()
 	detect_area.name = "DetectArea"
 	detect_area.collision_layer = 0
@@ -310,9 +324,22 @@ func _create_building(obj_data: RefCounted, rng: RandomNumberGenerator) -> Rigid
 	
 	var col_shape := CollisionShape3D.new()
 	var box := BoxShape3D.new()
-	box.size = obj_data.collision_size
+	
+	# Calculate bounding box from model
+	if model:
+		var aabb := _get_model_aabb(model)
+		if aabb.size != Vector3.ZERO:
+			box.size = aabb.size * 1.1  # Slightly larger for better detection
+			col_shape.position = aabb.get_center()
+		else:
+			# Fallback to config values
+			box.size = obj_data.collision_size
+			col_shape.position.y = obj_data.collision_size.y / 2
+	else:
+		box.size = obj_data.collision_size
+		col_shape.position.y = obj_data.collision_size.y / 2
+	
 	col_shape.shape = box
-	col_shape.position.y = obj_data.collision_size.y / 2
 	detect_area.add_child(col_shape)
 	building.add_child(detect_area)
 	
@@ -331,22 +358,33 @@ func _create_enemy(obj_data: RefCounted, rng: RandomNumberGenerator) -> StaticBo
 	enemy.set("object_name", obj_data.display_name)
 	
 	# Load model
+	var model: Node3D = null
 	var model_scene := load(obj_data.model_path) as PackedScene
 	if model_scene:
-		var model := model_scene.instantiate()
+		model = model_scene.instantiate()
 		model.name = "Model"
 		_apply_material_recursive(model)
 		enemy.add_child(model)
 	
-	# Physical collision
+	# Calculate AABB from model for collision
+	var aabb := AABB()
+	if model:
+		aabb = _get_model_aabb(model)
+	
+	# Physical collision (box based on AABB)
 	var phys_col := CollisionShape3D.new()
-	var phys_sphere := SphereShape3D.new()
-	phys_sphere.radius = obj_data.collision_radius * 0.6
-	phys_col.shape = phys_sphere
-	phys_col.position.y = phys_sphere.radius
+	var phys_box := BoxShape3D.new()
+	if aabb.size != Vector3.ZERO:
+		phys_box.size = aabb.size * 0.7  # Slightly smaller for physical collision
+		phys_col.position = aabb.get_center()
+	else:
+		# Fallback
+		phys_box.size = Vector3(obj_data.collision_radius * 1.2, obj_data.collision_radius * 1.2, obj_data.collision_radius * 1.2)
+		phys_col.position.y = obj_data.collision_radius * 0.6
+	phys_col.shape = phys_box
 	enemy.add_child(phys_col)
 	
-	# Damage detection area
+	# Damage detection area (box based on AABB)
 	var damage_area := Area3D.new()
 	damage_area.name = "DamageArea"
 	damage_area.collision_layer = 0
@@ -354,10 +392,15 @@ func _create_enemy(obj_data: RefCounted, rng: RandomNumberGenerator) -> StaticBo
 	damage_area.monitoring = true
 	
 	var dmg_col := CollisionShape3D.new()
-	var dmg_sphere := SphereShape3D.new()
-	dmg_sphere.radius = obj_data.collision_radius
-	dmg_col.shape = dmg_sphere
-	dmg_col.position.y = dmg_sphere.radius
+	var dmg_box := BoxShape3D.new()
+	if aabb.size != Vector3.ZERO:
+		dmg_box.size = aabb.size * 1.1  # Slightly larger for damage detection
+		dmg_col.position = aabb.get_center()
+	else:
+		# Fallback
+		dmg_box.size = Vector3(obj_data.collision_radius * 2, obj_data.collision_radius * 2, obj_data.collision_radius * 2)
+		dmg_col.position.y = obj_data.collision_radius
+	dmg_col.shape = dmg_box
 	damage_area.add_child(dmg_col)
 	enemy.add_child(damage_area)
 	

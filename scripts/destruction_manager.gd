@@ -322,10 +322,10 @@ func _spawn_fragment(
 	fade_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	debris.material_override = fade_material
 	
-	# Position fragment
+	# Position fragment - calculate position before adding to scene
 	var frag_center: Vector3 = frag_mesh.get_meta("fragment_center", Vector3.ZERO)
 	var world_pos := world_transform * frag_center
-	debris.global_position = world_pos
+	debris.position = world_pos  # Use local position, will be global since parent is scene root
 	debris.rotation = Vector3(randf() * 0.3, randf() * TAU, randf() * 0.3)
 	
 	# Calculate velocity (outward from center + impact direction) - mostly horizontal
