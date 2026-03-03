@@ -37,10 +37,10 @@ func destroy(player_velocity: Vector3) -> void:
 	
 	is_destroyed = true
 	
-	# Play destruction sound (use tree sound for now)
+	# Play destruction sound
 	var audio := get_node_or_null("/root/AudioManager")
 	if audio:
-		audio.play_tree_hit_sound()  # TODO: Add building destruction sound
+		audio.play_building_hit_sound()
 	
 	# Award coins and record stats BEFORE destruction
 	var gm := get_node_or_null("/root/GameManager")

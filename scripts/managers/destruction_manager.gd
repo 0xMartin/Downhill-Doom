@@ -136,11 +136,6 @@ func shatter(target: Node3D, impact_velocity: Vector3 = Vector3.ZERO, remove_ori
 		if frag_mesh:
 			_spawn_fragment(scene_root, frag_mesh, source_material, mesh_world_transform, impact_velocity, i, fragments.size(), fly_upward)
 	
-	# Spawn dust particles (skip for upward shatter like player death)
-	if not fly_upward:
-		var base_color := _extract_color_from_material(source_material)
-		_spawn_dust_particles(scene_root, spawn_position, base_color)
-	
 	# Remove original
 	if remove_original:
 		target.queue_free()
@@ -423,47 +418,3 @@ func _extract_color_from_material(material: Material) -> Color:
 	if material is StandardMaterial3D:
 		return (material as StandardMaterial3D).albedo_color
 	return Color(0.6, 0.5, 0.4)
-
-
-## Spawn dust particles
-func _spawn_dust_particles(scene_root: Node, position: Vector3, base_color: Color) -> void:
-	var particles := GPUParticles3D.new()
-	particles.name = "ShatterDust"
-	particles.one_shot = true
-	particles.explosiveness = 0.95
-	particles.amount = 30
-	particles.lifetime = 1.2
-	
-	var proc_material := ParticleProcessMaterial.new()
-	proc_material.direction = Vector3(0, 1, 0)
-	proc_material.spread = 85.0
-	proc_material.initial_velocity_min = 2.0
-	proc_material.initial_velocity_max = 6.0
-	proc_material.gravity = Vector3(0, -6, 0)
-	proc_material.scale_min = 0.08
-	proc_material.scale_max = 0.2
-	var dust_color := Color(
-		minf(base_color.r + 0.3, 1.0),
-		minf(base_color.g + 0.3, 1.0),
-		minf(base_color.b + 0.2, 1.0),
-		0.7
-	)
-	proc_material.color = dust_color
-	particles.process_material = proc_material
-	
-	var mesh := BoxMesh.new()
-	mesh.size = Vector3(1.0, 1.0, 1.0)
-	var mesh_material := StandardMaterial3D.new()
-	mesh_material.albedo_color = dust_color
-	mesh_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	mesh.material = mesh_material
-	particles.draw_pass_1 = mesh
-	
-	particles.position = position + Vector3(0, 0.5, 0)
-	scene_root.add_child(particles)
-	particles.emitting = true
-	
-	get_tree().create_timer(2.5).timeout.connect(func() -> void:
-		if is_instance_valid(particles):
-			particles.queue_free()
-	)

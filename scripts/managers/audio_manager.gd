@@ -27,6 +27,15 @@ var tree_hit_sounds: Array[String] = [
 	"res://assets/sounds/hit/tree/tree_2.mp3",
 ]
 
+var building_hit_sounds: Array[String] = [
+	"res://assets/sounds/hit/building/building_1.mp3",
+]
+
+var npc_death_sounds: Dictionary = {
+	"chicken": "res://assets/sounds/hit/npc/chicken.mp3",
+	"rabbit": "res://assets/sounds/hit/npc/rabbit.mp3",
+}
+
 # Audio players
 var menu_music_player: AudioStreamPlayer
 var game_music_player: AudioStreamPlayer
@@ -250,6 +259,36 @@ func play_tree_hit_sound() -> void:
 		player.stream = stream
 		player.volume_db = _get_sfx_db(-5.0)
 		player.pitch_scale = randf_range(0.9, 1.1)  # Slight pitch variation
+		add_child(player)
+		player.play()
+		player.finished.connect(player.queue_free)
+
+func play_building_hit_sound() -> void:
+	if building_hit_sounds.is_empty():
+		return
+	
+	var random_index := randi() % building_hit_sounds.size()
+	var stream := load(building_hit_sounds[random_index]) as AudioStream
+	if stream:
+		var player := AudioStreamPlayer.new()
+		player.stream = stream
+		player.volume_db = _get_sfx_db(-3.0)
+		player.pitch_scale = randf_range(0.9, 1.1)
+		add_child(player)
+		player.play()
+		player.finished.connect(player.queue_free)
+
+func play_npc_death_sound(npc_type: String) -> void:
+	if not npc_death_sounds.has(npc_type):
+		return
+	
+	var sound_path: String = npc_death_sounds[npc_type]
+	var stream := load(sound_path) as AudioStream
+	if stream:
+		var player := AudioStreamPlayer.new()
+		player.stream = stream
+		player.volume_db = _get_sfx_db(-2.0)
+		player.pitch_scale = randf_range(0.95, 1.05)
 		add_child(player)
 		player.play()
 		player.finished.connect(player.queue_free)

@@ -267,7 +267,7 @@ icon = ExtResource("5_settings_icon")
 icon_alignment = 1
 expand_icon = true
 
-[node name="TimerLabel" type="Label" parent="."]
+[node name="TimerLabel" type="Label" parent="." unique_id=1304192667]
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
@@ -433,7 +433,7 @@ theme_override_font_sizes/font_size = 18
 button_pressed = true
 text = "Show Pickups"
 
-[node name="HapticCheck" type="CheckButton" parent="PauseMenu/PanelContainer/VBoxContainer"]
+[node name="HapticCheck" type="CheckButton" parent="PauseMenu/PanelContainer/VBoxContainer" unique_id=507690234]
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_colors/font_color = Color(0.7, 0.65, 0.9, 1)

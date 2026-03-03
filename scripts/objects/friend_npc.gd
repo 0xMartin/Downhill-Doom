@@ -167,6 +167,13 @@ func die(player: Node = null) -> void:
 	is_dead = true
 	is_moving = false
 	
+	# Play death sound based on NPC type
+	var audio := get_node_or_null("/root/AudioManager")
+	if audio:
+		# Extract NPC type from object_id (e.g. "npc_chicken" -> "chicken")
+		var npc_type := object_id.replace("npc_", "")
+		audio.play_npc_death_sound(npc_type)
+	
 	# Award coins
 	var gm := get_node_or_null("/root/GameManager")
 	if gm:

@@ -374,7 +374,7 @@ static func _init_objects() -> void:
 		"name": "Králík",
 		"category": Category.NPC_FRIEND,
 		"model": "res://assets/models/npc_friend/rabbit.blend",
-		"height": 0.7,
+		"height": 0.8,
 		"height_var": 0.1,
 		"spawn_chance": 0.8,
 		"coins": 8,

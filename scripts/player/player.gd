@@ -15,7 +15,7 @@ signal hit_rock(impact_position: Vector3)
 @export var sphere_radius: float = 0.7  # For calculating proper roll rotation
 
 # Jump parameters
-@export var jump_force: float = 60.0  # Upward impulse when jumping (50% reduced)
+@export var jump_force: float = 120.0  # Upward impulse when jumping
 @export var jump_cooldown_time: float = 0.3  # Minimum time between jumps
 
 # Tilt control - SIMPLE direct mapping
@@ -373,7 +373,7 @@ func _setup_unshaded_materials(node: Node) -> void:
 func _setup_dust_particles() -> void:
 	dust_particles = GPUParticles3D.new()
 	dust_particles.name = "DustParticles"
-	dust_particles.amount = 25
+	dust_particles.amount = 20
 	dust_particles.lifetime = 0.8
 	dust_particles.explosiveness = 0.0
 	dust_particles.emitting = false

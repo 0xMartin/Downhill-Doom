@@ -42,9 +42,6 @@ func fall(player_velocity: Vector3) -> void:
 	if audio:
 		audio.play_tree_hit_sound()
 	
-	# Spawn particles at impact point
-	_spawn_fall_particles()
-	
 	# Calculate fall direction (forward in player's movement direction)
 	var fall_direction := player_velocity.normalized()
 	fall_direction.y = 0
@@ -83,53 +80,3 @@ func fall(player_velocity: Vector3) -> void:
 	await tween.finished
 	await get_tree().create_timer(2.0).timeout
 	queue_free()
-
-
-func _spawn_fall_particles() -> void:
-	# Check if we're in the scene tree before spawning
-	if not is_inside_tree():
-		return
-	
-	# Create simple particle effect - spawn at global position, not as child
-	var particles := GPUParticles3D.new()
-	particles.name = "FallParticles"
-	particles.one_shot = true
-	particles.explosiveness = 0.95
-	particles.amount = 20
-	particles.lifetime = 1.2
-	
-	# Create particle material
-	var proc_material := ParticleProcessMaterial.new()
-	proc_material.direction = Vector3(0, 1, 0)
-	proc_material.spread = 70.0
-	proc_material.initial_velocity_min = 3.0
-	proc_material.initial_velocity_max = 7.0
-	proc_material.gravity = Vector3(0, -12, 0)
-	proc_material.scale_min = 0.08
-	proc_material.scale_max = 0.15
-	proc_material.color = Color(0.55, 0.4, 0.2)  # Brown/wood color
-	particles.process_material = proc_material
-	
-	# Create visible mesh for particles with material
-	var mesh := BoxMesh.new()
-	mesh.size = Vector3(1.0, 1.0, 1.0)
-	var mesh_material := StandardMaterial3D.new()
-	mesh_material.albedo_color = Color(0.55, 0.4, 0.2)
-	mesh_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	mesh.material = mesh_material
-	particles.draw_pass_1 = mesh
-	
-	# Add to scene root at global position
-	var scene_root := get_tree().current_scene
-	if scene_root:
-		var spawn_pos := global_position + Vector3(0, 0.5, 0)
-		scene_root.add_child(particles)
-		particles.global_position = spawn_pos
-		particles.emitting = true
-		
-		# Auto-remove particles after they finish
-		get_tree().create_timer(2.5).timeout.connect(func(): 
-			if is_instance_valid(particles):
-				particles.queue_free()
-		)
-
