@@ -15,6 +15,7 @@ const MENU_MUSIC := "res://assets/sounds/ui/music.mp3"
 const BOULDER_ROLL := "res://assets/sounds/player/boulder_roll.mp3"
 const HURT_SOUND := "res://assets/sounds/player/hurt.mp3"
 const DEATH_SOUND := "res://assets/sounds/player/death.mp3"
+const SHOCK_WAVE_SOUND := "res://assets/sounds/sfx/shock_wave.mp3"
 
 var game_music_tracks: Array[String] = [
 	"res://assets/sounds/music/music_1.mp3",
@@ -242,6 +243,17 @@ func play_death_sound() -> void:
 		var player := AudioStreamPlayer.new()
 		player.stream = stream
 		player.volume_db = _get_sfx_db(0.0)  # Full volume for death
+		add_child(player)
+		player.play()
+		player.finished.connect(player.queue_free)
+
+func play_shock_wave_sound() -> void:
+	var stream := load(SHOCK_WAVE_SOUND) as AudioStream
+	if stream:
+		var player := AudioStreamPlayer.new()
+		player.stream = stream
+		player.volume_db = _get_sfx_db(-2.0)  # Slightly loud impact sound
+		player.pitch_scale = randf_range(0.95, 1.05)  # Slight variation
 		add_child(player)
 		player.play()
 		player.finished.connect(player.queue_free)

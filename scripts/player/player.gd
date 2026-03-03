@@ -33,6 +33,10 @@ var audio_manager: Node
 var jump_cooldown: float = 0.0  # Time until next jump allowed
 var is_on_ground: bool = true  # Track if player is touching ground
 var was_on_ground: bool = true  # Previous frame ground state
+var has_jumped: bool = false  # Track if player initiated a jump (for shock wave)
+
+# Shock wave effect class
+const ShockWaveManager := preload("res://scripts/effects/shock_wave_manager.gd")
 
 # Dust particles
 var dust_particles: GPUParticles3D
@@ -105,8 +109,16 @@ func _physics_process(delta: float) -> void:
 	if jump_cooldown > 0:
 		jump_cooldown -= delta
 	
+	# Save previous ground state for landing detection
+	was_on_ground = is_on_ground
+	
 	# Check if on ground (simple raycast down)
 	_update_ground_state()
+	
+	# Check for landing after jump - trigger shock wave
+	if not was_on_ground and is_on_ground and has_jumped:
+		has_jumped = false
+		_spawn_landing_shock_wave()
 	
 	# Death detection disabled for now - terrain goes downhill infinitely
 	# TODO: Implement proper death detection (e.g., falling off edges)
@@ -225,12 +237,33 @@ func _try_jump() -> void:
 	if jump_cooldown > 0 or not is_on_ground:
 		return
 	
+	# Mark that player initiated a jump (for shock wave on landing)
+	has_jumped = true
+	
 	# Reset vertical velocity for consistent jumps (cancel any falling)
 	linear_velocity.y = 0.0
 	
 	# Apply upward impulse
 	apply_central_impulse(Vector3(0, jump_force, 0))
 	jump_cooldown = jump_cooldown_time
+
+
+## Spawn shock wave effect when landing after a jump
+## Destroys trees, NPCs, buildings within radius
+func _spawn_landing_shock_wave() -> void:
+	# Spawn shock wave at player's position (slightly below for ground effect)
+	var shock_position := global_position + Vector3(0, -sphere_radius * 0.5, 0)
+	ShockWaveManager.spawn_shock_wave(shock_position, ShockWaveManager.Source.PLAYER)
+	
+	# Small screen shake for impact
+	var camera := get_viewport().get_camera_3d()
+	if camera and camera.has_method("shake"):
+		camera.shake(0.4)
+	
+	# Haptic feedback
+	if audio_manager:
+		audio_manager.vibrate(80)
+
 
 func die() -> void:
 	if is_dead:

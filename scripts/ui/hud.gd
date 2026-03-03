@@ -165,25 +165,27 @@ func show_pickup_popup(amount: int, icon_texture: Texture2D) -> void:
 	
 	# Create popup container
 	var popup := HBoxContainer.new()
-	popup.add_theme_constant_override("separation", 8)
+	popup.add_theme_constant_override("separation", 12)
 	
-	# Create +N label (30% bigger)
+	# Create +N label - large, bold style with outline
 	var label := Label.new()
 	label.text = "+" + str(amount)
-	label.add_theme_font_size_override("font_size", 47)
-	label.add_theme_color_override("font_color", Color(1, 0.85, 0, 1))  # Gold
-	label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.7))
-	label.add_theme_constant_override("shadow_offset_x", 2)
-	label.add_theme_constant_override("shadow_offset_y", 2)
+	label.add_theme_font_size_override("font_size", 58)
+	label.add_theme_color_override("font_color", Color(1, 0.9, 0.3, 1))  # Bright gold
+	label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
+	label.add_theme_color_override("font_outline_color", Color(0.4, 0.2, 0, 1))  # Dark outline
+	label.add_theme_constant_override("shadow_offset_x", 3)
+	label.add_theme_constant_override("shadow_offset_y", 3)
+	label.add_theme_constant_override("outline_size", 4)
 	popup.add_child(label)
 	
-	# Create icon (30% bigger)
+	# Create icon - larger
 	var icon := TextureRect.new()
 	icon.texture = icon_texture
-	icon.custom_minimum_size = Vector2(42, 42)
+	icon.custom_minimum_size = Vector2(52, 52)
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	icon.modulate = Color(1, 0.85, 0, 1)  # Gold tint
+	icon.modulate = Color(1, 0.9, 0.3, 1)  # Bright gold tint
 	popup.add_child(icon)
 	
 	# Position at player area - use design resolution (720x1280 with stretch)
@@ -193,12 +195,12 @@ func show_pickup_popup(amount: int, icon_texture: Texture2D) -> void:
 	var base_x: float = design_width / 2.0
 	var base_y: float = design_height * 0.67
 	
-	# Small random offset around spawn point
-	var offset_x := randf_range(-40, 40)
-	var offset_y := randf_range(-30, 30)
-	# Center the popup (estimate ~80px width for "+1" + icon)
-	popup.position = Vector2(base_x - 40 + offset_x, base_y + offset_y)
-	popup.pivot_offset = Vector2(50, 25)  # Center pivot for rotation
+	# Larger random offset around spawn point for more spread
+	var offset_x := randf_range(-120, 120)
+	var offset_y := randf_range(-80, 80)
+	# Center the popup (estimate ~100px width for "+1" + icon)
+	popup.position = Vector2(base_x - 50 + offset_x, base_y + offset_y)
+	popup.pivot_offset = Vector2(60, 30)  # Center pivot for rotation
 	popup_container.add_child(popup)  # Add to container so it's behind menus
 	
 	# Fall downward and off-screen

@@ -1,8 +1,11 @@
 # Downhill Doom
 
-* Pridat vice modelu pro vice friend npc
-* Pridat a implementovat enemy_npc (budou aktivne utocit na hrace, kdyz bude pobliz)
+* Pridat vice modelu pro vice friend npc (ovce, krava, pes, kocka, tukan, krokodyl, tucnak, postolka, delfin)
+* Pridat a implementovat enemy_npc (temny pěšak, temny rytir, jezden na koni, katapult = bude strilet)
+* Budovy (dum, vež, hradbova vež, hrad)
+
 * Implementovat system odemykani objektu pro spawnuti
+* Implementovat system (gold npc)
 * Implementovat system ktery bude npc s nizsi pravdepodobnosti spawnuti zacinat spawnovat az kdyz hrace ujede urcitou vzdalenost
  
 * Velepsovani hrace (max zivoty, ..)
