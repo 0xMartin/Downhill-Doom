@@ -23,14 +23,13 @@
 
 Malé objekty (překážky):
 - Studna (kamenná, s dřevěnou střechou)
-- Tržní stánek / krámek
-- Dřevěný vozík (s bednami/sudy)
-- Kurník / chlívek
+- Tržní stánek
+- Dřevěný vozík
 - Hromada sudů
+- Small hut (done)
 - Balvan s mečem (Excalibur style)
 
 Velké objekty:
-- Small hut (done)
 - Větrný mlýn
 - Malá kaple
 - Velky dům
