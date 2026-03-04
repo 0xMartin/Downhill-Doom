@@ -392,7 +392,7 @@ static func _init_objects() -> void:
 		"model": "res://assets/models/npc_enemy/dark_pawn.blend",
 		"height": 1.8,  # 50% larger
 		"height_var": 0.1,
-		"spawn_chance": 0.6,  # 60% chance (most common)
+		"spawn_chance": 0.5,  # 50% chance (most common)
 		"coins": 40,
 		"damage": 5,
 		"destructible": true,
@@ -406,7 +406,7 @@ static func _init_objects() -> void:
 		"model": "res://assets/models/npc_enemy/dark_knight.blend",
 		"height": 2.25,  # 50% larger
 		"height_var": 0.1,
-		"spawn_chance": 0.3,  # 30% chance
+		"spawn_chance": 0.4,  # 40% chance
 		"coins": 80,
 		"damage": 10,
 		"destructible": true,

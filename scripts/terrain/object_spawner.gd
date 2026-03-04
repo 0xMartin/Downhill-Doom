@@ -681,7 +681,8 @@ func _create_enemy_npc(obj_data: RefCounted, rng: RandomNumberGenerator) -> Char
 	if aabb.size != Vector3.ZERO:
 		# Use exact AABB size for precise collision
 		box.size = aabb.size * 0.9  # Slightly smaller than visual
-		col_shape.position = aabb.get_center()
+		# Only use Y center - X/Z stay at origin to avoid forward offset on horse model
+		col_shape.position = Vector3(0.0, aabb.get_center().y, 0.0)
 	else:
 		# Fallback box
 		box.size = Vector3(obj_data.collision_radius * 2, obj_data.collision_height, obj_data.collision_radius * 2)
