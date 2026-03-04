@@ -1,29 +1,43 @@
 extends StaticBody3D
-## Spike enemy - damages player on contact, cannot be destroyed
+## Spike enemy - damages player on contact, cannot be destroyed UNLESS player is supercharged
 ## Uses Area3D for damage detection, StaticBody3D for collision
 
 @export var damage: int = 15
 @export var damage_cooldown: float = 1.0  # Time before can damage again
 @export var object_id: String = "enemy_unknown"
 @export var object_name: String = "Enemy"
+@export var coin_value: int = 50  # Coins awarded when destroyed by supercharge
 
 var can_damage := true
+var is_destroyed := false
 
 func _ready() -> void:
 	add_to_group("building_enemies")
 	add_to_group("spikes")
 	
-	# Connect damage area
-	await get_tree().process_frame
+	# Connect damage area on next frame to ensure children are ready
+	call_deferred("_connect_damage_area")
+
+func _connect_damage_area() -> void:
 	var damage_area := get_node_or_null("DamageArea") as Area3D
 	if damage_area:
-		damage_area.body_entered.connect(_on_damage_area_body_entered)
+		if not damage_area.body_entered.is_connected(_on_damage_area_body_entered):
+			damage_area.body_entered.connect(_on_damage_area_body_entered)
 
 func _on_damage_area_body_entered(body: Node) -> void:
-	if not can_damage:
+	if is_destroyed:
 		return
 	
 	if body.is_in_group("player"):
+		# Check if player is supercharged - if so, destroy the spike (ignores cooldown)
+		var gm := get_node_or_null("/root/GameManager")
+		if gm and gm.is_supercharged:
+			_destroy_by_supercharge()
+			return
+		
+		# Normal damage - respect cooldown
+		if not can_damage:
+			return
 		_deal_damage_to_player(body)
 
 func _deal_damage_to_player(player: Node) -> void:
@@ -89,3 +103,32 @@ func _spawn_impact_particles(spawn_pos: Vector3) -> void:
 		if is_instance_valid(particles):
 			particles.queue_free()
 	)
+
+func _destroy_by_supercharge() -> void:
+	is_destroyed = true
+	
+	# Disable collision immediately so player passes through
+	collision_layer = 0
+	collision_mask = 0
+	var damage_area := get_node_or_null("DamageArea") as Area3D
+	if damage_area:
+		damage_area.set_deferred("monitoring", false)
+	
+	# Play destruction sound
+	var audio := get_node_or_null("/root/AudioManager")
+	if audio:
+		audio.play_tree_hit_sound()  # Reuse tree hit sound
+	
+	# Award coins and record stats BEFORE destruction
+	var gm := get_node_or_null("/root/GameManager")
+	if gm:
+		gm.add_coin(coin_value)
+		gm.record_destroyed_object(object_id, object_name, coin_value)
+	
+	# Use DestructionManager to shatter (same as buildings)
+	var destruction := get_node_or_null("/root/DestructionManager")
+	if destruction:
+		destruction.shatter(self, Vector3.FORWARD * 10.0, true)
+	else:
+		# Fallback: just remove the object
+		queue_free()

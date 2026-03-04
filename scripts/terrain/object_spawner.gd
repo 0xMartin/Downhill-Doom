@@ -512,6 +512,7 @@ func _create_building_enemy(obj_data: RefCounted, rng: RandomNumberGenerator) ->
 	enemy.collision_mask = 0
 	enemy.set_script(SpikeScript)
 	enemy.set("damage", obj_data.damage)
+	enemy.set("coin_value", obj_data.coins)
 	enemy.set("object_id", obj_data.id)
 	enemy.set("object_name", obj_data.display_name)
 	

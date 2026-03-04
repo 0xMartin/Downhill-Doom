@@ -23,6 +23,15 @@ var coin_icon_texture: Texture2D
 var last_coin_count: int = 0
 var sparkle_time: float = 0.0
 
+# Supercharge UI
+var supercharge_panel: PanelContainer
+var supercharge_container: VBoxContainer
+var supercharge_bar: ProgressBar
+var supercharge_button: TextureButton
+var supercharge_glow_tween: Tween
+var supercharge_bar_glow_tween: Tween
+var supercharge_ready: bool = false
+
 func _ready() -> void:
 	gm = get_node("/root/GameManager")
 	audio = get_node("/root/AudioManager")
@@ -33,6 +42,12 @@ func _ready() -> void:
 	gm.health_changed.connect(_on_health_changed)
 	gm.player_hit.connect(_on_player_hit)
 	gm.time_changed.connect(_on_time_changed)
+	gm.supercharge_changed.connect(_on_supercharge_changed)
+	gm.supercharge_activated.connect(_on_supercharge_activated)
+	gm.supercharge_ended.connect(_on_supercharge_ended)
+	
+	# Create supercharge UI
+	_create_supercharge_ui()
 	
 	# Adjust top bar position for mobile safe area (notch, status bar)
 	_apply_safe_area_offset()
@@ -324,3 +339,227 @@ func _apply_safe_area_offset() -> void:
 		top_bar.offset_top = actual_top_offset
 		# Adjust bottom offset to maintain panel height (~64px)
 		top_bar.offset_bottom = actual_top_offset + 64.0
+
+# ========== Supercharge UI ==========
+
+func _create_supercharge_ui() -> void:
+	# Create panel container as background
+	supercharge_panel = PanelContainer.new()
+	supercharge_panel.name = "SuperchargePanel"
+	supercharge_panel.anchor_left = 1.0
+	supercharge_panel.anchor_right = 1.0
+	supercharge_panel.anchor_top = 0.5
+	supercharge_panel.anchor_bottom = 0.5
+	supercharge_panel.offset_left = -80
+	supercharge_panel.offset_right = -10
+	supercharge_panel.offset_top = -140
+	supercharge_panel.offset_bottom = 140
+	
+	# Style the panel with rounded transparent background
+	var panel_style := StyleBoxFlat.new()
+	panel_style.bg_color = Color(0.0, 0.0, 0.0, 0.5)  # Semi-transparent black
+	panel_style.corner_radius_top_left = 20
+	panel_style.corner_radius_top_right = 20
+	panel_style.corner_radius_bottom_left = 20
+	panel_style.corner_radius_bottom_right = 20
+	panel_style.border_width_left = 2
+	panel_style.border_width_right = 2
+	panel_style.border_width_top = 2
+	panel_style.border_width_bottom = 2
+	panel_style.border_color = Color(0.4, 0.4, 0.4, 0.7)
+	panel_style.content_margin_left = 8
+	panel_style.content_margin_right = 8
+	panel_style.content_margin_top = 10
+	panel_style.content_margin_bottom = 10
+	supercharge_panel.add_theme_stylebox_override("panel", panel_style)
+	add_child(supercharge_panel)
+	
+	# Create container inside panel
+	supercharge_container = VBoxContainer.new()
+	supercharge_container.name = "SuperchargeContainer"
+	supercharge_container.add_theme_constant_override("separation", 12)
+	supercharge_container.alignment = BoxContainer.ALIGNMENT_CENTER
+	supercharge_panel.add_child(supercharge_container)
+	
+	# Create vertical progress bar
+	supercharge_bar = ProgressBar.new()
+	supercharge_bar.name = "SuperchargeBar"
+	supercharge_bar.custom_minimum_size = Vector2(44, 160)
+	supercharge_bar.fill_mode = ProgressBar.FILL_BOTTOM_TO_TOP
+	supercharge_bar.show_percentage = false
+	supercharge_bar.max_value = 100.0
+	supercharge_bar.value = 0.0
+	
+	# Style the bar with rounded corners
+	var bar_style := StyleBoxFlat.new()
+	bar_style.bg_color = Color(0.1, 0.1, 0.1, 0.95)
+	bar_style.corner_radius_top_left = 12
+	bar_style.corner_radius_top_right = 12
+	bar_style.corner_radius_bottom_left = 12
+	bar_style.corner_radius_bottom_right = 12
+	bar_style.border_width_left = 2
+	bar_style.border_width_right = 2
+	bar_style.border_width_top = 2
+	bar_style.border_width_bottom = 2
+	bar_style.border_color = Color(0.5, 0.3, 0.2, 0.8)
+	supercharge_bar.add_theme_stylebox_override("background", bar_style)
+	
+	var fill_style := StyleBoxFlat.new()
+	fill_style.bg_color = Color(1.0, 0.35, 0.1, 1.0)  # Bright red-orange
+	fill_style.corner_radius_top_left = 10
+	fill_style.corner_radius_top_right = 10
+	fill_style.corner_radius_bottom_left = 10
+	fill_style.corner_radius_bottom_right = 10
+	supercharge_bar.add_theme_stylebox_override("fill", fill_style)
+	
+	supercharge_container.add_child(supercharge_bar)
+	
+	# Create CenterContainer to center the circular button
+	var button_center := CenterContainer.new()
+	button_center.name = "ButtonCenter"
+	button_center.custom_minimum_size = Vector2(50, 50)
+	supercharge_container.add_child(button_center)
+	
+	# Create circular button background
+	var button_bg := PanelContainer.new()
+	button_bg.name = "ButtonBackground"
+	button_bg.custom_minimum_size = Vector2(50, 50)
+	
+	# Style for circular button background
+	var button_bg_style := StyleBoxFlat.new()
+	button_bg_style.bg_color = Color(0.15, 0.15, 0.15, 0.95)
+	button_bg_style.corner_radius_top_left = 25
+	button_bg_style.corner_radius_top_right = 25
+	button_bg_style.corner_radius_bottom_left = 25
+	button_bg_style.corner_radius_bottom_right = 25
+	button_bg_style.border_width_left = 2
+	button_bg_style.border_width_right = 2
+	button_bg_style.border_width_top = 2
+	button_bg_style.border_width_bottom = 2
+	button_bg_style.border_color = Color(0.5, 0.3, 0.2, 0.8)
+	button_bg_style.content_margin_left = 0
+	button_bg_style.content_margin_right = 0
+	button_bg_style.content_margin_top = 0
+	button_bg_style.content_margin_bottom = 0
+	button_bg.add_theme_stylebox_override("panel", button_bg_style)
+	button_center.add_child(button_bg)
+	
+	# Create activation button inside background
+	supercharge_button = TextureButton.new()
+	supercharge_button.name = "SuperchargeButton"
+	supercharge_button.custom_minimum_size = Vector2(44, 44)
+	supercharge_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	supercharge_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	
+	# Load icon
+	var icon_texture := load("res://assets/icons/super_charge.svg") as Texture2D
+	if icon_texture:
+		supercharge_button.texture_normal = icon_texture
+		supercharge_button.ignore_texture_size = true
+		supercharge_button.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
+	
+	supercharge_button.modulate = Color(0.5, 0.5, 0.5, 0.6)  # Dimmed when not ready
+	supercharge_button.pressed.connect(_on_supercharge_button_pressed)
+	button_bg.add_child(supercharge_button)
+
+func _on_supercharge_changed(charge: float, max_charge: float) -> void:
+	if not supercharge_bar:
+		return
+	
+	supercharge_bar.max_value = max_charge
+	supercharge_bar.value = charge
+	
+	# Check if ready
+	var was_ready := supercharge_ready
+	supercharge_ready = charge >= max_charge and not gm.is_supercharged
+	
+	# Update button appearance
+	if supercharge_ready and not was_ready:
+		_start_supercharge_glow()
+	elif not supercharge_ready and was_ready:
+		_stop_supercharge_glow()
+
+func _on_supercharge_activated() -> void:
+	supercharge_ready = false
+	_stop_supercharge_glow()
+	
+	# Dim the button during supercharge
+	if supercharge_button:
+		supercharge_button.modulate = Color(0.5, 0.5, 0.5, 0.6)
+
+func _on_supercharge_ended() -> void:
+	# Button stays dimmed until recharged
+	pass
+
+func _on_supercharge_button_pressed() -> void:
+	if gm and gm.is_supercharge_ready():
+		gm.activate_supercharge()
+
+func _start_supercharge_glow() -> void:
+	if not supercharge_button:
+		return
+	
+	# Stop any existing tweens
+	_stop_supercharge_glow()
+	
+	# Set to bright state
+	supercharge_button.modulate = Color(1.5, 1.2, 1.0, 1.0)
+	
+	# Create intense pulsing glow animation for button
+	supercharge_glow_tween = create_tween()
+	supercharge_glow_tween.set_loops()
+	# Pulse between very bright orange/white and normal white - more intense glow
+	supercharge_glow_tween.tween_property(supercharge_button, "modulate", Color(2.5, 1.5, 0.5, 1.0), 0.3)
+	supercharge_glow_tween.tween_property(supercharge_button, "modulate", Color(1.5, 1.2, 1.0, 1.0), 0.3)
+	
+	# Also pulse the bar with glowing effect
+	if supercharge_bar:
+		supercharge_bar_glow_tween = create_tween()
+		supercharge_bar_glow_tween.set_loops()
+		supercharge_bar_glow_tween.tween_property(supercharge_bar, "modulate", Color(1.8, 1.4, 1.0, 1.0), 0.3)
+		supercharge_bar_glow_tween.tween_property(supercharge_bar, "modulate", Color(1.2, 1.0, 0.9, 1.0), 0.3)
+	
+	# Pulse the panel border too
+	if supercharge_panel:
+		var panel_style := supercharge_panel.get_theme_stylebox("panel").duplicate() as StyleBoxFlat
+		if panel_style:
+			panel_style.border_color = Color(1.0, 0.5, 0.2, 0.9)
+			panel_style.border_width_left = 3
+			panel_style.border_width_right = 3
+			panel_style.border_width_top = 3
+			panel_style.border_width_bottom = 3
+			supercharge_panel.add_theme_stylebox_override("panel", panel_style)
+
+func _stop_supercharge_glow() -> void:
+	if supercharge_glow_tween:
+		supercharge_glow_tween.kill()
+		supercharge_glow_tween = null
+	
+	if supercharge_bar_glow_tween:
+		supercharge_bar_glow_tween.kill()
+		supercharge_bar_glow_tween = null
+	
+	if supercharge_button:
+		supercharge_button.modulate = Color(0.5, 0.5, 0.5, 0.6)
+	
+	if supercharge_bar:
+		supercharge_bar.modulate = Color(1.0, 1.0, 1.0, 1.0)
+	
+	# Reset panel border
+	if supercharge_panel:
+		var panel_style := StyleBoxFlat.new()
+		panel_style.bg_color = Color(0.0, 0.0, 0.0, 0.4)
+		panel_style.corner_radius_top_left = 12
+		panel_style.corner_radius_top_right = 12
+		panel_style.corner_radius_bottom_left = 12
+		panel_style.corner_radius_bottom_right = 12
+		panel_style.border_width_left = 2
+		panel_style.border_width_right = 2
+		panel_style.border_width_top = 2
+		panel_style.border_width_bottom = 2
+		panel_style.border_color = Color(0.3, 0.3, 0.3, 0.6)
+		panel_style.content_margin_left = 10
+		panel_style.content_margin_right = 10
+		panel_style.content_margin_top = 10
+		panel_style.content_margin_bottom = 10
+		supercharge_panel.add_theme_stylebox_override("panel", panel_style)

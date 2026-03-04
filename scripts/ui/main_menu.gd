@@ -288,7 +288,7 @@ func _rebuild_stats_panel() -> void:
 	vbox.add_child(scroll)
 	
 	object_grid = GridContainer.new()
-	object_grid.columns = 2
+	object_grid.columns = 1  # Single column for larger cards
 	object_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	object_grid.add_theme_constant_override("h_separation", 15)
 	object_grid.add_theme_constant_override("v_separation", 15)
@@ -441,7 +441,7 @@ func _populate_object_cards(grid: GridContainer) -> void:
 
 func _create_object_card(obj_data: RefCounted, kill_count: int) -> PanelContainer:
 	var card := PanelContainer.new()
-	card.custom_minimum_size = Vector2(320, 100)
+	card.custom_minimum_size = Vector2(640, 130)  # Wider and taller for single column
 	
 	# Card style
 	var style := StyleBoxFlat.new()
@@ -458,7 +458,7 @@ func _create_object_card(obj_data: RefCounted, kill_count: int) -> PanelContaine
 	card.add_theme_stylebox_override("panel", style)
 	
 	var hbox := HBoxContainer.new()
-	hbox.add_theme_constant_override("separation", 10)
+	hbox.add_theme_constant_override("separation", 20)  # More spacing
 	card.add_child(hbox)
 	
 	# 3D Preview
@@ -475,7 +475,7 @@ func _create_object_card(obj_data: RefCounted, kill_count: int) -> PanelContaine
 	# Object name
 	var name_label := Label.new()
 	name_label.text = obj_data.display_name
-	name_label.add_theme_font_size_override("font_size", 18)
+	name_label.add_theme_font_size_override("font_size", 22)  # Larger font
 	name_label.add_theme_color_override("font_color", Color(1, 0.95, 0.8, 1))
 	info.add_child(name_label)
 	
@@ -484,7 +484,7 @@ func _create_object_card(obj_data: RefCounted, kill_count: int) -> PanelContaine
 	info.add_child(coin_row)
 	
 	var coin_icon := TextureRect.new()
-	coin_icon.custom_minimum_size = Vector2(16, 16)
+	coin_icon.custom_minimum_size = Vector2(20, 20)
 	coin_icon.texture = load("res://assets/icons/coin.svg")
 	coin_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	coin_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
@@ -492,21 +492,21 @@ func _create_object_card(obj_data: RefCounted, kill_count: int) -> PanelContaine
 	
 	var coin_label := Label.new()
 	coin_label.text = " %d coins" % obj_data.coins
-	coin_label.add_theme_font_size_override("font_size", 14)
+	coin_label.add_theme_font_size_override("font_size", 16)
 	coin_label.add_theme_color_override("font_color", Color(1, 0.85, 0.4, 1))
 	coin_row.add_child(coin_label)
 	
 	# Spawn chance
 	var spawn_label := Label.new()
 	spawn_label.text = "Spawn: %.0f%%" % (obj_data.spawn_chance * 100)
-	spawn_label.add_theme_font_size_override("font_size", 14)
+	spawn_label.add_theme_font_size_override("font_size", 16)
 	spawn_label.add_theme_color_override("font_color", Color(0.7, 0.75, 0.8, 1))
 	info.add_child(spawn_label)
 	
 	# Kill count
 	var kill_label := Label.new()
 	kill_label.text = "Destroyed: %d" % kill_count
-	kill_label.add_theme_font_size_override("font_size", 14)
+	kill_label.add_theme_font_size_override("font_size", 16)
 	if kill_count > 0:
 		kill_label.add_theme_color_override("font_color", Color(0.5, 1, 0.6, 1))
 	else:
@@ -517,13 +517,13 @@ func _create_object_card(obj_data: RefCounted, kill_count: int) -> PanelContaine
 
 func _create_3d_preview(obj_data: RefCounted) -> SubViewportContainer:
 	var container := SubViewportContainer.new()
-	container.custom_minimum_size = Vector2(80, 80)
+	container.custom_minimum_size = Vector2(120, 120)  # Larger preview
 	container.stretch = true
 	
 	var viewport := SubViewport.new()
 	viewport.name = "SubViewport"
 	viewport.transparent_bg = true
-	viewport.size = Vector2i(80, 80)
+	viewport.size = Vector2i(120, 120)  # Larger viewport
 	viewport.render_target_update_mode = SubViewport.UPDATE_WHEN_VISIBLE
 	# CRITICAL: Isolate 3D world so objects don't render in other viewports
 	viewport.own_world_3d = true

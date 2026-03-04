@@ -1,8 +1,7 @@
 # Downhill Doom
 
-* Pridat a implementovat enemy_npc (temny pěšak, temny rytir, jezden na koni, katapult = bude strilet)
 * Pridat vice modelu pro vice friend npc (ovce, krava, pes, kocka, tukan, krokodyl, tucnak, postolka, delfin)
-* Budovy (dum, rohledna, hradbova vež, hrad)
+* Budovy (male: lampa, dřeva | velke: dum, rohledna, hradbova vež, hrad)
 * enemy budovy (spike hradba, vysoka spike hradba)
 
 * Implementovat system odemykani objektu pro spawnuti

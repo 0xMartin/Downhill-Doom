@@ -7,14 +7,14 @@ signal player_died
 # Hole configuration
 var hole_enabled: bool = true
 var hole_min_spacing: float = 50.0
-var hole_max_spacing: float = 80.0
+var hole_max_spacing: float = 140.0
 var hole_safe_chunks: int = 3
-var narrow_hole_width: float = 8.0
+var narrow_hole_width: float = 7.0
 var narrow_hole_irregularity: float = 3.0
 var hole_depth: float = 8.0
 var narrow_hole_chance: float = 0.4
 var random_hole_min_radius: float = 6.0
-var random_hole_max_radius: float = 10.0
+var random_hole_max_radius: float = 11.0
 var terrain_width: float = 36.0
 var chunk_size: Vector2
 

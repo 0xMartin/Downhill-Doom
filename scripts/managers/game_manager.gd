@@ -10,6 +10,9 @@ signal game_started
 signal game_paused(is_paused: bool)
 signal object_destroyed(object_id: String, object_name: String, coins: int)
 signal time_changed(time: float)
+signal supercharge_changed(charge: float, max_charge: float)
+signal supercharge_activated
+signal supercharge_ended
 
 # Game state
 var coins: int = 0
@@ -24,6 +27,13 @@ var is_paused := false
 var max_health: int = 100
 var health: int = 100
 var infinite_health: bool = false  # Debug: skip damage
+
+# Supercharge system
+var supercharge: float = 0.0
+var max_supercharge: float = 100.0
+var is_supercharged: bool = false
+var supercharge_duration: float = 6.0  # Duration in seconds
+var supercharge_timer: float = 0.0
 
 # Player reference
 var player: Node3D
@@ -54,6 +64,17 @@ func _process(_delta: float) -> void:
 		if current_distance > distance:
 			distance = current_distance
 			distance_changed.emit(distance)
+		
+		# Handle supercharge timer and gradual bar drain
+		if is_supercharged:
+			supercharge_timer -= _delta
+			# Update the bar to show remaining time as a percentage
+			var remaining_ratio := supercharge_timer / supercharge_duration
+			supercharge = max_supercharge * remaining_ratio
+			supercharge_changed.emit(supercharge, max_supercharge)
+			
+			if supercharge_timer <= 0:
+				end_supercharge()
 
 func start_game() -> void:
 	coins = 0
@@ -62,6 +83,12 @@ func start_game() -> void:
 	health = max_health
 	is_playing = true
 	is_paused = false
+	
+	# Reset supercharge
+	supercharge = 0.0
+	is_supercharged = false
+	supercharge_timer = 0.0
+	supercharge_changed.emit(supercharge, max_supercharge)
 	
 	# Reset stats
 	destroyed_objects.clear()
@@ -121,6 +148,9 @@ func record_destroyed_object(object_id: String, object_name: String, coin_value:
 	
 	# Emit signal for UI updates
 	object_destroyed.emit(object_id, object_name, coin_value)
+	
+	# Add supercharge from destroying objects (10 charge per object)
+	add_supercharge(10.0)
 
 ## Get count of destroyed objects by ID
 func get_destroyed_count(object_id: String) -> int:
@@ -145,8 +175,8 @@ func take_damage(amount: int) -> void:
 	if not is_playing or health <= 0:
 		return
 	
-	# Skip damage if infinite health enabled
-	if infinite_health:
+	# Skip damage if infinite health enabled or supercharged
+	if infinite_health or is_supercharged:
 		return
 	
 	health = max(0, health - amount)
@@ -223,3 +253,45 @@ static func format_time_static(time_seconds: float) -> String:
 	var minutes := (total_seconds % 3600) / 60
 	var seconds := total_seconds % 60
 	return "%02d:%02d:%02d" % [hours, minutes, seconds]
+
+# ========== Supercharge System ==========
+
+## Add charge from destroying objects
+func add_supercharge(amount: float) -> void:
+	if is_supercharged:
+		return  # Don't charge while supercharged
+	
+	supercharge = minf(supercharge + amount, max_supercharge)
+	supercharge_changed.emit(supercharge, max_supercharge)
+
+## Activate supercharge if fully charged
+func activate_supercharge() -> bool:
+	if supercharge < max_supercharge or is_supercharged:
+		return false
+	
+	is_supercharged = true
+	supercharge_timer = supercharge_duration
+	# Keep supercharge at max - let _process gradually drain it based on remaining time
+	supercharge_activated.emit()
+	
+	# Play sound
+	var audio := get_node_or_null("/root/AudioManager")
+	if audio and audio.has_method("play_supercharge_sound"):
+		audio.play_supercharge_sound()
+	
+	return true
+
+## End supercharge mode
+func end_supercharge() -> void:
+	if not is_supercharged:
+		return
+	
+	is_supercharged = false
+	supercharge_timer = 0.0
+	supercharge = 0.0  # Empty bar when ending
+	supercharge_changed.emit(supercharge, max_supercharge)
+	supercharge_ended.emit()
+
+## Check if supercharge is ready to activate
+func is_supercharge_ready() -> bool:
+	return supercharge >= max_supercharge and not is_supercharged

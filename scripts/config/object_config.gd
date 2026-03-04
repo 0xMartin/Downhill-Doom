@@ -62,7 +62,7 @@ static func _init_objects() -> void:
 	# ===== TREES =====
 	_register_object({
 		"id": "tree_borovice_1",
-		"name": "Borovice 1",
+		"name": "Pine 1",
 		"category": Category.TREE,
 		"model": "res://assets/models/trees/borovice_1.blend",
 		"height": 3.0,
@@ -75,7 +75,7 @@ static func _init_objects() -> void:
 	})
 	_register_object({
 		"id": "tree_borovice_2",
-		"name": "Borovice 2",
+		"name": "Pine 2",
 		"category": Category.TREE,
 		"model": "res://assets/models/trees/borovice_2.blend",
 		"height": 3.0,
@@ -88,7 +88,7 @@ static func _init_objects() -> void:
 	})
 	_register_object({
 		"id": "tree_borovice_3",
-		"name": "Borovice 3",
+		"name": "Pine 3",
 		"category": Category.TREE,
 		"model": "res://assets/models/trees/borovice_3.blend",
 		"height": 3.0,
@@ -101,7 +101,7 @@ static func _init_objects() -> void:
 	})
 	_register_object({
 		"id": "tree_smrk_1",
-		"name": "Smrk 1",
+		"name": "Spruce 1",
 		"category": Category.TREE,
 		"model": "res://assets/models/trees/smrk_1.blend",
 		"height": 3.2,
@@ -114,7 +114,7 @@ static func _init_objects() -> void:
 	})
 	_register_object({
 		"id": "tree_smrk_2",
-		"name": "Smrk 2",
+		"name": "Spruce 2",
 		"category": Category.TREE,
 		"model": "res://assets/models/trees/smrk_2.blend",
 		"height": 3.2,
@@ -127,7 +127,7 @@ static func _init_objects() -> void:
 	})
 	_register_object({
 		"id": "tree_smrk_3",
-		"name": "Smrk 3",
+		"name": "Spruce 3",
 		"category": Category.TREE,
 		"model": "res://assets/models/trees/smrk_3.blend",
 		"height": 3.2,
@@ -140,7 +140,7 @@ static func _init_objects() -> void:
 	})
 	_register_object({
 		"id": "tree_strom_1",
-		"name": "Strom 1",
+		"name": "Oak 1",
 		"category": Category.TREE,
 		"model": "res://assets/models/trees/strom_1.blend",
 		"height": 3.5,
@@ -153,7 +153,7 @@ static func _init_objects() -> void:
 	})
 	_register_object({
 		"id": "tree_strom_2",
-		"name": "Strom 2",
+		"name": "Oak 2",
 		"category": Category.TREE,
 		"model": "res://assets/models/trees/strom_2.blend",
 		"height": 3.5,
@@ -166,7 +166,7 @@ static func _init_objects() -> void:
 	})
 	_register_object({
 		"id": "tree_strom_3",
-		"name": "Strom 3",
+		"name": "Oak 3",
 		"category": Category.TREE,
 		"model": "res://assets/models/trees/strom_3.blend",
 		"height": 3.5,
@@ -179,7 +179,7 @@ static func _init_objects() -> void:
 	})
 	_register_object({
 		"id": "tree_bez_listi",
-		"name": "Strom bez listí",
+		"name": "Bare Tree 1",
 		"category": Category.TREE,
 		"model": "res://assets/models/trees/strom_bez_listi.blend",
 		"height": 3.0,
@@ -192,7 +192,7 @@ static func _init_objects() -> void:
 	})
 	_register_object({
 		"id": "tree_bez_listi_2",
-		"name": "Strom bez listí 2",
+		"name": "Bare Tree 2",
 		"category": Category.TREE,
 		"model": "res://assets/models/trees/strom_bez_listi_2.blend",
 		"height": 3.0,
@@ -207,7 +207,7 @@ static func _init_objects() -> void:
 	# ===== BUILDINGS =====
 	_register_object({
 		"id": "building_tent",
-		"name": "Stan",
+		"name": "Tent",
 		"category": Category.BUILDING,
 		"model": "res://assets/models/buildings/tent.blend",
 		"height": 0.88,  # Reduced by 25% from 1.17
@@ -219,7 +219,7 @@ static func _init_objects() -> void:
 	})
 	_register_object({
 		"id": "building_small_hut",
-		"name": "Malá chata",
+		"name": "Small Hut",
 		"category": Category.BUILDING,
 		"model": "res://assets/models/buildings/small_hut.blend",
 		"height": 2.5,
@@ -239,6 +239,7 @@ static func _init_objects() -> void:
 		"height": 1.95, 
 		"height_var": 0.1,
 		"spawn_chance": 1.0,
+		"coins": 50,
 		"damage": 15,
 		"destructible": false,
 		"col_radius": 1.6,  
@@ -247,7 +248,7 @@ static func _init_objects() -> void:
 	# ===== ROCKS (decoration) =====
 	_register_object({
 		"id": "rock_1",
-		"name": "Kámen 1",
+		"name": "Rock 1",
 		"category": Category.ROCK,
 		"model": "res://assets/models/rocks/rock_1.blend",
 		"height": 0.8,
@@ -258,7 +259,7 @@ static func _init_objects() -> void:
 	})
 	_register_object({
 		"id": "rock_2",
-		"name": "Kámen 2",
+		"name": "Rock 2",
 		"category": Category.ROCK,
 		"model": "res://assets/models/rocks/rock_2.blend",
 		"height": 0.8,
@@ -269,7 +270,7 @@ static func _init_objects() -> void:
 	})
 	_register_object({
 		"id": "rock_3",
-		"name": "Kámen 3",
+		"name": "Rock 3",
 		"category": Category.ROCK,
 		"model": "res://assets/models/rocks/rock_3.blend",
 		"height": 0.8,
@@ -280,7 +281,7 @@ static func _init_objects() -> void:
 	})
 	_register_object({
 		"id": "rock_4",
-		"name": "Kámen 4",
+		"name": "Rock 4",
 		"category": Category.ROCK,
 		"model": "res://assets/models/rocks/rock_4.blend",
 		"height": 0.8,
@@ -291,7 +292,7 @@ static func _init_objects() -> void:
 	})
 	_register_object({
 		"id": "rock_5",
-		"name": "Kámen 5",
+		"name": "Rock 5",
 		"category": Category.ROCK,
 		"model": "res://assets/models/rocks/rock_5.blend",
 		"height": 0.8,
@@ -302,7 +303,7 @@ static func _init_objects() -> void:
 	})
 	_register_object({
 		"id": "rock_6",
-		"name": "Kámen 6",
+		"name": "Rock 6",
 		"category": Category.ROCK,
 		"model": "res://assets/models/rocks/rock_6.blend",
 		"height": 0.8,
@@ -313,7 +314,7 @@ static func _init_objects() -> void:
 	})
 	_register_object({
 		"id": "rock_7",
-		"name": "Kámen 7",
+		"name": "Rock 7",
 		"category": Category.ROCK,
 		"model": "res://assets/models/rocks/rock_7.blend",
 		"height": 0.8,
@@ -324,7 +325,7 @@ static func _init_objects() -> void:
 	})
 	_register_object({
 		"id": "rock_8",
-		"name": "Kámen 8",
+		"name": "Rock 8",
 		"category": Category.ROCK,
 		"model": "res://assets/models/rocks/rock_8.blend",
 		"height": 0.8,
@@ -335,7 +336,7 @@ static func _init_objects() -> void:
 	})
 	_register_object({
 		"id": "rock_9",
-		"name": "Kámen 9",
+		"name": "Rock 9",
 		"category": Category.ROCK,
 		"model": "res://assets/models/rocks/rock_9.blend",
 		"height": 0.8,
@@ -346,7 +347,7 @@ static func _init_objects() -> void:
 	})
 	_register_object({
 		"id": "rock_10",
-		"name": "Kámen 10",
+		"name": "Rock 10",
 		"category": Category.ROCK,
 		"model": "res://assets/models/rocks/rock_10.blend",
 		"height": 0.8,
@@ -359,7 +360,7 @@ static func _init_objects() -> void:
 	# ===== FRIEND NPCs =====
 	_register_object({
 		"id": "npc_chicken",
-		"name": "Kuře",
+		"name": "Chicken",
 		"category": Category.NPC_FRIEND,
 		"model": "res://assets/models/npc_friend/chicken.blend",
 		"height": 0.7,
@@ -372,7 +373,7 @@ static func _init_objects() -> void:
 	})
 	_register_object({
 		"id": "npc_rabbit",
-		"name": "Králík",
+		"name": "Rabbit",
 		"category": Category.NPC_FRIEND,
 		"model": "res://assets/models/npc_friend/rabbit.blend",
 		"height": 0.8,

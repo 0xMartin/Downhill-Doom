@@ -35,6 +35,20 @@ var is_on_ground: bool = true  # Track if player is touching ground
 var was_on_ground: bool = true  # Previous frame ground state
 var has_jumped: bool = false  # Track if player initiated a jump (for shock wave)
 
+# Supercharge state
+var is_supercharged: bool = false
+var supercharge_scale_target: float = 1.0
+var supercharge_current_scale: float = 1.0
+var supercharge_glow: OmniLight3D
+var supercharge_particles: GPUParticles3D
+var base_forward_force: float
+var base_jump_force: float
+var base_max_speed: float
+const SUPERCHARGE_SCALE_MULTIPLIER: float = 2.0
+const SUPERCHARGE_SCALE_DURATION: float = 0.4
+const SUPERCHARGE_SPEED_BONUS: float = 1.25
+const SUPERCHARGE_JUMP_BONUS: float = 1.25
+
 # Shock wave effect class
 const ShockWaveManager := preload("res://scripts/effects/shock_wave_manager.gd")
 
@@ -45,6 +59,16 @@ func _ready() -> void:
 	# Get autoload references
 	game_manager = get_node("/root/GameManager")
 	audio_manager = get_node("/root/AudioManager")
+	
+	# Store base values for supercharge
+	base_forward_force = forward_force
+	base_jump_force = jump_force
+	base_max_speed = max_speed
+	
+	# Connect to supercharge signals
+	if game_manager:
+		game_manager.supercharge_activated.connect(_on_supercharge_activated)
+		game_manager.supercharge_ended.connect(_on_supercharge_ended)
 	
 	# Get visual model for manual rotation
 	player_model = get_node_or_null("PlayerModel")
@@ -57,6 +81,9 @@ func _ready() -> void:
 	
 	# Setup dust particles (under ball when on ground)
 	_setup_dust_particles()
+	
+	# Pre-create supercharge effects (hidden) to avoid first-activation lag
+	_precreate_supercharge_effects()
 	
 	# Enable continuous collision detection for fast-moving physics
 	continuous_cd = true
@@ -114,6 +141,9 @@ func _physics_process(delta: float) -> void:
 	
 	# Check if on ground (simple raycast down)
 	_update_ground_state()
+	
+	# Update supercharge scale smoothly
+	_update_supercharge_scale(delta)
 	
 	# Check for landing after jump - trigger shock wave
 	if not was_on_ground and is_on_ground and has_jumped:
@@ -205,15 +235,21 @@ func _update_particles(speed: float) -> void:
 	
 	# Dust: emit when on ground and moving
 	if dust_particles:
-		dust_particles.emitting = is_on_ground and speed_ratio > 0.2
-		dust_particles.amount_ratio = clampf(speed_ratio * 0.8, 0.2, 1.0)
+		# Hide dust when supercharged (only show red particles then)
+		if is_supercharged:
+			dust_particles.emitting = false
+		else:
+			dust_particles.emitting = is_on_ground and speed_ratio > 0.2
+			dust_particles.amount_ratio = clampf(speed_ratio * 0.8, 0.2, 1.0)
 
 func _update_ground_state() -> void:
 	# Simple ground check: raycast downward (small tolerance for easier jumping)
+	# Scale the raycast length with the current supercharge scale
+	var current_radius := sphere_radius * supercharge_current_scale
 	var space_state := get_world_3d().direct_space_state
 	var query := PhysicsRayQueryParameters3D.create(
 		global_position,
-		global_position + Vector3(0, -sphere_radius - 0.8, 0)  # 0.8m tolerance under sphere
+		global_position + Vector3(0, -current_radius - 0.8, 0)  # 0.8m tolerance under sphere
 	)
 	query.exclude = [get_rid()]
 	var result := space_state.intersect_ray(query)
@@ -231,6 +267,19 @@ func _input(event: InputEvent) -> void:
 	# Jump on screen tap (mobile) - but not on UI elements
 	if event is InputEventScreenTouch:
 		if event.pressed:
+			# Don't jump if the touch was handled by UI (check node at point)
+			var viewport := get_viewport()
+			if viewport:
+				var gui_hit := viewport.gui_get_focus_owner()
+				# Check if any control is at the touch position
+				var root_control := viewport.get_node_or_null("/root/Game/HUD") as CanvasLayer
+				if root_control:
+					# Check supercharge button area (right side of screen)
+					var touch_pos: Vector2 = event.position
+					var screen_size := viewport.get_visible_rect().size
+					# If touch is in right 15% of screen, it might be hitting the supercharge UI
+					if touch_pos.x > screen_size.x * 0.82:
+						return  # Don't jump, let UI handle it
 			_try_jump()
 
 func _try_jump() -> void:
@@ -253,7 +302,13 @@ func _try_jump() -> void:
 func _spawn_landing_shock_wave() -> void:
 	# Spawn shock wave at player's position (slightly below for ground effect)
 	var shock_position := global_position + Vector3(0, -sphere_radius * 0.5, 0)
-	ShockWaveManager.spawn_shock_wave(shock_position, ShockWaveManager.Source.PLAYER)
+	
+	# Double the shock wave radius when supercharged
+	var gm: Node = get_node_or_null("/root/GameManager")
+	if gm and gm.is_supercharged:
+		ShockWaveManager.spawn_shock_wave(shock_position, ShockWaveManager.Source.PLAYER, ShockWaveManager.SHOCK_WAVE_RADIUS * 2.0)
+	else:
+		ShockWaveManager.spawn_shock_wave(shock_position, ShockWaveManager.Source.PLAYER)
 	
 	# Small screen shake for impact
 	var camera := get_viewport().get_camera_3d()
@@ -316,8 +371,13 @@ func _on_body_entered(body: Node) -> void:
 	if is_dead or hit_cooldown > 0:
 		return
 	
-	# Check if we hit a building enemy (spikes, etc - deals damage, not destroyed)
+	# Check if we hit a building enemy (spikes, etc)
 	if body.is_in_group("building_enemies"):
+		# If supercharged, destroy the spike instead of taking damage
+		if game_manager and game_manager.is_supercharged:
+			# Spike's DamageArea will handle the destruction
+			return
+		
 		hit_cooldown = 0.5  # Prevent rapid hits
 		var impact_pos := global_position
 		hit_rock.emit(impact_pos)
@@ -439,3 +499,153 @@ func _setup_dust_particles() -> void:
 	
 	add_child(dust_particles)
 	dust_particles.position = Vector3(0, -sphere_radius, 0)  # At the bottom of the ball
+
+# ========== Supercharge System ==========
+
+func _on_supercharge_activated() -> void:
+	is_supercharged = true
+	supercharge_scale_target = SUPERCHARGE_SCALE_MULTIPLIER
+	
+	# Apply speed and jump bonuses
+	forward_force = base_forward_force * SUPERCHARGE_SPEED_BONUS
+	jump_force = base_jump_force * SUPERCHARGE_JUMP_BONUS
+	max_speed = base_max_speed * SUPERCHARGE_SPEED_BONUS
+	
+	# Show pre-created effects (no lag since already created)
+	if supercharge_glow:
+		supercharge_glow.visible = true
+	if supercharge_particles:
+		supercharge_particles.visible = true
+		supercharge_particles.emitting = true
+
+func _on_supercharge_ended() -> void:
+	is_supercharged = false
+	supercharge_scale_target = 1.0
+	
+	# Restore normal values
+	forward_force = base_forward_force
+	jump_force = base_jump_force
+	max_speed = base_max_speed
+	
+	# Hide effects (don't destroy, keep for next supercharge)
+	if supercharge_glow:
+		supercharge_glow.visible = false
+	if supercharge_particles:
+		supercharge_particles.emitting = false
+		supercharge_particles.visible = false
+
+func _update_supercharge_scale(delta: float) -> void:
+	if absf(supercharge_current_scale - supercharge_scale_target) < 0.01:
+		supercharge_current_scale = supercharge_scale_target
+		return
+	
+	var old_scale := supercharge_current_scale
+	
+	# Smoothly interpolate scale
+	var scale_speed: float = (SUPERCHARGE_SCALE_MULTIPLIER - 1.0) / SUPERCHARGE_SCALE_DURATION
+	if supercharge_current_scale < supercharge_scale_target:
+		supercharge_current_scale = minf(supercharge_current_scale + scale_speed * delta, supercharge_scale_target)
+	else:
+		supercharge_current_scale = maxf(supercharge_current_scale - scale_speed * delta, supercharge_scale_target)
+	
+	# Calculate height difference to lift player appropriately
+	var old_radius := sphere_radius * old_scale
+	var new_radius := sphere_radius * supercharge_current_scale
+	var height_diff := new_radius - old_radius
+	
+	# Lift extra to compensate for terrain slope (sin of slope angle) and prevent clipping
+	# Add 50% more lift when growing to compensate for sloped terrain
+	if supercharge_current_scale > old_scale:
+		height_diff *= 1.5
+	
+	# Lift the player so it doesn't clip into terrain
+	global_position.y += height_diff
+	
+	# Apply scale to visual model
+	if player_model:
+		player_model.scale = Vector3.ONE * supercharge_current_scale
+	
+	# Scale the collision shape
+	var collision_shape := get_node_or_null("CollisionShape3D") as CollisionShape3D
+	if collision_shape and collision_shape.shape is SphereShape3D:
+		var sphere := collision_shape.shape as SphereShape3D
+		sphere.radius = sphere_radius * supercharge_current_scale
+
+func _create_supercharge_glow() -> void:
+	if supercharge_glow:
+		return
+	
+	supercharge_glow = OmniLight3D.new()
+	supercharge_glow.name = "SuperchargeGlow"
+	supercharge_glow.light_color = Color(1.0, 0.2, 0.1)  # Red glow
+	supercharge_glow.light_energy = 3.0
+	supercharge_glow.omni_range = 5.0
+	supercharge_glow.omni_attenuation = 0.5
+	supercharge_glow.visible = false  # Start hidden
+	add_child(supercharge_glow)
+
+func _create_supercharge_glow_mesh() -> void:
+	pass  # Deprecated - using particles instead
+
+## Pre-create supercharge effects (hidden) to avoid lag on first activation
+func _precreate_supercharge_effects() -> void:
+	_create_supercharge_glow()
+	_create_supercharge_particles()
+
+func _create_supercharge_particles() -> void:
+	if supercharge_particles:
+		return
+	
+	# Create particle system that emits glowing particles around the player
+	supercharge_particles = GPUParticles3D.new()
+	supercharge_particles.name = "SuperchargeParticles"
+	supercharge_particles.amount = 60
+	supercharge_particles.lifetime = 0.8
+	supercharge_particles.explosiveness = 0.0
+	supercharge_particles.randomness = 0.3
+	supercharge_particles.one_shot = false
+	supercharge_particles.visible = false  # Start hidden
+	supercharge_particles.emitting = false  # Don't emit until activated
+	
+	# Configure particle behavior - emit from sphere surface, drift upward
+	var proc_material := ParticleProcessMaterial.new()
+	proc_material.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE_SURFACE
+	proc_material.emission_sphere_radius = sphere_radius * 1.1
+	proc_material.direction = Vector3(0, 1, 0)
+	proc_material.spread = 30.0
+	proc_material.initial_velocity_min = 0.5
+	proc_material.initial_velocity_max = 1.5
+	proc_material.gravity = Vector3(0, 0.5, 0)  # Float up slowly
+	proc_material.scale_min = 0.15
+	proc_material.scale_max = 0.35
+	
+	# Color gradient from bright red/orange to transparent
+	var color_ramp := Gradient.new()
+	color_ramp.add_point(0.0, Color(1.0, 0.4, 0.1, 1.0))
+	color_ramp.add_point(0.5, Color(1.0, 0.2, 0.05, 0.8))
+	color_ramp.add_point(1.0, Color(1.0, 0.1, 0.0, 0.0))
+	var gradient_texture := GradientTexture1D.new()
+	gradient_texture.gradient = color_ramp
+	proc_material.color_ramp = gradient_texture
+	
+	supercharge_particles.process_material = proc_material
+	
+	# Create glowing quad mesh for particles
+	var quad := QuadMesh.new()
+	quad.size = Vector2(0.25, 0.25)
+	
+	var mat := StandardMaterial3D.new()
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.vertex_color_use_as_albedo = true
+	mat.emission_enabled = true
+	mat.emission = Color(1.0, 0.3, 0.1)
+	mat.emission_energy_multiplier = 3.0
+	mat.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	quad.material = mat
+	
+	supercharge_particles.draw_pass_1 = quad
+	supercharge_particles.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	
+	add_child(supercharge_particles)
+	# Don't emit yet - will start when supercharge activates
