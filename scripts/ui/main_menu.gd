@@ -16,6 +16,7 @@ const ObjectConfigScript := preload("res://scripts/config/object_config.gd")
 @onready var music_slider: HSlider = $SettingsPanel/VBoxContainer/MusicSlider
 @onready var sfx_slider: HSlider = $SettingsPanel/VBoxContainer/SFXSlider
 @onready var popup_check: CheckButton = $SettingsPanel/VBoxContainer/PopupCheck
+@onready var damage_check: CheckButton = $SettingsPanel/VBoxContainer/DamageCheck
 @onready var haptic_check: CheckButton = $SettingsPanel/VBoxContainer/HapticCheck
 @onready var player_model_container: Node3D = $PlayerViewport/SubViewport/PlayerModel
 
@@ -56,6 +57,7 @@ func _ready() -> void:
 	music_slider.value = audio_manager.get_music_volume()
 	sfx_slider.value = audio_manager.get_sfx_volume()
 	popup_check.button_pressed = audio_manager.get_show_pickup_popup()
+	damage_check.button_pressed = audio_manager.get_show_damage_popup()
 	haptic_check.button_pressed = audio_manager.get_haptic_enabled()
 	
 	# Start menu music
@@ -749,6 +751,9 @@ func _on_sfx_slider_value_changed(value: float) -> void:
 
 func _on_popup_check_toggled(toggled_on: bool) -> void:
 	audio_manager.set_show_pickup_popup(toggled_on)
+
+func _on_damage_check_toggled(toggled_on: bool) -> void:
+	audio_manager.set_show_damage_popup(toggled_on)
 
 func _on_haptic_check_toggled(toggled_on: bool) -> void:
 	audio_manager.set_haptic_enabled(toggled_on)

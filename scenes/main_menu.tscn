@@ -426,6 +426,13 @@ theme_override_font_sizes/font_size = 18
 button_pressed = true
 text = "Show Pickup Popup"
 
+[node name="DamageCheck" type="CheckButton" parent="SettingsPanel/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 18
+button_pressed = true
+text = "Show Damage Popup"
+
 [node name="HapticCheck" type="CheckButton" parent="SettingsPanel/VBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 4
@@ -541,6 +548,7 @@ text = "Back"
 [connection signal="value_changed" from="SettingsPanel/VBoxContainer/MusicSlider" to="." method="_on_music_slider_value_changed"]
 [connection signal="value_changed" from="SettingsPanel/VBoxContainer/SFXSlider" to="." method="_on_sfx_slider_value_changed"]
 [connection signal="toggled" from="SettingsPanel/VBoxContainer/PopupCheck" to="." method="_on_popup_check_toggled"]
+[connection signal="toggled" from="SettingsPanel/VBoxContainer/DamageCheck" to="." method="_on_damage_check_toggled"]
 [connection signal="toggled" from="SettingsPanel/VBoxContainer/HapticCheck" to="." method="_on_haptic_check_toggled"]
 [connection signal="pressed" from="SettingsPanel/VBoxContainer/BackButton" to="." method="_on_settings_back_pressed"]
 [connection signal="pressed" from="StatsPanel/VBoxContainer/BackButton" to="." method="_on_stats_back_pressed"]

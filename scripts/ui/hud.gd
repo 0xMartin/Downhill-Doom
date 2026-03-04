@@ -11,6 +11,7 @@ extends CanvasLayer
 @onready var music_slider: HSlider = $PauseMenu/PanelContainer/VBoxContainer/MusicSlider
 @onready var sfx_slider: HSlider = $PauseMenu/PanelContainer/VBoxContainer/SFXSlider
 @onready var popup_check: CheckButton = $PauseMenu/PanelContainer/VBoxContainer/PopupCheck
+@onready var damage_check: CheckButton = $PauseMenu/PanelContainer/VBoxContainer/DamageCheck
 @onready var haptic_check: CheckButton = $PauseMenu/PanelContainer/VBoxContainer/HapticCheck
 @onready var sparkle: TextureRect = $TopBar/MarginContainer/HBoxContainer/CoinsContainer/CoinIcon/Sparkle
 @onready var popup_container: Control = $PopupContainer
@@ -41,6 +42,7 @@ func _ready() -> void:
 		music_slider.value = audio.get_music_volume()
 		sfx_slider.value = audio.get_sfx_volume()
 		popup_check.button_pressed = audio.get_show_pickup_popup()
+		damage_check.button_pressed = audio.get_show_damage_popup()
 		haptic_check.button_pressed = audio.get_haptic_enabled()
 	
 	pause_menu.visible = false
@@ -158,6 +160,10 @@ func _on_popup_check_toggled(toggled_on: bool) -> void:
 	if audio:
 		audio.set_show_pickup_popup(toggled_on)
 
+func _on_damage_check_toggled(toggled_on: bool) -> void:
+	if audio:
+		audio.set_show_damage_popup(toggled_on)
+
 func _on_haptic_check_toggled(toggled_on: bool) -> void:
 	if audio:
 		audio.set_haptic_enabled(toggled_on)
@@ -229,7 +235,7 @@ func show_pickup_popup(amount: int, icon_texture: Texture2D) -> void:
 # ========== Floating Damage Popup ==========
 
 func show_damage_popup(amount: int) -> void:
-	if not audio or not audio.get_show_pickup_popup():
+	if not audio or not audio.get_show_damage_popup():
 		return
 	
 	# Create popup container
