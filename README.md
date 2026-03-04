@@ -1,10 +1,9 @@
 # Downhill Doom
 
-* Pridat vice modelu pro vice friend npc (ovce, krava, pes, kocka, tukan, krokodyl, tucnak, postolka, delfin)
+* Pridat vice modelu pro vice friend npc (ovce, krava, pes, kocka, tukan, tucnak, postolka, delfin)
 * Budovy (male: lampa, dřeva | velke: dum, rohledna, hradbova vež, hrad)
 * enemy budovy (spike hradba, vysoka spike hradba)
 
-* Implementovat system odemykani objektu pro spawnuti
 * Implementovat system (gold npc)
 * Implementovat system ktery bude npc s nizsi pravdepodobnosti spawnuti zacinat spawnovat az kdyz hrace ujede urcitou vzdalenost
  
@@ -18,3 +17,25 @@
 
 * Sbirani itemu a spawnovani itemu (heal potion, shield, zbrane)
 
+
+
+
+
+Malé objekty (překážky):
+- Studna (kamenná, s dřevěnou střechou)
+- Tržní stánek / krámek
+- Dřevěný vozík (s bednami/sudy)
+- Kurník / chlívek
+- Hromada sudů
+- Balvan s mečem (Excalibur style)
+
+Velké objekty:
+- Small hut (done)
+- Větrný mlýn
+- Malá kaple
+- Velky dům
+- Hostinec
+- Kovárna
+- Strážní věž
+- Hrad
+- Věž kouzelníka

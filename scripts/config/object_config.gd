@@ -206,18 +206,6 @@ static func _init_objects() -> void:
 	
 	# ===== BUILDINGS =====
 	_register_object({
-		"id": "building_tent",
-		"name": "Tent",
-		"category": Category.BUILDING,
-		"model": "res://assets/models/buildings/tent.blend",
-		"height": 0.88,  # Reduced by 25% from 1.17
-		"height_var": 0.1,
-		"spawn_chance": 1.0,
-		"coins": 15,
-		"destructible": true,
-		"col_size": Vector3(0.75, 0.75, 0.75),  # Scaled down with height
-	})
-	_register_object({
 		"id": "building_small_hut",
 		"name": "Small Hut",
 		"category": Category.BUILDING,
