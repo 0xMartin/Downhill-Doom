@@ -316,8 +316,8 @@ func _on_body_entered(body: Node) -> void:
 	if is_dead or hit_cooldown > 0:
 		return
 	
-	# Check if we hit an enemy (deals damage)
-	if body.is_in_group("enemies"):
+	# Check if we hit a building enemy (spikes, etc - deals damage, not destroyed)
+	if body.is_in_group("building_enemies"):
 		hit_cooldown = 0.5  # Prevent rapid hits
 		var impact_pos := global_position
 		hit_rock.emit(impact_pos)

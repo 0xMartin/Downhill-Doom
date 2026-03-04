@@ -19,7 +19,7 @@ enum Source {
 }
 
 ## Configuration
-const SHOCK_WAVE_RADIUS: float = 6.0  # Maximum radius in meters
+const SHOCK_WAVE_RADIUS: float = 8.0  # Maximum radius in meters
 const EXPANSION_DURATION: float = 0.4  # Time to reach max radius
 const SHOCK_WAVE_DAMAGE: int = 15  # Damage dealt (same as spike)
 const SHOCK_WAVE_COLOR := Color(0.7, 0.7, 0.7, 0.4)  # Gray, semi-transparent
@@ -103,9 +103,7 @@ static func _animate_shock_wave(sphere: MeshInstance3D, target_radius: float, sc
 
 ## Apply damage/destruction effects to objects in radius
 static func _apply_shock_wave_effects(position: Vector3, radius: float, source: Source, scene_root: Node) -> void:
-	# Wait a bit for the wave to expand before checking
-	await scene_root.get_tree().create_timer(EXPANSION_DURATION * 0.3).timeout
-	
+	# Apply damage immediately (visual expansion is separate)
 	match source:
 		Source.PLAYER:
 			_damage_destructibles(position, radius, scene_root)
@@ -139,6 +137,13 @@ static func _damage_destructibles(position: Vector3, radius: float, scene_root: 
 		if _is_in_radius(npc, position, radius):
 			if npc.has_method("die"):
 				npc.die(null)
+				destroyed_count += 1
+	
+	# Enemy NPCs (dark pawn, dark knight, horse knight) - use die() method
+	for enemy_npc in scene_root.get_tree().get_nodes_in_group("enemy_npcs"):
+		if _is_in_radius(enemy_npc, position, radius):
+			if enemy_npc.has_method("die"):
+				enemy_npc.die(null)
 				destroyed_count += 1
 	
 	# Buildings

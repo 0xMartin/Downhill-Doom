@@ -10,7 +10,7 @@ extends StaticBody3D
 var can_damage := true
 
 func _ready() -> void:
-	add_to_group("enemies")
+	add_to_group("building_enemies")
 	add_to_group("spikes")
 	
 	# Connect damage area

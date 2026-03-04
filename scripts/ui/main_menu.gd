@@ -407,7 +407,7 @@ func _populate_object_cards(grid: GridContainer) -> void:
 	object_viewports.clear()
 	
 	# Get objects based on current section
-	# OBJECT_SECTIONS = ["Trees", "Buildings", "Friend NPC", "Enemy NPC", "Enemy Building"]
+	# OBJECT_SECTIONS = ["Trees", "Buildings", "Friend NPC", "Enemy NPC", "Building Enemy"]
 	var objects: Array = []
 	match current_section_index:
 		0:  # Trees
@@ -416,16 +416,10 @@ func _populate_object_cards(grid: GridContainer) -> void:
 			objects = ObjectConfigScript.get_buildings()
 		2:  # Friend NPC
 			objects = ObjectConfigScript.get_npcs_friend()
-		3:  # Enemy NPC (enemies that aren't structures)
-			for obj in ObjectConfigScript.get_enemies():
-				var o: RefCounted = obj
-				if not o.id.begins_with("enemy_spike") and not o.id.begins_with("enemy_building"):
-					objects.append(obj)
-		4:  # Enemy Building (spikes, structures)
-			for obj in ObjectConfigScript.get_enemies():
-				var o: RefCounted = obj
-				if o.id.begins_with("enemy_spike") or o.id.begins_with("enemy_building"):
-					objects.append(obj)
+		3:  # Enemy NPC (NPC enemies like pawn, knight, horse)
+			objects = ObjectConfigScript.get_objects_by_category(ObjectConfigScript.Category.NPC_ENEMY)
+		4:  # Building Enemy (spikes, structures)
+			objects = ObjectConfigScript.get_building_enemies()
 	
 	var destroyed: Dictionary = stats.get("destroyed_objects", {})
 	

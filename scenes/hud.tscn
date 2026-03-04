@@ -220,7 +220,7 @@ expand_mode = 1
 stretch_mode = 5
 
 [node name="HealthBar" type="ProgressBar" parent="TopBar/MarginContainer/HBoxContainer/HealthContainer" unique_id=855289037]
-custom_minimum_size = Vector2(100, 20)
+custom_minimum_size = Vector2(120, 26)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 1
@@ -228,6 +228,23 @@ theme_override_styles/background = SubResource("StyleBoxFlat_bg")
 theme_override_styles/fill = SubResource("StyleBoxFlat_fill")
 value = 100.0
 show_percentage = false
+
+[node name="HealthLabel" type="Label" parent="TopBar/MarginContainer/HBoxContainer/HealthContainer/HealthBar" unique_id=855289038]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 18
+text = "100/100"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="Separator2" type="VSeparator" parent="TopBar/MarginContainer/HBoxContainer" unique_id=1040663433]
 modulate = Color(1, 1, 1, 0.3)

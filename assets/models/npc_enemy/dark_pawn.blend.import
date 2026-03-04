@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://qopnmb6tjuup"
-path="res://.godot/imported/spike.blend-051c51f46194e574d53603243c73a843.scn"
+uid="uid://d3s7tw2fh0j2d"
+path="res://.godot/imported/dark_pawn.blend-874aee5497af5f3930f2aa74826fcc37.scn"
 
 [deps]
 
-source_file="res://assets/models/enemies/spike.blend"
-dest_files=["res://.godot/imported/spike.blend-051c51f46194e574d53603243c73a843.scn"]
+source_file="res://assets/models/npc_enemy/dark_pawn.blend"
+dest_files=["res://.godot/imported/dark_pawn.blend-874aee5497af5f3930f2aa74826fcc37.scn"]
 
 [params]
 

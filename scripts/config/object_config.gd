@@ -8,9 +8,10 @@ extends RefCounted
 enum Category {
 	TREE,
 	BUILDING,
-	ENEMY,
+	BUILDING_ENEMY,
 	ROCK,
 	NPC_FRIEND,
+	NPC_ENEMY,
 }
 
 # ========== OBJECT DATA STRUCTURE ==========
@@ -229,12 +230,12 @@ static func _init_objects() -> void:
 		"col_size": Vector3(2.0, 2.0, 2.0),
 	})
 	
-	# ===== ENEMIES =====
+	# ===== BUILDING ENEMIES =====
 	_register_object({
 		"id": "enemy_spike",
 		"name": "Spike",
-		"category": Category.ENEMY,
-		"model": "res://assets/models/enemies/spike.blend",
+		"category": Category.BUILDING_ENEMY,
+		"model": "res://assets/models/buildings_enemy/spike.blend",
 		"height": 1.95, 
 		"height_var": 0.1,
 		"spawn_chance": 1.0,
@@ -382,6 +383,50 @@ static func _init_objects() -> void:
 		"col_radius": 0.25,
 		"col_height": 0.35,
 	})
+	
+	# ===== ENEMY NPCs =====
+	_register_object({
+		"id": "npc_dark_pawn",
+		"name": "Dark Pawn",
+		"category": Category.NPC_ENEMY,
+		"model": "res://assets/models/npc_enemy/dark_pawn.blend",
+		"height": 1.8,  # 50% larger
+		"height_var": 0.1,
+		"spawn_chance": 0.6,  # 60% chance (most common)
+		"coins": 40,
+		"damage": 5,
+		"destructible": true,
+		"col_radius": 0.6,
+		"col_height": 1.5,
+	})
+	_register_object({
+		"id": "npc_dark_knight",
+		"name": "Dark Knight",
+		"category": Category.NPC_ENEMY,
+		"model": "res://assets/models/npc_enemy/dark_knight.blend",
+		"height": 2.25,  # 50% larger
+		"height_var": 0.1,
+		"spawn_chance": 0.3,  # 30% chance
+		"coins": 80,
+		"damage": 10,
+		"destructible": true,
+		"col_radius": 0.75,
+		"col_height": 1.95,
+	})
+	_register_object({
+		"id": "npc_horse_knight",
+		"name": "Horse Knight",
+		"category": Category.NPC_ENEMY,
+		"model": "res://assets/models/npc_enemy/horse_knight.blend",
+		"height": 2.7,  # 50% larger
+		"height_var": 0.1,
+		"spawn_chance": 0.1,  # 10% chance (rare)
+		"coins": 140,
+		"damage": 15,
+		"destructible": true,
+		"col_radius": 0.9,
+		"col_height": 2.4,
+	})
 
 static func _register_object(data: Dictionary) -> void:
 	var obj := ObjectData.new(data)
@@ -412,9 +457,9 @@ static func get_trees() -> Array:
 static func get_buildings() -> Array:
 	return get_objects_by_category(Category.BUILDING)
 
-## Get all enemies
-static func get_enemies() -> Array:
-	return get_objects_by_category(Category.ENEMY)
+## Get all building enemies
+static func get_building_enemies() -> Array:
+	return get_objects_by_category(Category.BUILDING_ENEMY)
 
 ## Get all rocks
 static func get_rocks() -> Array:
@@ -457,10 +502,12 @@ static func get_category_name(category: int) -> String:
 			return "Tree"
 		Category.BUILDING:
 			return "Building"
-		Category.ENEMY:
-			return "Enemy"
+		Category.BUILDING_ENEMY:
+			return "Building Enemy"
 		Category.ROCK:
 			return "Rock"
 		Category.NPC_FRIEND:
 			return "Friend NPC"
+		Category.NPC_ENEMY:
+			return "Enemy NPC"
 	return "Unknown"

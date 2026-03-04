@@ -4,8 +4,8 @@ extends RefCounted
 ## Uses ObjectConfig for object definitions
 ## 
 ## Zone system:
-## - FOREST zones: Trees + Enemies
-## - BUILDING zones: Buildings + Enemies (2x density)
+## - FOREST zones: Trees + Building Enemies
+## - BUILDING zones: Buildings + Building Enemies (2x density)
 ## - OPEN zones: Transition areas, only rocks
 ## - Rocks spawn everywhere
 
@@ -16,6 +16,7 @@ const TreeScript := preload("res://scripts/objects/tree.gd")
 const BuildingScript := preload("res://scripts/objects/building.gd")
 const SpikeScript := preload("res://scripts/objects/spike.gd")
 const FriendNPCScript := preload("res://scripts/objects/friend_npc.gd")
+const EnemyNPCScript := preload("res://scripts/objects/enemy_npc.gd")
 
 # ========== SPAWNING CONFIGURATION ==========
 
@@ -27,8 +28,9 @@ var num_lanes: int = 5
 var tree_density: float = 0.5
 var rock_density: float = 0.15
 var building_density: float = 0.2  # Increased base density
-var enemy_density: float = 0.24  # 3x increased
+var enemy_density: float = 0.24  # Building enemies (spikes)
 var npc_friend_density: float = 0.03
+var npc_enemy_density: float = 0.021  # 30% less than friend NPC
 
 # Urban zone multiplier
 var urban_density_multiplier: float = 2.0
@@ -38,6 +40,7 @@ var rock_safe_chunks: int = 2
 var enemy_safe_chunks: int = 4
 var building_safe_chunks: int = 3
 var npc_friend_safe_chunks: int = 2
+var npc_enemy_safe_chunks: int = 5  # Later than friends
 
 # Minimum distance between objects to prevent overlap
 var min_object_distance: float = 2.5
@@ -91,11 +94,15 @@ func spawn_objects(chunk: Node3D, chunk_index: int, get_height_func: Callable) -
 	if chunk_index >= rock_safe_chunks:
 		_spawn_rocks(chunk, chunk_index, get_height_func)
 	
-	# Spawn NPC clusters (random meadows with animals)
+	# Spawn friend NPC clusters (random meadows with animals)
 	if chunk_index >= npc_friend_safe_chunks:
 		_spawn_npc_clusters(chunk, chunk_index, get_height_func)
 	
-	# Spawn trees, buildings, and enemies based on position-level zone checking
+	# Spawn enemy NPC clusters
+	if chunk_index >= npc_enemy_safe_chunks:
+		_spawn_enemy_npc_clusters(chunk, chunk_index, get_height_func)
+	
+	# Spawn trees, buildings, and building enemies based on position-level zone checking
 	_spawn_zone_objects(chunk, chunk_index, get_height_func)
 
 ## Spawn rocks (zone-independent)
@@ -197,6 +204,69 @@ func _spawn_npc_clusters(chunk: Node3D, chunk_index: int, get_height_func: Calla
 		
 		chunk.add_child(obj)
 		_register_spawn_position(x, local_z, chunk_index)
+
+
+## Spawn enemy NPC clusters (groups of 2-6 enemies)
+func _spawn_enemy_npc_clusters(chunk: Node3D, chunk_index: int, get_height_func: Callable) -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(chunk_index * 55555)
+	
+	# 49% chance to have an enemy NPC cluster (70% * 0.7 = ~49% - 30% less than friend NPCs)
+	if rng.randf() > 0.49:
+		return
+	
+	# Pick random center position for the cluster
+	var margin := 8.0
+	var cluster_x := rng.randf_range(-terrain_width / 2 + margin, terrain_width / 2 - margin)
+	var cluster_z := rng.randf_range(-chunk_size.y + margin, -margin)
+	
+	# Skip if near hole
+	if _is_near_hole(cluster_x, cluster_z, chunk_index):
+		return
+	
+	# Spawn 2-6 enemy NPCs in the cluster
+	var enemy_count := rng.randi_range(2, 6)
+	var cluster_radius := 5.0
+	
+	for i in range(enemy_count):
+		var obj_data: RefCounted = ObjectConfigScript.select_random_object(ObjectConfigScript.Category.NPC_ENEMY, rng)
+		if not obj_data:
+			continue
+		
+		# Random position within cluster
+		var angle := rng.randf_range(0, TAU)
+		var dist := rng.randf_range(0.5, cluster_radius)
+		var x := cluster_x + cos(angle) * dist
+		var local_z := cluster_z + sin(angle) * dist
+		
+		# Clamp to terrain bounds
+		x = clampf(x, -terrain_width / 2 + 2.0, terrain_width / 2 - 2.0)
+		local_z = clampf(local_z, -chunk_size.y + 2.0, -2.0)
+		
+		if _is_near_hole(x, local_z, chunk_index):
+			continue
+		
+		if not _is_position_available(x, local_z, chunk_index, 2.5):
+			continue
+		
+		var height: float = get_height_func.call(x, local_z, chunk_index)
+		
+		var obj: Node3D = _create_object(obj_data, rng, ObjectConfigScript.Category.NPC_ENEMY)
+		if not obj:
+			continue
+		
+		obj.position = Vector3(x, height, local_z)
+		obj.rotation.y = rng.randf_range(0, TAU)
+		
+		# Scale to target height
+		var variation: float = obj_data.height_variation
+		var target_h: float = obj_data.target_height * rng.randf_range(1.0 - variation, 1.0 + variation)
+		_scale_to_target_height(obj, target_h)
+		
+		chunk.add_child(obj)
+		_register_spawn_position(x, local_z, chunk_index)
+
+
 ## Spawn zone-dependent objects (trees, buildings, enemies) with per-position zone check
 func _spawn_zone_objects(chunk: Node3D, chunk_index: int, get_height_func: Callable) -> void:
 	var rng := RandomNumberGenerator.new()
@@ -239,20 +309,20 @@ func _spawn_zone_objects(chunk: Node3D, chunk_index: int, get_height_func: Calla
 			if chunk_index >= building_safe_chunks:
 				category = ObjectConfigScript.Category.BUILDING
 		
-		# Additionally, try to spawn enemy with separate probability
+		# Additionally, try to spawn building enemy with separate probability
 		var enemy_roll := rng.randf()
 		var should_spawn_enemy := false
 		if chunk_index >= enemy_safe_chunks:
-			# Enemies can spawn in both zones but more likely in building zones
+			# Building enemies can spawn in both zones but more likely in building zones
 			var enemy_chance := enemy_density / 10.0  # Base chance
 			if building_weight > 0.5:
-				enemy_chance *= 1.5  # More enemies near buildings
+				enemy_chance *= 1.5  # More building enemies near buildings
 			should_spawn_enemy = enemy_roll < enemy_chance
 		
-		# Spawn enemy if rolled (higher priority than decoration)
+		# Spawn building enemy if rolled (higher priority than decoration)
 		if should_spawn_enemy:
 			_try_spawn_at_position(chunk, chunk_index, get_height_func, x, local_z, 
-								   ObjectConfigScript.Category.ENEMY, rng)
+								   ObjectConfigScript.Category.BUILDING_ENEMY, rng)
 		elif category >= 0:
 			_try_spawn_at_position(chunk, chunk_index, get_height_func, x, local_z, 
 								   category, rng)
@@ -303,12 +373,14 @@ func _create_object(obj_data: RefCounted, rng: RandomNumberGenerator, category: 
 			return _create_tree(obj_data, rng)
 		ObjectConfigScript.Category.BUILDING:
 			return _create_building(obj_data, rng)
-		ObjectConfigScript.Category.ENEMY:
-			return _create_enemy(obj_data, rng)
+		ObjectConfigScript.Category.BUILDING_ENEMY:
+			return _create_building_enemy(obj_data, rng)
 		ObjectConfigScript.Category.ROCK:
 			return _create_rock(obj_data, rng)
 		ObjectConfigScript.Category.NPC_FRIEND:
 			return _create_friend_npc(obj_data, rng)
+		ObjectConfigScript.Category.NPC_ENEMY:
+			return _create_enemy_npc(obj_data, rng)
 	return null
 
 ## Create a tree instance
@@ -415,11 +487,11 @@ func _create_building(obj_data: RefCounted, rng: RandomNumberGenerator) -> Rigid
 	
 	return building
 
-## Create an enemy instance
-func _create_enemy(obj_data: RefCounted, rng: RandomNumberGenerator) -> StaticBody3D:
+## Create a building enemy instance (spike, etc.)
+func _create_building_enemy(obj_data: RefCounted, rng: RandomNumberGenerator) -> StaticBody3D:
 	var enemy := StaticBody3D.new()
-	enemy.name = "Enemy"
-	enemy.add_to_group("enemies")
+	enemy.name = "BuildingEnemy"
+	enemy.add_to_group("building_enemies")
 	enemy.collision_layer = 1
 	enemy.collision_mask = 0
 	enemy.set_script(SpikeScript)
@@ -554,6 +626,67 @@ func _create_friend_npc(obj_data: RefCounted, rng: RandomNumberGenerator) -> Cha
 		sphere.radius = obj_data.collision_radius
 		col_shape.position.y = obj_data.collision_height / 2
 	col_shape.shape = sphere
+	detect_area.add_child(col_shape)
+	npc.add_child(detect_area)
+	
+	return npc
+
+## Create an enemy NPC instance (dark pawn, dark knight, horse knight, etc.)
+func _create_enemy_npc(obj_data: RefCounted, rng: RandomNumberGenerator) -> CharacterBody3D:
+	var npc := CharacterBody3D.new()
+	npc.name = "EnemyNPC"
+	npc.add_to_group("npcs")
+	npc.add_to_group("enemy_npcs")
+	npc.collision_layer = 0  # Don't block anything
+	npc.collision_mask = 1   # Collide with terrain for walking
+	npc.set_script(EnemyNPCScript)
+	npc.set("damage", obj_data.damage)
+	npc.set("coin_value", obj_data.coins)
+	npc.set("object_id", obj_data.id)
+	npc.set("object_name", obj_data.display_name)
+	
+	# Terrain collision shape (invisible capsule for walking)
+	var terrain_col := CollisionShape3D.new()
+	terrain_col.name = "TerrainCollision"
+	var capsule := CapsuleShape3D.new()
+	capsule.radius = 0.3
+	capsule.height = obj_data.collision_height
+	terrain_col.shape = capsule
+	terrain_col.position.y = obj_data.collision_height / 2
+	npc.add_child(terrain_col)
+	
+	# Load model (separate from collision, will hop when chasing)
+	var model: Node3D = null
+	var model_scene := load(obj_data.model_path) as PackedScene
+	if model_scene:
+		model = model_scene.instantiate()
+		model.name = "Model"
+		_apply_material_recursive(model)
+		npc.add_child(model)
+	
+	# Calculate AABB from model for detection area
+	var aabb := AABB()
+	if model:
+		aabb = _get_model_aabb(model)
+	
+	# Detection area for player collision
+	var detect_area := Area3D.new()
+	detect_area.name = "DetectArea"
+	detect_area.collision_layer = 0
+	detect_area.collision_mask = 2
+	detect_area.monitoring = true
+	
+	var col_shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	if aabb.size != Vector3.ZERO:
+		# Use exact AABB size for precise collision
+		box.size = aabb.size * 0.9  # Slightly smaller than visual
+		col_shape.position = aabb.get_center()
+	else:
+		# Fallback box
+		box.size = Vector3(obj_data.collision_radius * 2, obj_data.collision_height, obj_data.collision_radius * 2)
+		col_shape.position.y = obj_data.collision_height / 2
+	col_shape.shape = box
 	detect_area.add_child(col_shape)
 	npc.add_child(detect_area)
 	

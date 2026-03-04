@@ -5,6 +5,7 @@ extends CanvasLayer
 @onready var coins_label: Label = $TopBar/MarginContainer/HBoxContainer/CoinsContainer/CoinsLabel
 @onready var distance_label: Label = $TopBar/MarginContainer/HBoxContainer/DistanceContainer/DistanceLabel
 @onready var health_bar: ProgressBar = $TopBar/MarginContainer/HBoxContainer/HealthContainer/HealthBar
+@onready var health_label: Label = $TopBar/MarginContainer/HBoxContainer/HealthContainer/HealthBar/HealthLabel
 @onready var red_flash: ColorRect = $RedFlash
 @onready var pause_menu: Control = $PauseMenu
 @onready var music_slider: HSlider = $PauseMenu/PanelContainer/VBoxContainer/MusicSlider
@@ -106,13 +107,14 @@ func _on_game_paused(is_paused: bool) -> void:
 func _on_health_changed(health: int, max_health: int) -> void:
 	health_bar.max_value = max_health
 	health_bar.value = health
+	health_label.text = "%d/%d" % [health, max_health]
 	
 	# Juice animation - shrink and expand
 	var tween := create_tween()
 	tween.tween_property(health_bar, "scale", Vector2(0.95, 0.8), 0.05)
 	tween.tween_property(health_bar, "scale", Vector2.ONE, 0.1)
 
-func _on_player_hit(_damage: int) -> void:
+func _on_player_hit(damage: int) -> void:
 	# Flash red overlay
 	red_flash.visible = true
 	red_flash.modulate.a = 1.0
@@ -120,6 +122,9 @@ func _on_player_hit(_damage: int) -> void:
 	var tween := create_tween()
 	tween.tween_property(red_flash, "modulate:a", 0.0, 0.3)
 	tween.tween_callback(func(): red_flash.visible = false)
+	
+	# Show damage popup
+	show_damage_popup(damage)
 
 func _on_settings_pressed() -> void:
 	if audio:
@@ -199,6 +204,72 @@ func show_pickup_popup(amount: int, icon_texture: Texture2D) -> void:
 	var offset_x := randf_range(-120, 120)
 	var offset_y := randf_range(-80, 80)
 	# Center the popup (estimate ~100px width for "+1" + icon)
+	popup.position = Vector2(base_x - 50 + offset_x, base_y + offset_y)
+	popup.pivot_offset = Vector2(60, 30)  # Center pivot for rotation
+	popup_container.add_child(popup)  # Add to container so it's behind menus
+	
+	# Fall downward and off-screen
+	var angle := randf_range(PI * 0.3, PI * 0.7)  # Downward angles
+	var distance := design_height - base_y + 100  # Enough to exit screen at bottom
+	var duration := 1.0  # Animation duration
+	var target_offset := Vector2(cos(angle), sin(angle)) * distance
+	
+	# Random spin (mild rotation)
+	var spin_amount := randf_range(-0.5, 0.5)
+	
+	# Animate: fall down off-screen, spin, and fade out
+	var tween := create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(popup, "position", popup.position + target_offset, duration).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tween.tween_property(popup, "rotation", spin_amount, duration)
+	tween.tween_property(popup, "modulate:a", 0.0, duration * 0.8).set_delay(duration * 0.2)
+	tween.set_parallel(false)
+	tween.tween_callback(popup.queue_free)
+
+# ========== Floating Damage Popup ==========
+
+func show_damage_popup(amount: int) -> void:
+	if not audio or not audio.get_show_pickup_popup():
+		return
+	
+	# Create popup container
+	var popup := HBoxContainer.new()
+	popup.add_theme_constant_override("separation", 8)
+	
+	# Create -N label - large, bold style with outline (red theme)
+	var label := Label.new()
+	label.text = "-" + str(amount)
+	label.add_theme_font_size_override("font_size", 58)
+	label.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3, 1))  # Bright red
+	label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
+	label.add_theme_color_override("font_outline_color", Color(0.5, 0, 0, 1))  # Dark red outline
+	label.add_theme_constant_override("shadow_offset_x", 3)
+	label.add_theme_constant_override("shadow_offset_y", 3)
+	label.add_theme_constant_override("outline_size", 4)
+	popup.add_child(label)
+	
+	# Create heart icon
+	var icon := TextureRect.new()
+	var heart_texture := load("res://assets/icons/heart.svg") as Texture2D
+	if heart_texture:
+		icon.texture = heart_texture
+		icon.custom_minimum_size = Vector2(48, 48)
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.modulate = Color(1.0, 0.3, 0.3, 1)  # Red tint
+		popup.add_child(icon)
+	
+	# Position at player area - use design resolution (720x1280 with stretch)
+	# Center horizontally, 67% from top vertically
+	var design_width: float = 720.0
+	var design_height: float = 1280.0
+	var base_x: float = design_width / 2.0
+	var base_y: float = design_height * 0.67
+	
+	# Larger random offset around spawn point for more spread
+	var offset_x := randf_range(-120, 120)
+	var offset_y := randf_range(-80, 80)
+	# Center the popup
 	popup.position = Vector2(base_x - 50 + offset_x, base_y + offset_y)
 	popup.pivot_offset = Vector2(60, 30)  # Center pivot for rotation
 	popup_container.add_child(popup)  # Add to container so it's behind menus
