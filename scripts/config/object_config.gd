@@ -407,7 +407,7 @@ static func _init_objects() -> void:
 		"height": 2.25,  # 50% larger
 		"height_var": 0.1,
 		"spawn_chance": 0.22,  # 22% chance
-		"coins": 80,
+		"coins": 70,
 		"damage": 10,
 		"destructible": true,
 		"col_radius": 0.75,
@@ -421,8 +421,8 @@ static func _init_objects() -> void:
 		"height": 2.7,  # 50% larger
 		"height_var": 0.1,
 		"spawn_chance": 0.18,  # 18% chance
-		"coins": 140,
-		"damage": 15,
+		"coins": 120,
+		"damage": 17,
 		"destructible": true,
 		"col_radius": 0.9,
 		"col_height": 2.4,
@@ -435,7 +435,7 @@ static func _init_objects() -> void:
 		"height": 2.4,
 		"height_var": 0.1,
 		"spawn_chance": 0.10,  # 10% chance (rare)
-		"coins": 300,
+		"coins": 400,
 		"damage": 30,  # Direct hit damage
 		"destructible": true,
 		"col_radius": 1.2,

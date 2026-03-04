@@ -11,7 +11,7 @@ const TRAIL_WIDTH: float = 0.15
 const PROJECTILE_RADIUS: float = 0.3
 const PROJECTILE_COLOR := Color(0.4, 0.4, 0.4)  # Dark gray
 const TRAIL_COLOR := Color(0.6, 0.1, 0.1, 0.8)  # Red trail
-const IMPACT_SHOCK_WAVE_RADIUS: float = 6.0  # Same as player shock wave
+const IMPACT_SHOCK_WAVE_RADIUS: float = 9.0  # Shock wave radius
 
 var velocity: Vector3 = Vector3.ZERO
 var damage: int = 30
@@ -87,6 +87,15 @@ func _process(delta: float) -> void:
 	# Update trail mesh
 	_update_trail_mesh()
 	
+	# Check player collision in mid-air (always active after immunity)
+	if time_alive > spawn_immunity_time:
+		var player := get_tree().get_first_node_in_group("player") as Node3D
+		if player:
+			var dist := global_position.distance_to(player.global_position)
+			if dist < PROJECTILE_RADIUS + 1.5:  # Direct hit in air
+				_on_impact()
+				return
+	
 	# Check ground collision - only after immunity period and below ground level
 	if time_alive > spawn_immunity_time and global_position.y <= ground_level + 0.5:
 		_on_impact()
@@ -136,11 +145,13 @@ func _update_trail_mesh() -> void:
 func _on_impact() -> void:
 	is_active = false
 	
-	# Direct damage to player if close enough
+	# Check for direct hit - if so, deal direct damage and skip shock wave
+	var direct_hit := false
 	var player := get_tree().get_first_node_in_group("player") as Node3D
 	if player:
 		var dist := global_position.distance_to(player.global_position)
-		if dist < PROJECTILE_RADIUS + 1.0:  # Direct hit
+		if dist < PROJECTILE_RADIUS + 1.5:  # Direct hit
+			direct_hit = true
 			var gm := get_node_or_null("/root/GameManager")
 			if gm:
 				gm.take_damage(damage)
@@ -148,8 +159,9 @@ func _on_impact() -> void:
 			if audio and audio.has_method("play_hurt_sound"):
 				audio.play_hurt_sound()
 	
-	# Spawn red shock wave (enemy source)
-	ShockWaveManager.spawn_shock_wave(global_position, ShockWaveManager.Source.ENEMY, IMPACT_SHOCK_WAVE_RADIUS)
+	# Spawn red shock wave only if no direct hit (damage is one or the other)
+	if not direct_hit:
+		ShockWaveManager.spawn_shock_wave(global_position, ShockWaveManager.Source.ENEMY, IMPACT_SHOCK_WAVE_RADIUS)
 	
 	# Cleanup
 	queue_free()

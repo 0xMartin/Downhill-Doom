@@ -14,7 +14,7 @@ const DETECTION_RANGE: float = 80.0  # Increased range
 const FIRE_RATE_FRAMES: int = 50  # Animation length in frames
 const FIRE_FRAME: int = 3  # Frame at which projectile spawns
 const ANIMATION_FPS: float = 24.0  # Standard Blender FPS
-const ROTATION_SPEED: float = 2.0  # Radians per second
+const ROTATION_SPEED: float = 2.8  # Radians per second (increased by 40%)
 
 # Projectile spawn offset (relative to catapult, where the arm is)
 const PROJECTILE_SPAWN_HEIGHT: float = 3.0
@@ -64,6 +64,10 @@ func _ready() -> void:
 	
 	# Find player reference
 	player = get_tree().get_first_node_in_group("player") as Node3D
+	
+	# Set random spawn rotation facing forward (+Z direction, toward approaching player)
+	# Random angle between -PI/2 and +PI/2 (180 degree arc facing forward)
+	rotation.y = randf_range(-PI / 2.0, PI / 2.0)
 
 
 func _find_animation_player(node: Node) -> AnimationPlayer:
@@ -122,14 +126,25 @@ func _process(delta: float) -> void:
 
 
 func _update_active_state() -> void:
-	## Check if player is within detection range
+	## Check if player is within detection range and in front of catapult
 	if not player or not is_instance_valid(player):
 		player = get_tree().get_first_node_in_group("player") as Node3D
 		is_active = false
 		return
 	
+	# Check distance
 	var distance := global_position.distance_to(player.global_position)
-	is_active = distance <= DETECTION_RANGE
+	if distance > DETECTION_RANGE:
+		is_active = false
+		return
+	
+	# Don't fire at player who has already passed (player moves in -Z direction)
+	# If player.z < catapult.z, player has passed the catapult
+	if player.global_position.z < global_position.z - 5.0:
+		is_active = false
+		return
+	
+	is_active = true
 
 
 func _rotate_towards_player(delta: float) -> void:
@@ -180,69 +195,103 @@ func _fire_projectile() -> void:
 	if not player or not is_instance_valid(player):
 		return
 	
-	# Calculate direction to player (don't rely on catapult rotation)
-	var direction_to_player := (player.global_position - global_position).normalized()
-	direction_to_player.y = 0
-	if direction_to_player.length() < 0.1:
-		direction_to_player = Vector3.FORWARD
-	else:
-		direction_to_player = direction_to_player.normalized()
+	# Check if we're facing the player (don't fire while still rotating)
+	var direction := player.global_position - global_position
+	direction.y = 0
+	if direction.length() < 0.1:
+		return
+	
+	var target_angle := atan2(direction.x, direction.z)
+	var angle_diff: float = absf(wrapf(target_angle - rotation.y, -PI, PI))
+	if angle_diff > 0.3:  # ~17 degrees tolerance
+		return  # Not facing player yet, don't fire
+	
+	# Calculate direction to player
+	var direction_to_player := direction.normalized()
 	
 	# Calculate spawn position based on direction to player
 	var spawn_pos := global_position + Vector3.UP * PROJECTILE_SPAWN_HEIGHT + direction_to_player * PROJECTILE_SPAWN_FORWARD
 	
-	# Predict where player will be when projectile lands
-	var target_pos := _predict_player_position()
+	# Fire one projectile at predicted position
+	var target_pos: Vector3 = _predict_player_position()
 	
-	# Fire 3 projectiles with spread
-	const SPREAD_RADIUS := 4.0  # Random spread radius in meters
-	for i in range(3):
-		var spread_offset := Vector3.ZERO
-		if i > 0:  # First projectile aims exactly at target
-			var angle := randf() * TAU
-			var dist := randf() * SPREAD_RADIUS
-			spread_offset = Vector3(cos(angle) * dist, 0, sin(angle) * dist)
-		
-		var projectile := CatapultProjectile.new()
-		get_tree().current_scene.add_child(projectile)
-		projectile.launch(spawn_pos, target_pos + spread_offset, damage, self, global_position.y)
+	var projectile := CatapultProjectile.new()
+	get_tree().current_scene.add_child(projectile)
+	projectile.launch(spawn_pos, target_pos, damage, self, global_position.y)
 
 
 func _predict_player_position() -> Vector3:
-	## Predict where the player will be when projectile arrives
-	## Uses exact flight time calculation for accurate prediction
+	## Predict where the player will be when projectile arrives using exact interception math
+	## Solves the quadratic equation for projectile-target interception:
+	## |P + V*t - C|² = (s*t)² where P=player pos, V=player vel, C=spawn pos, s=projectile speed
 	if not player or not is_instance_valid(player):
 		return global_position + Vector3.FORWARD * 10.0
 	
-	var player_pos := player.global_position
-	var player_vel := Vector3.ZERO
+	const PROJECTILE_SPEED: float = 36.0
 	
-	# Get player velocity
+	var player_pos: Vector3 = player.global_position
+	var player_vel: Vector3 = Vector3.ZERO
+	
+	# Get player velocity (full 3D for accurate prediction)
 	if player is RigidBody3D:
 		player_vel = (player as RigidBody3D).linear_velocity
 	elif player is CharacterBody3D:
 		player_vel = (player as CharacterBody3D).velocity
 	
-	# Calculate horizontal distance to player
-	var spawn_offset := Vector3.UP * PROJECTILE_SPAWN_HEIGHT
-	var spawn_pos := global_position + spawn_offset
-	var horizontal_dist := Vector2(player_pos.x - spawn_pos.x, player_pos.z - spawn_pos.z).length()
+	# Spawn position (where projectile originates)
+	var spawn_pos: Vector3 = global_position + Vector3.UP * PROJECTILE_SPAWN_HEIGHT
 	
-	# Flight time = distance / projectile_speed (using constant from projectile)
-	const PROJECTILE_SPEED := 36.0  # Must match CatapultProjectile.PROJECTILE_SPEED
-	var flight_time := horizontal_dist / PROJECTILE_SPEED
+	# Relative position: D = P - C (player position relative to spawn)
+	var relative_pos: Vector3 = player_pos - spawn_pos
 	
-	# Predict where player will be after flight_time
-	var predicted_pos := player_pos + player_vel * flight_time
+	# Solve quadratic equation: at² + bt + c = 0
+	# where: a = |V|² - s², b = 2*D·V, c = |D|²
+	var speed_sq: float = PROJECTILE_SPEED * PROJECTILE_SPEED
+	var vel_sq: float = player_vel.length_squared()
 	
-	# Iteratively refine prediction (player moves, so distance changes)
-	for _i in range(2):
-		horizontal_dist = Vector2(predicted_pos.x - spawn_pos.x, predicted_pos.z - spawn_pos.z).length()
-		flight_time = horizontal_dist / PROJECTILE_SPEED
-		predicted_pos = player_pos + player_vel * flight_time
+	var a: float = vel_sq - speed_sq
+	var b: float = 2.0 * relative_pos.dot(player_vel)
+	var c: float = relative_pos.length_squared()
 	
-	# Keep Y at player's current ground level
-	predicted_pos.y = player_pos.y
+	var intercept_time: float = 0.0
+	
+	if absf(a) < 0.0001:
+		# Linear case: player speed ≈ projectile speed
+		# bt + c = 0 → t = -c/b
+		if absf(b) > 0.0001:
+			intercept_time = -c / b
+		else:
+			# Player stationary or moving parallel - aim at current position
+			intercept_time = 0.0
+	else:
+		# Quadratic case
+		var discriminant: float = b * b - 4.0 * a * c
+		
+		if discriminant < 0.0:
+			# No real solution - projectile can't catch player
+			# Fall back to aiming at current position
+			return player_pos
+		
+		var sqrt_disc: float = sqrt(discriminant)
+		var t1: float = (-b - sqrt_disc) / (2.0 * a)
+		var t2: float = (-b + sqrt_disc) / (2.0 * a)
+		
+		# Choose smallest positive time
+		if t1 > 0.0 and t2 > 0.0:
+			intercept_time = minf(t1, t2)
+		elif t1 > 0.0:
+			intercept_time = t1
+		elif t2 > 0.0:
+			intercept_time = t2
+		else:
+			# Both negative - player is behind us or moving away too fast
+			return player_pos
+	
+	# Clamp intercept time to reasonable range (0.1s to 3s)
+	intercept_time = clampf(intercept_time, 0.1, 3.0)
+	
+	# Calculate predicted position
+	var predicted_pos: Vector3 = player_pos + player_vel * intercept_time
 	
 	return predicted_pos
 
