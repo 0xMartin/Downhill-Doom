@@ -59,9 +59,10 @@ func _deal_damage_to_player(player: Node) -> void:
 	# Spawn impact effect
 	_spawn_impact_particles(spawn_pos)
 	
-	# Start cooldown
+	# Start cooldown - with safety check after await
 	await get_tree().create_timer(damage_cooldown).timeout
-	can_damage = true
+	if is_instance_valid(self) and is_inside_tree():
+		can_damage = true
 
 func _spawn_impact_particles(spawn_pos: Vector3) -> void:
 	if not is_inside_tree():

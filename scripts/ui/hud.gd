@@ -20,8 +20,10 @@ extends CanvasLayer
 var gm: Node  # GameManager reference
 var audio: Node  # AudioManager reference
 var coin_icon_texture: Texture2D
+var heart_icon_texture: Texture2D  # Cached heart icon for damage popups
 var last_coin_count: int = 0
 var sparkle_time: float = 0.0
+var sparkle_tween: Tween  # Track sparkle tween to prevent stacking
 
 # Supercharge UI
 var supercharge_panel: PanelContainer
@@ -36,6 +38,7 @@ func _ready() -> void:
 	gm = get_node("/root/GameManager")
 	audio = get_node("/root/AudioManager")
 	coin_icon_texture = load("res://assets/icons/coin.svg")
+	heart_icon_texture = load("res://assets/icons/heart.svg")  # Cache heart icon
 	gm.coins_changed.connect(_on_coins_changed)
 	gm.distance_changed.connect(_on_distance_changed)
 	gm.game_paused.connect(_on_game_paused)
@@ -94,7 +97,10 @@ func _on_coins_changed(total: int) -> void:
 		show_pickup_popup(added, coin_icon_texture)
 		# Sparkle burst animation
 		if sparkle:
-			var sparkle_tween := create_tween()
+			# Kill existing tween to prevent stacking
+			if sparkle_tween:
+				sparkle_tween.kill()
+			sparkle_tween = create_tween()
 			sparkle_tween.set_parallel(true)
 			sparkle_tween.tween_property(sparkle, "modulate:a", 1.0, 0.05)
 			sparkle_tween.tween_property(sparkle, "scale", Vector2(1.5, 1.5), 0.1)
@@ -271,9 +277,8 @@ func show_damage_popup(amount: int) -> void:
 	
 	# Create heart icon
 	var icon := TextureRect.new()
-	var heart_texture := load("res://assets/icons/heart.svg") as Texture2D
-	if heart_texture:
-		icon.texture = heart_texture
+	if heart_icon_texture:
+		icon.texture = heart_icon_texture
 		icon.custom_minimum_size = Vector2(48, 48)
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
@@ -354,6 +359,8 @@ func _create_supercharge_ui() -> void:
 	supercharge_panel.offset_right = -10
 	supercharge_panel.offset_top = -140
 	supercharge_panel.offset_bottom = 140
+	# Panel captures mouse/touch to prevent falling through to game
+	supercharge_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	
 	# Style the panel with rounded transparent background
 	var panel_style := StyleBoxFlat.new()
@@ -381,38 +388,54 @@ func _create_supercharge_ui() -> void:
 	supercharge_container.alignment = BoxContainer.ALIGNMENT_CENTER
 	supercharge_panel.add_child(supercharge_container)
 	
+	# Create bar container with background texture
+	var bar_container := Control.new()
+	bar_container.name = "BarContainer"
+	bar_container.custom_minimum_size = Vector2(44, 160)
+	supercharge_container.add_child(bar_container)
+	
+	# Add background texture from SVG
+	var bar_bg := TextureRect.new()
+	bar_bg.name = "BarBackground"
+	var bg_texture: Texture2D = load("res://assets/icons/super_charge_bar_bg.svg")
+	if bg_texture:
+		bar_bg.texture = bg_texture
+	bar_bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	bar_bg.stretch_mode = TextureRect.STRETCH_SCALE
+	bar_bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	bar_container.add_child(bar_bg)
+	
 	# Create vertical progress bar
 	supercharge_bar = ProgressBar.new()
 	supercharge_bar.name = "SuperchargeBar"
-	supercharge_bar.custom_minimum_size = Vector2(44, 160)
+	supercharge_bar.set_anchors_preset(Control.PRESET_FULL_RECT)
 	supercharge_bar.fill_mode = ProgressBar.FILL_BOTTOM_TO_TOP
 	supercharge_bar.show_percentage = false
 	supercharge_bar.max_value = 100.0
 	supercharge_bar.value = 0.0
 	
-	# Style the bar with rounded corners
+	# Style the bar with transparent background (SVG provides the visual bg)
 	var bar_style := StyleBoxFlat.new()
-	bar_style.bg_color = Color(0.1, 0.1, 0.1, 0.95)
-	bar_style.corner_radius_top_left = 12
-	bar_style.corner_radius_top_right = 12
-	bar_style.corner_radius_bottom_left = 12
-	bar_style.corner_radius_bottom_right = 12
-	bar_style.border_width_left = 2
-	bar_style.border_width_right = 2
-	bar_style.border_width_top = 2
-	bar_style.border_width_bottom = 2
-	bar_style.border_color = Color(0.5, 0.3, 0.2, 0.8)
+	bar_style.bg_color = Color(0.0, 0.0, 0.0, 0.0)  # Transparent - SVG bg shows through
+	bar_style.corner_radius_top_left = 14
+	bar_style.corner_radius_top_right = 14
+	bar_style.corner_radius_bottom_left = 14
+	bar_style.corner_radius_bottom_right = 14
 	supercharge_bar.add_theme_stylebox_override("background", bar_style)
 	
+	# Fill style with vibrant orange-red gradient
 	var fill_style := StyleBoxFlat.new()
-	fill_style.bg_color = Color(1.0, 0.35, 0.1, 1.0)  # Bright red-orange
-	fill_style.corner_radius_top_left = 10
-	fill_style.corner_radius_top_right = 10
-	fill_style.corner_radius_bottom_left = 10
-	fill_style.corner_radius_bottom_right = 10
+	fill_style.bg_color = Color(1.0, 0.4, 0.1, 1.0)  # Bright orange
+	fill_style.corner_radius_top_left = 12
+	fill_style.corner_radius_top_right = 12
+	fill_style.corner_radius_bottom_left = 12
+	fill_style.corner_radius_bottom_right = 12
+	# Add inner glow effect
+	fill_style.shadow_color = Color(1.0, 0.3, 0.0, 0.5)
+	fill_style.shadow_size = 8
 	supercharge_bar.add_theme_stylebox_override("fill", fill_style)
 	
-	supercharge_container.add_child(supercharge_bar)
+	bar_container.add_child(supercharge_bar)
 	
 	# Create CenterContainer to center the circular button
 	var button_center := CenterContainer.new()
@@ -420,23 +443,25 @@ func _create_supercharge_ui() -> void:
 	button_center.custom_minimum_size = Vector2(50, 50)
 	supercharge_container.add_child(button_center)
 	
-	# Create circular button background
+	# Create circular button background with glow
 	var button_bg := PanelContainer.new()
 	button_bg.name = "ButtonBackground"
-	button_bg.custom_minimum_size = Vector2(50, 50)
+	button_bg.custom_minimum_size = Vector2(52, 52)
 	
-	# Style for circular button background
+	# Style for circular button background with fire theme
 	var button_bg_style := StyleBoxFlat.new()
-	button_bg_style.bg_color = Color(0.15, 0.15, 0.15, 0.95)
-	button_bg_style.corner_radius_top_left = 25
-	button_bg_style.corner_radius_top_right = 25
-	button_bg_style.corner_radius_bottom_left = 25
-	button_bg_style.corner_radius_bottom_right = 25
+	button_bg_style.bg_color = Color(0.12, 0.05, 0.02, 0.98)
+	button_bg_style.corner_radius_top_left = 26
+	button_bg_style.corner_radius_top_right = 26
+	button_bg_style.corner_radius_bottom_left = 26
+	button_bg_style.corner_radius_bottom_right = 26
 	button_bg_style.border_width_left = 2
 	button_bg_style.border_width_right = 2
 	button_bg_style.border_width_top = 2
 	button_bg_style.border_width_bottom = 2
-	button_bg_style.border_color = Color(0.5, 0.3, 0.2, 0.8)
+	button_bg_style.border_color = Color(0.6, 0.25, 0.1, 0.9)
+	button_bg_style.shadow_color = Color(1.0, 0.3, 0.0, 0.3)
+	button_bg_style.shadow_size = 6
 	button_bg_style.content_margin_left = 0
 	button_bg_style.content_margin_right = 0
 	button_bg_style.content_margin_top = 0
@@ -447,12 +472,15 @@ func _create_supercharge_ui() -> void:
 	# Create activation button inside background
 	supercharge_button = TextureButton.new()
 	supercharge_button.name = "SuperchargeButton"
-	supercharge_button.custom_minimum_size = Vector2(44, 44)
+	supercharge_button.custom_minimum_size = Vector2(46, 46)
 	supercharge_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	supercharge_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	
-	# Load icon
-	var icon_texture := load("res://assets/icons/super_charge.svg") as Texture2D
+	# Load flame icon (custom SVG)
+	var icon_texture := load("res://assets/icons/super_charge_flame.svg") as Texture2D
+	if not icon_texture:
+		# Fallback to original icon
+		icon_texture = load("res://assets/icons/super_charge.svg") as Texture2D
 	if icon_texture:
 		supercharge_button.texture_normal = icon_texture
 		supercharge_button.ignore_texture_size = true
@@ -494,6 +522,9 @@ func _on_supercharge_ended() -> void:
 func _on_supercharge_button_pressed() -> void:
 	if gm and gm.is_supercharge_ready():
 		gm.activate_supercharge()
+	# Release focus to prevent repeated activation
+	if supercharge_button:
+		supercharge_button.release_focus()
 
 func _start_supercharge_glow() -> void:
 	if not supercharge_button:

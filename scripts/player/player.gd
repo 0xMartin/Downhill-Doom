@@ -41,6 +41,7 @@ var supercharge_scale_target: float = 1.0
 var supercharge_current_scale: float = 1.0
 var supercharge_glow: OmniLight3D
 var supercharge_particles: GPUParticles3D
+var supercharge_trail: GPUParticles3D  # Fire trail behind player
 var base_forward_force: float
 var base_jump_force: float
 var base_max_speed: float
@@ -267,20 +268,27 @@ func _input(event: InputEvent) -> void:
 	# Jump on screen tap (mobile) - but not on UI elements
 	if event is InputEventScreenTouch:
 		if event.pressed:
-			# Don't jump if the touch was handled by UI (check node at point)
+			# Use Godot's proper GUI hit testing
 			var viewport := get_viewport()
 			if viewport:
-				var gui_hit := viewport.gui_get_focus_owner()
-				# Check if any control is at the touch position
-				var root_control := viewport.get_node_or_null("/root/Game/HUD") as CanvasLayer
-				if root_control:
-					# Check supercharge button area (right side of screen)
-					var touch_pos: Vector2 = event.position
-					var screen_size := viewport.get_visible_rect().size
-					# If touch is in right 15% of screen, it might be hitting the supercharge UI
-					if touch_pos.x > screen_size.x * 0.82:
-						return  # Don't jump, let UI handle it
+				var touch_pos: Vector2 = event.position
+				# Check if a GUI control is at this position
+				var is_gui_hit := viewport.gui_is_drag_successful() or _is_touch_on_supercharge_ui(touch_pos)
+				if is_gui_hit:
+					return  # Don't jump, UI handled it
 			_try_jump()
+
+## Check if touch position is over the supercharge UI panel
+func _is_touch_on_supercharge_ui(touch_pos: Vector2) -> bool:
+	var hud := get_node_or_null("/root/Game/HUD")
+	if not hud:
+		return false
+	
+	var panel := hud.get_node_or_null("SuperchargePanel")
+	if panel and panel is Control:
+		var rect: Rect2 = panel.get_global_rect()
+		return rect.has_point(touch_pos)
+	return false
 
 func _try_jump() -> void:
 	if jump_cooldown > 0 or not is_on_ground:
@@ -361,6 +369,10 @@ func die() -> void:
 	
 	# Wait before showing death menu (2 seconds)
 	await get_tree().create_timer(2.0).timeout
+	
+	# Safety check - scene may have changed during await
+	if not is_inside_tree():
+		return
 	
 	# Now emit died signal and end game
 	died.emit()
@@ -514,9 +526,13 @@ func _on_supercharge_activated() -> void:
 	# Show pre-created effects (no lag since already created)
 	if supercharge_glow:
 		supercharge_glow.visible = true
+		supercharge_glow.light_energy = 4.0  # Boost glow
 	if supercharge_particles:
 		supercharge_particles.visible = true
 		supercharge_particles.emitting = true
+	if supercharge_trail:
+		supercharge_trail.visible = true
+		supercharge_trail.emitting = true
 
 func _on_supercharge_ended() -> void:
 	is_supercharged = false
@@ -530,6 +546,13 @@ func _on_supercharge_ended() -> void:
 	# Hide effects (don't destroy, keep for next supercharge)
 	if supercharge_glow:
 		supercharge_glow.visible = false
+		supercharge_glow.light_energy = 3.0  # Reset
+	if supercharge_particles:
+		supercharge_particles.emitting = false
+		supercharge_particles.visible = false
+	if supercharge_trail:
+		supercharge_trail.emitting = false
+		supercharge_trail.visible = false
 	if supercharge_particles:
 		supercharge_particles.emitting = false
 		supercharge_particles.visible = false
@@ -591,6 +614,7 @@ func _create_supercharge_glow_mesh() -> void:
 func _precreate_supercharge_effects() -> void:
 	_create_supercharge_glow()
 	_create_supercharge_particles()
+	_create_supercharge_trail()
 
 func _create_supercharge_particles() -> void:
 	if supercharge_particles:
@@ -649,3 +673,78 @@ func _create_supercharge_particles() -> void:
 	
 	add_child(supercharge_particles)
 	# Don't emit yet - will start when supercharge activates
+
+## Create intense fire trail that streams behind the player during supercharge
+func _create_supercharge_trail() -> void:
+	if supercharge_trail:
+		return
+	
+	supercharge_trail = GPUParticles3D.new()
+	supercharge_trail.name = "SuperchargeTrail"
+	supercharge_trail.amount = 100
+	supercharge_trail.lifetime = 1.2
+	supercharge_trail.explosiveness = 0.0
+	supercharge_trail.randomness = 0.2
+	supercharge_trail.one_shot = false
+	supercharge_trail.visible = false  # Start hidden
+	supercharge_trail.emitting = false
+	supercharge_trail.trail_enabled = true
+	supercharge_trail.trail_lifetime = 0.3
+	
+	# Configure trail to emit behind and upward
+	var proc_material := ParticleProcessMaterial.new()
+	proc_material.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
+	proc_material.emission_box_extents = Vector3(sphere_radius * 0.8, 0.2, 0.1)
+	proc_material.direction = Vector3(0, 0.8, 1.0)  # Backward and up
+	proc_material.spread = 25.0
+	proc_material.initial_velocity_min = 4.0
+	proc_material.initial_velocity_max = 8.0
+	proc_material.gravity = Vector3(0, 2.0, 3.0)  # Rise up and trail back
+	proc_material.scale_min = 0.3
+	proc_material.scale_max = 0.6
+	proc_material.damping_min = 1.0
+	proc_material.damping_max = 2.0
+	
+	# Vibrant fire color gradient
+	var color_ramp := Gradient.new()
+	color_ramp.add_point(0.0, Color(1.0, 1.0, 0.5, 1.0))  # Bright yellow-white core
+	color_ramp.add_point(0.2, Color(1.0, 0.6, 0.1, 1.0))  # Orange
+	color_ramp.add_point(0.5, Color(1.0, 0.3, 0.0, 0.9))  # Red-orange
+	color_ramp.add_point(0.8, Color(0.8, 0.1, 0.0, 0.5))  # Dark red
+	color_ramp.add_point(1.0, Color(0.3, 0.0, 0.0, 0.0))  # Fade to transparent
+	var gradient_texture := GradientTexture1D.new()
+	gradient_texture.gradient = color_ramp
+	proc_material.color_ramp = gradient_texture
+	
+	# Scale curve - start big, get smaller
+	var scale_curve := Curve.new()
+	scale_curve.add_point(Vector2(0.0, 1.0))
+	scale_curve.add_point(Vector2(0.3, 0.8))
+	scale_curve.add_point(Vector2(1.0, 0.2))
+	var scale_curve_tex := CurveTexture.new()
+	scale_curve_tex.curve = scale_curve
+	proc_material.scale_curve = scale_curve_tex
+	
+	supercharge_trail.process_material = proc_material
+	
+	# Create glowing quad mesh for trail particles
+	var quad := QuadMesh.new()
+	quad.size = Vector2(0.5, 0.5)
+	
+	var mat := StandardMaterial3D.new()
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_DEPTH_PRE_PASS
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.vertex_color_use_as_albedo = true
+	mat.emission_enabled = true
+	mat.emission = Color(1.0, 0.5, 0.1)
+	mat.emission_energy_multiplier = 5.0
+	mat.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	mat.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	quad.material = mat
+	
+	supercharge_trail.draw_pass_1 = quad
+	supercharge_trail.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	
+	# Position trail at the back of the player
+	supercharge_trail.position = Vector3(0, 0, sphere_radius * 0.5)
+	add_child(supercharge_trail)

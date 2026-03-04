@@ -407,7 +407,11 @@ func _animate_fragment(debris: MeshInstance3D, material: StandardMaterial3D, vel
 			var fade_progress := (elapsed - DEBRIS_LIFETIME * DEBRIS_FADE_START) / (DEBRIS_LIFETIME * (1.0 - DEBRIS_FADE_START))
 			material.albedo_color.a = (1.0 - fade_progress) * original_color.a
 		
-		await get_tree().process_frame
+		# Safe await - check scene tree exists before awaiting
+		var tree := get_tree()
+		if tree == null:
+			break
+		await tree.process_frame
 	
 	if is_instance_valid(debris):
 		debris.queue_free()
