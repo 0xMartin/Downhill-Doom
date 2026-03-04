@@ -22,7 +22,8 @@ enum Source {
 const SHOCK_WAVE_RADIUS: float = 8.0  # Maximum radius in meters
 const EXPANSION_DURATION: float = 0.4  # Time to reach max radius
 const SHOCK_WAVE_DAMAGE: int = 15  # Damage dealt (same as spike)
-const SHOCK_WAVE_COLOR := Color(0.7, 0.7, 0.7, 0.4)  # Gray, semi-transparent
+const SHOCK_WAVE_COLOR_PLAYER := Color(0.7, 0.7, 0.7, 0.4)  # Gray, semi-transparent
+const SHOCK_WAVE_COLOR_ENEMY := Color(0.9, 0.2, 0.2, 0.5)  # Red, semi-transparent
 
 
 ## Spawn a shock wave at the given position
@@ -41,8 +42,8 @@ static func spawn_shock_wave(position: Vector3, source: Source, radius_override:
 	if audio and audio.has_method("play_shock_wave_sound"):
 		audio.play_shock_wave_sound()
 	
-	# Create the visual effect
-	var sphere := _create_shock_wave_visual(position, scene_root)
+	# Create the visual effect with appropriate color
+	var sphere := _create_shock_wave_visual(position, source, scene_root)
 	
 	# Animate expansion and fade
 	_animate_shock_wave(sphere, radius, scene_root)
@@ -52,7 +53,7 @@ static func spawn_shock_wave(position: Vector3, source: Source, radius_override:
 
 
 ## Create the visual sphere mesh
-static func _create_shock_wave_visual(position: Vector3, scene_root: Node) -> MeshInstance3D:
+static func _create_shock_wave_visual(position: Vector3, source: Source, scene_root: Node) -> MeshInstance3D:
 	var mesh_instance := MeshInstance3D.new()
 	mesh_instance.name = "ShockWave"
 	
@@ -64,10 +65,13 @@ static func _create_shock_wave_visual(position: Vector3, scene_root: Node) -> Me
 	sphere_mesh.rings = 16
 	mesh_instance.mesh = sphere_mesh
 	
+	# Choose color based on source
+	var wave_color := SHOCK_WAVE_COLOR_PLAYER if source == Source.PLAYER else SHOCK_WAVE_COLOR_ENEMY
+	
 	# Create transparent material
 	var material := StandardMaterial3D.new()
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	material.albedo_color = SHOCK_WAVE_COLOR
+	material.albedo_color = wave_color
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	material.cull_mode = BaseMaterial3D.CULL_DISABLED  # Visible from inside too
 	mesh_instance.material_override = material
@@ -108,10 +112,7 @@ static func _apply_shock_wave_effects(position: Vector3, radius: float, source: 
 		Source.PLAYER:
 			_damage_destructibles(position, radius, scene_root)
 		Source.ENEMY:
-			# FUTURE: Enemy shock waves damage the player
-			# Uncomment and implement when enemies use shock waves:
-			# _damage_player(position, radius, scene_root)
-			pass
+			_damage_player(position, radius, scene_root)
 
 
 ## Damage/destroy destructible objects (trees, NPCs, buildings) in radius
@@ -160,20 +161,19 @@ static func _damage_destructibles(position: Vector3, radius: float, scene_root: 
 			camera.shake(0.3 + destroyed_count * 0.1)
 
 
-## FUTURE: Damage the player if in radius
+## Damage the player if in radius
 ## Called when source is ENEMY
-## Uncomment and use when implementing enemy shock waves
-#static func _damage_player(position: Vector3, radius: float, scene_root: Node) -> void:
-#	var player := scene_root.get_tree().get_first_node_in_group("player")
-#	if player and _is_in_radius(player, position, radius):
-#		var gm := scene_root.get_node_or_null("/root/GameManager")
-#		if gm:
-#			gm.take_damage(SHOCK_WAVE_DAMAGE)
-#		
-#		# Play hurt sound
-#		var audio := scene_root.get_node_or_null("/root/AudioManager")
-#		if audio and audio.has_method("play_hurt_sound"):
-#			audio.play_hurt_sound()
+static func _damage_player(position: Vector3, radius: float, scene_root: Node) -> void:
+	var player := scene_root.get_tree().get_first_node_in_group("player")
+	if player and _is_in_radius(player, position, radius):
+		var gm := scene_root.get_node_or_null("/root/GameManager")
+		if gm:
+			gm.take_damage(SHOCK_WAVE_DAMAGE)
+		
+		# Play hurt sound
+		var audio := scene_root.get_node_or_null("/root/AudioManager")
+		if audio and audio.has_method("play_hurt_sound"):
+			audio.play_hurt_sound()
 
 
 ## Check if a node is within radius of position

@@ -82,8 +82,10 @@ func _ready() -> void:
 	player = get_tree().get_first_node_in_group("player")
 
 func _init_subsystems() -> void:
-	# Shared configuration
+	# Shared configuration with random seed
+	var random_seed := randi()
 	var config := {
+		"seed": random_seed,
 		"noise": noise,
 		"terrain_width": terrain_width,
 		"noise_height": noise_height,

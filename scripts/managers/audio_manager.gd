@@ -36,6 +36,7 @@ var npc_death_sounds: Dictionary = {
 	"chicken": "res://assets/sounds/hit/npc/chicken.mp3",
 	"rabbit": "res://assets/sounds/hit/npc/rabbit.mp3",
 	"enemy": "res://assets/sounds/hit/npc/enemy_npc.mp3",
+	"catapult": "res://assets/sounds/hit/npc/catapult.mp3",
 }
 
 # Audio players

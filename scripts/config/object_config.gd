@@ -392,7 +392,7 @@ static func _init_objects() -> void:
 		"model": "res://assets/models/npc_enemy/dark_pawn.blend",
 		"height": 1.8,  # 50% larger
 		"height_var": 0.1,
-		"spawn_chance": 0.5,  # 50% chance (most common)
+		"spawn_chance": 0.4,  # 40% chance (most common)
 		"coins": 40,
 		"damage": 5,
 		"destructible": true,
@@ -406,7 +406,7 @@ static func _init_objects() -> void:
 		"model": "res://assets/models/npc_enemy/dark_knight.blend",
 		"height": 2.25,  # 50% larger
 		"height_var": 0.1,
-		"spawn_chance": 0.4,  # 40% chance
+		"spawn_chance": 0.22,  # 22% chance
 		"coins": 80,
 		"damage": 10,
 		"destructible": true,
@@ -420,12 +420,26 @@ static func _init_objects() -> void:
 		"model": "res://assets/models/npc_enemy/horse_knight.blend",
 		"height": 2.7,  # 50% larger
 		"height_var": 0.1,
-		"spawn_chance": 0.1,  # 10% chance (rare)
+		"spawn_chance": 0.18,  # 18% chance
 		"coins": 140,
 		"damage": 15,
 		"destructible": true,
 		"col_radius": 0.9,
 		"col_height": 2.4,
+	})
+	_register_object({
+		"id": "npc_catapult",
+		"name": "Catapult",
+		"category": Category.NPC_ENEMY,
+		"model": "res://assets/models/npc_enemy/catapult.blend",
+		"height": 2.4,
+		"height_var": 0.1,
+		"spawn_chance": 0.10,  # 10% chance (rare)
+		"coins": 300,
+		"damage": 30,  # Direct hit damage
+		"destructible": true,
+		"col_radius": 1.2,
+		"col_height": 2.0,
 	})
 
 static func _register_object(data: Dictionary) -> void:

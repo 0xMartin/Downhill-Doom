@@ -17,6 +17,7 @@ const BuildingScript := preload("res://scripts/objects/building.gd")
 const SpikeScript := preload("res://scripts/objects/spike.gd")
 const FriendNPCScript := preload("res://scripts/objects/friend_npc.gd")
 const EnemyNPCScript := preload("res://scripts/objects/enemy_npc.gd")
+const CatapultNPCScript := preload("res://scripts/objects/catapult_npc.gd")
 
 # ========== SPAWNING CONFIGURATION ==========
 
@@ -206,7 +207,7 @@ func _spawn_npc_clusters(chunk: Node3D, chunk_index: int, get_height_func: Calla
 		_register_spawn_position(x, local_z, chunk_index)
 
 
-## Spawn enemy NPC clusters (groups of 2-6 enemies)
+## Spawn enemy NPC clusters (groups of 3-8 enemies, max 2 catapults)
 func _spawn_enemy_npc_clusters(chunk: Node3D, chunk_index: int, get_height_func: Callable) -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = hash(chunk_index * 55555)
@@ -224,14 +225,29 @@ func _spawn_enemy_npc_clusters(chunk: Node3D, chunk_index: int, get_height_func:
 	if _is_near_hole(cluster_x, cluster_z, chunk_index):
 		return
 	
-	# Spawn 2-6 enemy NPCs in the cluster
-	var enemy_count := rng.randi_range(2, 6)
-	var cluster_radius := 5.0
+	# Spawn 3-8 enemy NPCs in the cluster (max 2 catapults)
+	var enemy_count := rng.randi_range(3, 8)
+	var cluster_radius := 6.0
+	var catapult_count := 0
+	const MAX_CATAPULTS := 2
 	
 	for i in range(enemy_count):
 		var obj_data: RefCounted = ObjectConfigScript.select_random_object(ObjectConfigScript.Category.NPC_ENEMY, rng)
 		if not obj_data:
 			continue
+		
+		# Limit catapults per group
+		if obj_data.id == "npc_catapult":
+			if catapult_count >= MAX_CATAPULTS:
+				# Re-roll for non-catapult enemy
+				for _reroll in range(5):
+					obj_data = ObjectConfigScript.select_random_object(ObjectConfigScript.Category.NPC_ENEMY, rng)
+					if obj_data and obj_data.id != "npc_catapult":
+						break
+				if not obj_data or obj_data.id == "npc_catapult":
+					continue
+			else:
+				catapult_count += 1
 		
 		# Random position within cluster
 		var angle := rng.randf_range(0, TAU)
@@ -631,7 +647,7 @@ func _create_friend_npc(obj_data: RefCounted, rng: RandomNumberGenerator) -> Cha
 	
 	return npc
 
-## Create an enemy NPC instance (dark pawn, dark knight, horse knight, etc.)
+## Create an enemy NPC instance (dark pawn, dark knight, horse knight, catapult, etc.)
 func _create_enemy_npc(obj_data: RefCounted, rng: RandomNumberGenerator) -> CharacterBody3D:
 	var npc := CharacterBody3D.new()
 	npc.name = "EnemyNPC"
@@ -639,7 +655,14 @@ func _create_enemy_npc(obj_data: RefCounted, rng: RandomNumberGenerator) -> Char
 	npc.add_to_group("enemy_npcs")
 	npc.collision_layer = 0  # Don't block anything
 	npc.collision_mask = 1   # Collide with terrain for walking
-	npc.set_script(EnemyNPCScript)
+	
+	# Use appropriate script based on NPC type
+	if obj_data.id == "npc_catapult":
+		npc.set_script(CatapultNPCScript)
+		npc.name = "CatapultNPC"
+	else:
+		npc.set_script(EnemyNPCScript)
+	
 	npc.set("damage", obj_data.damage)
 	npc.set("coin_value", obj_data.coins)
 	npc.set("object_id", obj_data.id)
@@ -678,7 +701,13 @@ func _create_enemy_npc(obj_data: RefCounted, rng: RandomNumberGenerator) -> Char
 	
 	var col_shape := CollisionShape3D.new()
 	var box := BoxShape3D.new()
-	if aabb.size != Vector3.ZERO:
+	
+	# Catapult needs a custom smaller hitbox (just base, not the arm)
+	if obj_data.id == "npc_catapult":
+		# Catapult base is roughly 2x2x2 meters
+		box.size = Vector3(2.0, 2.0, 2.0)
+		col_shape.position = Vector3(0.0, 1.0, 0.0)
+	elif aabb.size != Vector3.ZERO:
 		# Use exact AABB size for precise collision
 		box.size = aabb.size * 0.9  # Slightly smaller than visual
 		# Only use Y center - X/Z stay at origin to avoid forward offset on horse model
