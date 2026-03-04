@@ -22,12 +22,12 @@
 
 
 Malé objekty (překážky):
-- Studna (kamenná, s dřevěnou střechou)
+- Studna 
 - Tržní stánek
 - Dřevěný vozík
 - Hromada sudů
-- Small hut (done)
-- Balvan s mečem (Excalibur style)
+- Small hut
+- Excalibur
 
 Velké objekty:
 - Větrný mlýn
