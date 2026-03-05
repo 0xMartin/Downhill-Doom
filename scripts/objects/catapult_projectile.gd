@@ -93,12 +93,12 @@ func _process(delta: float) -> void:
 		if player:
 			var dist := global_position.distance_to(player.global_position)
 			if dist < PROJECTILE_RADIUS + 1.5:  # Direct hit in air
-				_on_impact()
+				_on_direct_player_hit()
 				return
 	
 	# Check ground collision - only after immunity period and below ground level
 	if time_alive > spawn_immunity_time and global_position.y <= ground_level + 0.5:
-		_on_impact()
+		_on_ground_impact()
 
 
 func _update_trail_mesh() -> void:
@@ -142,26 +142,31 @@ func _update_trail_mesh() -> void:
 	trail_mesh_instance.material_override = trail_material
 
 
-func _on_impact() -> void:
+func _on_direct_player_hit() -> void:
+	## Called when projectile directly hits player in mid-air
+	## Deals direct damage, no shock wave
 	is_active = false
 	
-	# Check for direct hit - if so, deal direct damage and skip shock wave
-	var direct_hit := false
-	var player := get_tree().get_first_node_in_group("player") as Node3D
-	if player:
-		var dist := global_position.distance_to(player.global_position)
-		if dist < PROJECTILE_RADIUS + 1.5:  # Direct hit
-			direct_hit = true
-			var gm := get_node_or_null("/root/GameManager")
-			if gm:
-				gm.take_damage(damage)
-			var audio := get_node_or_null("/root/AudioManager")
-			if audio and audio.has_method("play_hurt_sound"):
-				audio.play_hurt_sound()
+	# Deal direct damage to player
+	var gm: Node = get_node_or_null("/root/GameManager")
+	if gm and gm.has_method("take_damage"):
+		gm.take_damage(damage)
 	
-	# Spawn red shock wave only if no direct hit (damage is one or the other)
-	if not direct_hit:
-		ShockWaveManager.spawn_shock_wave(global_position, ShockWaveManager.Source.ENEMY, IMPACT_SHOCK_WAVE_RADIUS)
+	var audio: Node = get_node_or_null("/root/AudioManager")
+	if audio and audio.has_method("play_hurt_sound"):
+		audio.play_hurt_sound()
+	
+	# Cleanup
+	queue_free()
+
+
+func _on_ground_impact() -> void:
+	## Called when projectile hits the ground/terrain
+	## Spawns red shock wave that damages player if in radius
+	is_active = false
+	
+	# Always spawn red shock wave on ground impact
+	ShockWaveManager.spawn_shock_wave(global_position, ShockWaveManager.Source.ENEMY, IMPACT_SHOCK_WAVE_RADIUS)
 	
 	# Cleanup
 	queue_free()
