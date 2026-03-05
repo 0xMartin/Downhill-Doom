@@ -12,7 +12,7 @@ signal terrain_ready
 
 # Chunk configuration
 @export var chunk_size: Vector2 = Vector2(100, 50)
-@export var chunks_ahead: int = 5
+@export var chunks_ahead: int = 3  # Reduced from 5 for mobile performance
 @export var chunks_behind: int = 2
 @export var slope_angle: float = 12.0
 @export var noise_height: float = 1.0
@@ -28,10 +28,10 @@ signal terrain_ready
 @export var mountain_noise_strength: float = 3.5
 @export var grid_jitter: float = 0.35
 
-# Object spawning - reduced by 20% for performance
+# Object spawning - reduced 50% total for mobile performance
 @export_group("Objects")
-@export var tree_density: float = 0.4
-@export var rock_spawn_chance: float = 0.48
+@export var tree_density: float = 0.25
+@export var rock_spawn_chance: float = 0.30
 @export var rock_safe_chunks: int = 2
 @export var num_lanes: int = 5
 
@@ -55,6 +55,11 @@ var current_chunk_index: int = 0
 var player: Node3D
 var is_ready := false
 
+# Async generation state
+var _generating_chunks: Dictionary = {}  # chunk_index -> true (being generated)
+var _generation_queue: Array[int] = []  # Chunks waiting to be generated
+var _is_generating := false  # Lock for async generation
+
 # Sub-systems (use RefCounted base type since class_name isn't recognized at parse time)
 var mesh_builder: RefCounted
 var hole_manager: RefCounted
@@ -72,14 +77,14 @@ func _ready() -> void:
 	# Initialize sub-systems with configuration
 	_init_subsystems()
 	
-	# Generate initial chunks
+	# Generate initial chunks async (spread across frames)
+	_generate_initial_chunks()
+
+func _generate_initial_chunks() -> void:
 	for i in range(-chunks_behind, chunks_ahead + 1):
-		_generate_chunk(i)
-	
-	is_ready = true
-	terrain_ready.emit()
-	await get_tree().process_frame
-	player = get_tree().get_first_node_in_group("player")
+		_queue_chunk_generation(i)
+	# Start processing queue
+	_process_generation_queue()
 
 func _init_subsystems() -> void:
 	# Shared configuration with random seed
@@ -155,9 +160,14 @@ func _process(_delta: float) -> void:
 		_update_chunks()
 
 func _update_chunks() -> void:
+	# Queue chunks for async generation instead of generating immediately
 	for i in range(current_chunk_index - chunks_behind, current_chunk_index + chunks_ahead + 1):
-		if not chunks.has(i):
-			_generate_chunk(i)
+		if not chunks.has(i) and not _generating_chunks.has(i):
+			_queue_chunk_generation(i)
+	
+	# Start processing if not already running
+	if not _is_generating and _generation_queue.size() > 0:
+		_process_generation_queue()
 	
 	var chunks_to_remove: Array[int] = []
 	for chunk_index in chunks.keys():
@@ -167,8 +177,36 @@ func _update_chunks() -> void:
 	for chunk_index in chunks_to_remove:
 		_cleanup_chunk(chunk_index)
 
-func _generate_chunk(chunk_index: int) -> void:
+func _queue_chunk_generation(chunk_index: int) -> void:
+	if chunks.has(chunk_index) or _generating_chunks.has(chunk_index):
+		return
+	if chunk_index not in _generation_queue:
+		_generation_queue.append(chunk_index)
+		_generating_chunks[chunk_index] = true
+
+func _process_generation_queue() -> void:
+	if _is_generating:
+		return
+	_is_generating = true
+	_process_next_chunk()
+
+func _process_next_chunk() -> void:
+	if _generation_queue.size() == 0:
+		_is_generating = false
+		if not is_ready:
+			is_ready = true
+			terrain_ready.emit()
+			player = get_tree().get_first_node_in_group("player")
+		return
+	
+	var chunk_index: int = _generation_queue.pop_front()
+	_generate_chunk_async(chunk_index)
+
+func _generate_chunk_async(chunk_index: int) -> void:
 	if chunks.has(chunk_index):
+		_generating_chunks.erase(chunk_index)
+		# Process next after this frame
+		call_deferred("_process_next_chunk")
 		return
 	
 	var chunk := Node3D.new()
@@ -179,30 +217,57 @@ func _generate_chunk(chunk_index: int) -> void:
 	var chunk_y := chunk_z * tan(deg_to_rad(slope_angle))
 	chunk.position = Vector3(0, chunk_y, chunk_z)
 	
-	# 1. Pre-calculate holes
+	# 1. Pre-calculate holes (fast)
 	hole_manager.precalculate_holes(chunk_index)
 	
-	# 2. Create terrain mesh (includes hole walls)
+	# Yield to next frame before heavy mesh generation
+	await get_tree().process_frame
+	
+	# Check if chunk was cleaned up while waiting
+	if not is_instance_valid(chunk) or chunk.is_queued_for_deletion():
+		_generating_chunks.erase(chunk_index)
+		call_deferred("_process_next_chunk")
+		return
+	
+	# 2. Create terrain mesh (HEAVY - main bottleneck)
 	var terrain: StaticBody3D = mesh_builder.create_terrain(chunk_index)
 	chunk.add_child(terrain)
 	
-	# 3. Create barriers
+	# Yield after mesh creation
+	await get_tree().process_frame
+	
+	if not is_instance_valid(chunk) or chunk.is_queued_for_deletion():
+		_generating_chunks.erase(chunk_index)
+		call_deferred("_process_next_chunk")
+		return
+	
+	# 3. Create barriers (fast)
 	_create_barriers(chunk)
 	
-	# 4. Spawn hole effects (death zones, particles)
+	# 4. Spawn hole effects (medium)
 	hole_manager.spawn_hole_effects(chunk, chunk_index, get_decoration_height)
 	
-	# 5. Spawn objects (trees, rocks, etc.)
-	if object_spawner:
-		object_spawner.spawn_objects(chunk, chunk_index, get_decoration_height)
-	else:
-		push_error("ObjectSpawner is null in chunk %d - reinitializing" % chunk_index)
-		_init_subsystems()
-		if object_spawner:
-			object_spawner.spawn_objects(chunk, chunk_index, get_decoration_height)
+	# Yield before object spawning
+	await get_tree().process_frame
 	
-	chunks[chunk_index] = chunk
-	terrain_chunk_created.emit(chunk)
+	if not is_instance_valid(chunk) or chunk.is_queued_for_deletion():
+		_generating_chunks.erase(chunk_index)
+		call_deferred("_process_next_chunk")
+		return
+	
+	# 5. Spawn objects with batched yielding (HEAVY)
+	if object_spawner:
+		await object_spawner.spawn_objects_async(chunk, chunk_index, get_decoration_height)
+	
+	# Finalize chunk
+	if is_instance_valid(chunk) and not chunk.is_queued_for_deletion():
+		chunks[chunk_index] = chunk
+		terrain_chunk_created.emit(chunk)
+	
+	_generating_chunks.erase(chunk_index)
+	
+	# Process next chunk
+	call_deferred("_process_next_chunk")
 
 func _cleanup_chunk(chunk_index: int) -> void:
 	if not chunks.has(chunk_index):

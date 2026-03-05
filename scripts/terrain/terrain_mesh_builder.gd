@@ -47,7 +47,7 @@ func create_terrain(chunk_index: int) -> StaticBody3D:
 	hole_st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var hole_color := Color(0.02, 0.02, 0.03)
 	
-	var cell_size := 2.0
+	var cell_size := 4.0  # Increased from 2.0 for mobile performance (4x fewer polygons)
 	var resolution_x := int(chunk_size.x / cell_size)
 	var resolution_z := int(chunk_size.y / cell_size)
 	var cell_width := chunk_size.x / resolution_x
@@ -239,14 +239,16 @@ func create_terrain(chunk_index: int) -> StaticBody3D:
 			hole_mesh_instance.set_surface_override_material(0, hole_material)
 			static_body.add_child(hole_mesh_instance)
 			
+			# Deferred collision shape creation to spread work across frames
 			var hole_col_shape := CollisionShape3D.new()
 			hole_col_shape.shape = hole_mesh.create_trimesh_shape()
-			static_body.add_child(hole_col_shape)
+			static_body.add_child.call_deferred(hole_col_shape)
 	
 	if mesh.get_surface_count() > 0:
+		# Deferred collision shape creation - reduces frame stutter on mobile
 		var col_shape := CollisionShape3D.new()
 		col_shape.shape = mesh.create_trimesh_shape()
-		static_body.add_child(col_shape)
+		static_body.add_child.call_deferred(col_shape)
 	
 	return static_body
 

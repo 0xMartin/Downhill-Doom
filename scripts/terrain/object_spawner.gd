@@ -27,13 +27,13 @@ var terrain_width: float = 36.0
 var chunk_size: Vector2 = Vector2(100, 50)
 var num_lanes: int = 5
 
-# Base density settings (objects per 100 square units) - reduced by 20% for performance
-var tree_density: float = 0.4  # Was 0.5
-var rock_density: float = 0.12  # Was 0.15
-var building_density: float = 0.16  # Was 0.2
-var enemy_density: float = 0.19  # Was 0.24 (building enemies/spikes)
-var npc_friend_density: float = 0.024  # Was 0.03
-var npc_enemy_density: float = 0.017  # Was 0.021
+# Base density settings (objects per 100 square units) - reduced 50% total for mobile
+var tree_density: float = 0.25  # Was 0.5 → 0.4 → 0.25
+var rock_density: float = 0.08  # Was 0.15 → 0.12 → 0.08
+var building_density: float = 0.10  # Was 0.2 → 0.16 → 0.10
+var enemy_density: float = 0.12  # Was 0.24 → 0.19 → 0.12
+var npc_friend_density: float = 0.015  # Was 0.03 → 0.024 → 0.015
+var npc_enemy_density: float = 0.012  # Was 0.021 → 0.017 → 0.012
 
 # Urban zone multiplier
 var urban_density_multiplier: float = 2.0
@@ -57,6 +57,14 @@ var spike_wall_max_angle: float = 25.0  # Maximum angle deviation per segment (d
 # Minimum distance between objects to prevent overlap
 var min_object_distance: float = 2.5
 
+# Height offsets per category to compensate for lowpoly terrain
+# Trees have roots so they can sink a bit, buildings need more clearance
+var height_offset_tree: float = 0.0  # Trees look fine slightly embedded
+var height_offset_rock: float = 0.1  # Rocks can be partially buried
+var height_offset_building: float = 0.25  # Buildings need to sit on surface
+var height_offset_npc: float = 0.15  # NPCs should be on surface
+var height_offset_spike: float = 0.2  # Spikes need clearance
+
 # ========== INTERNAL STATE ==========
 
 var color_palette_material: StandardMaterial3D
@@ -65,6 +73,12 @@ var zone_manager: RefCounted  # ZoneManager
 
 # Track spawned positions per chunk to prevent overlap
 var spawned_positions: Dictionary = {}  # chunk_index -> Array[Vector2] (x, z)
+
+# ========== SCENE & AABB CACHING (Performance optimization) ==========
+# Cache loaded scenes to avoid repeated load() calls
+var _scene_cache: Dictionary = {}  # model_path -> PackedScene
+# Cache AABB calculations to avoid re-instantiating models
+var _aabb_cache: Dictionary = {}  # model_path -> AABB
 
 # Spike wall chain tracking
 var next_spike_wall_z: float = 0.0  # Next Z position for spike wall chain
@@ -102,6 +116,29 @@ func _setup_material() -> void:
 	color_palette_material.roughness = 0.9
 	color_palette_material.shading_mode = BaseMaterial3D.SHADING_MODE_PER_VERTEX
 
+## Get cached PackedScene (avoids repeated load() calls)
+func _get_cached_scene(model_path: String) -> PackedScene:
+	if _scene_cache.has(model_path):
+		return _scene_cache[model_path]
+	var scene := load(model_path) as PackedScene
+	if scene:
+		_scene_cache[model_path] = scene
+	return scene
+
+## Get cached AABB for a model (avoids re-instantiating just for size)
+func _get_cached_aabb(model_path: String) -> AABB:
+	if _aabb_cache.has(model_path):
+		return _aabb_cache[model_path]
+	# Need to instantiate once to get AABB
+	var scene := _get_cached_scene(model_path)
+	if not scene:
+		return AABB()
+	var temp := scene.instantiate()
+	var aabb := _get_model_aabb(temp)
+	temp.queue_free()
+	_aabb_cache[model_path] = aabb
+	return aabb
+
 func set_hole_manager(manager: RefCounted) -> void:
 	hole_manager = manager
 
@@ -134,6 +171,181 @@ func spawn_objects(chunk: Node3D, chunk_index: int, get_height_func: Callable) -
 	# Spawn trees, buildings, and building enemies based on position-level zone checking
 	_spawn_zone_objects(chunk, chunk_index, get_height_func)
 
+## Async version of spawn_objects - spreads work across multiple frames
+## Returns when all objects are spawned
+func spawn_objects_async(chunk: Node3D, chunk_index: int, get_height_func: Callable) -> void:
+	# Clear previous spawn positions for this chunk
+	spawned_positions[chunk_index] = []
+	
+	# FIRST: Spawn spike wall chains (before other objects to reserve space)
+	if chunk_index >= spike_wall_safe_chunks:
+		_spawn_spike_wall_chains(chunk, chunk_index, get_height_func)
+	
+	# Yield after spike walls
+	if not _is_chunk_valid(chunk):
+		return
+	await _yield_frame(chunk)
+	
+	# Spawn rocks everywhere (regardless of zone)
+	if chunk_index >= rock_safe_chunks:
+		await _spawn_rocks_async(chunk, chunk_index, get_height_func)
+	
+	if not _is_chunk_valid(chunk):
+		return
+	
+	# Spawn friend NPC clusters (random meadows with animals)
+	if chunk_index >= npc_friend_safe_chunks:
+		_spawn_npc_clusters(chunk, chunk_index, get_height_func)
+	
+	# Spawn enemy NPC clusters
+	if chunk_index >= npc_enemy_safe_chunks:
+		_spawn_enemy_npc_clusters(chunk, chunk_index, get_height_func)
+	
+	# Yield after NPC clusters
+	if not _is_chunk_valid(chunk):
+		return
+	await _yield_frame(chunk)
+	
+	# Try to spawn enemy plane (aerial NPC with global cooldown)
+	if chunk_index >= plane_safe_chunks:
+		_try_spawn_plane(chunk, chunk_index, get_height_func)
+	
+	# Spawn trees, buildings, and building enemies based on position-level zone checking
+	await _spawn_zone_objects_async(chunk, chunk_index, get_height_func)
+
+## Helper function to check if chunk is still valid
+func _is_chunk_valid(chunk: Node3D) -> bool:
+	return is_instance_valid(chunk) and not chunk.is_queued_for_deletion() and chunk.is_inside_tree()
+
+## Helper to yield one frame (gets tree from chunk)
+func _yield_frame(chunk: Node3D) -> void:
+	if _is_chunk_valid(chunk):
+		var tree := chunk.get_tree()
+		if tree:
+			await tree.process_frame
+
+## Async version of rock spawning - yields every few objects  
+func _spawn_rocks_async(chunk: Node3D, chunk_index: int, get_height_func: Callable) -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(chunk_index * 99999)
+	
+	var area := chunk_size.x * chunk_size.y
+	var object_count := int(area * rock_density / 100.0)
+	object_count = max(object_count, 1)
+	
+	var batch_size := 5  # Spawn 5 rocks before yielding
+	var spawned := 0
+	
+	for i in range(object_count):
+		if not _is_chunk_valid(chunk):
+			return
+			
+		var obj_data: RefCounted = ObjectConfigScript.select_random_object(ObjectConfigScript.Category.ROCK, rng)
+		if not obj_data:
+			continue
+		
+		var margin := 2.0
+		var x := rng.randf_range(-terrain_width / 2 + margin, terrain_width / 2 - margin)
+		var local_z := rng.randf_range(-chunk_size.y + margin, -margin)
+		
+		if _is_near_hole(x, local_z, chunk_index):
+			continue
+		
+		if not _is_position_available(x, local_z, chunk_index, 1.5):
+			continue
+		
+		var height: float = get_height_func.call(x, local_z, chunk_index)
+		
+		var obj: Node3D = _create_object(obj_data, rng, ObjectConfigScript.Category.ROCK)
+		if not obj:
+			continue
+		
+		obj.position = Vector3(x, height + height_offset_rock, local_z)
+		obj.rotation.y = rng.randf_range(0, TAU)
+		
+		var variation: float = obj_data.height_variation
+		var target_h: float = obj_data.target_height * rng.randf_range(1.0 - variation, 1.0 + variation)
+		_scale_to_target_height(obj, target_h)
+		
+		chunk.add_child.call_deferred(obj)
+		_register_spawn_position(x, local_z, chunk_index)
+		
+		spawned += 1
+		if spawned % batch_size == 0:
+			await _yield_frame(chunk)
+
+## Async version of zone objects spawning - yields periodically
+func _spawn_zone_objects_async(chunk: Node3D, chunk_index: int, get_height_func: Callable) -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(chunk_index * 54321)
+	
+	# Calculate how many spawn attempts based on combined densities
+	var area := chunk_size.x * chunk_size.y
+	var combined_density := tree_density + building_density + enemy_density
+	var spawn_attempts := int(area * combined_density / 100.0 * 1.5)  # Extra attempts due to zone filtering
+	spawn_attempts = max(spawn_attempts, 5)
+	
+	var chunk_start_z := -chunk_index * chunk_size.y
+	var batch_size := 10  # Process 10 spawn attempts before yielding
+	
+	for i in range(spawn_attempts):
+		if not _is_chunk_valid(chunk):
+			return
+			
+		var margin := 3.0
+		var x := rng.randf_range(-terrain_width / 2 + margin, terrain_width / 2 - margin)
+		var local_z := rng.randf_range(-chunk_size.y + margin, -margin)
+		
+		# Convert to world Z for zone sampling
+		var world_z := chunk_start_z + local_z
+		
+		# Skip if in hole area
+		if _is_near_hole(x, local_z, chunk_index):
+			continue
+		
+		# Get zone data at this specific position
+		var zone_data: Dictionary = zone_manager.get_zone_at_position(x, world_z)
+		var forest_weight: float = zone_data.forest_weight
+		var building_weight: float = zone_data.building_weight
+		
+		# Decide what to spawn based on zone weights
+		var roll := rng.randf()
+		var category: int = -1
+		
+		if forest_weight > 0.0 and roll < forest_weight:
+			# Try to spawn tree
+			category = ObjectConfigScript.Category.TREE
+		elif building_weight > 0.0 and roll >= forest_weight:
+			# Try to spawn building (with safe chunk check)
+			if chunk_index >= building_safe_chunks:
+				# 25% chance for large building, 75% for small building
+				if rng.randf() < 0.25:
+					category = ObjectConfigScript.Category.BUILDING_LARGE
+				else:
+					category = ObjectConfigScript.Category.BUILDING
+		
+		# Additionally, try to spawn building enemy with separate probability
+		var enemy_roll := rng.randf()
+		var should_spawn_enemy := false
+		if chunk_index >= enemy_safe_chunks:
+			# Building enemies can spawn in both zones but more likely in building zones
+			var enemy_chance := enemy_density / 10.0  # Base chance
+			if building_weight > 0.5:
+				enemy_chance *= 1.5  # More building enemies near buildings
+			should_spawn_enemy = enemy_roll < enemy_chance
+		
+		# Spawn building enemy if rolled (higher priority than decoration)
+		if should_spawn_enemy:
+			_try_spawn_at_position(chunk, chunk_index, get_height_func, x, local_z, 
+								   ObjectConfigScript.Category.BUILDING_ENEMY, rng)
+		elif category >= 0:
+			_try_spawn_at_position(chunk, chunk_index, get_height_func, x, local_z, 
+								   category, rng)
+		
+		# Yield every batch_size attempts
+		if (i + 1) % batch_size == 0:
+			await _yield_frame(chunk)
+
 ## Spawn spike wall chains across the terrain
 ## Chains are generated first to reserve space before other objects
 func _spawn_spike_wall_chains(chunk: Node3D, chunk_index: int, get_height_func: Callable) -> void:
@@ -156,20 +368,11 @@ func _spawn_spike_wall_chains(chunk: Node3D, chunk_index: int, get_height_func: 
 		# Calculate next chain position
 		next_spike_wall_z -= rng.randf_range(spike_wall_min_spacing, spike_wall_max_spacing)
 
-## Calculate the actual width of the spike wall model from its bounding box
+## Calculate the actual width of the spike wall model from its bounding box (CACHED)
 func _get_spike_wall_actual_width(spike_wall_data: RefCounted) -> float:
-	# Load the model to get its actual dimensions
-	var model_scene := load(spike_wall_data.model_path) as PackedScene
-	if not model_scene:
-		return spike_wall_width  # Fallback to config value
-	
-	var temp_model := model_scene.instantiate()
-	var aabb := _get_model_aabb(temp_model)
-	temp_model.queue_free()
-	
+	var aabb := _get_cached_aabb(spike_wall_data.model_path)
 	if aabb.size == Vector3.ZERO:
-		return spike_wall_width  # Fallback
-	
+		return spike_wall_width  # Fallback to config value
 	# Wall width is the X dimension (assuming wall faces Z direction)
 	return aabb.size.x
 
@@ -229,7 +432,7 @@ func _create_spike_wall_chain(chunk: Node3D, chunk_index: int, base_z: float, rn
 		if not wall:
 			continue
 		
-		wall.position = Vector3(current_x, height, local_z)
+		wall.position = Vector3(current_x, height + height_offset_spike, local_z)
 		# Wall rotation: perpendicular to chain direction (wall faces the player)
 		# chain_direction is the direction we're building the chain
 		# wall should face perpendicular to that (along Z axis when chain is along X)
@@ -243,7 +446,7 @@ func _create_spike_wall_chain(chunk: Node3D, chunk_index: int, base_z: float, rn
 		# Apply additional 20% size reduction
 		wall.scale *= wall_scale_factor
 		
-		chunk.add_child(wall)
+		chunk.add_child.call_deferred(wall)
 		
 		# Register position to prevent other objects spawning here
 		_register_spawn_position(current_x, local_z, chunk_index)
@@ -290,14 +493,14 @@ func _spawn_rocks(chunk: Node3D, chunk_index: int, get_height_func: Callable) ->
 		if not obj:
 			continue
 		
-		obj.position = Vector3(x, height, local_z)
+		obj.position = Vector3(x, height + height_offset_rock, local_z)
 		obj.rotation.y = rng.randf_range(0, TAU)
 		
 		var variation: float = obj_data.height_variation
 		var target_h: float = obj_data.target_height * rng.randf_range(1.0 - variation, 1.0 + variation)
 		_scale_to_target_height(obj, target_h)
 		
-		chunk.add_child(obj)
+		chunk.add_child.call_deferred(obj)
 		_register_spawn_position(x, local_z, chunk_index)
 
 ## Spawn NPC clusters - random meadows with groups of animals
@@ -349,7 +552,7 @@ func _spawn_npc_clusters(chunk: Node3D, chunk_index: int, get_height_func: Calla
 		if not obj:
 			continue
 		
-		obj.position = Vector3(x, height, local_z)
+		obj.position = Vector3(x, height + height_offset_npc, local_z)
 		obj.rotation.y = rng.randf_range(0, TAU)
 		
 		# Scale to target height
@@ -357,7 +560,7 @@ func _spawn_npc_clusters(chunk: Node3D, chunk_index: int, get_height_func: Calla
 		var target_h: float = obj_data.target_height * rng.randf_range(1.0 - variation, 1.0 + variation)
 		_scale_to_target_height(obj, target_h)
 		
-		chunk.add_child(obj)
+		chunk.add_child.call_deferred(obj)
 		_register_spawn_position(x, local_z, chunk_index)
 
 
@@ -425,7 +628,7 @@ func _spawn_enemy_npc_clusters(chunk: Node3D, chunk_index: int, get_height_func:
 		if not obj:
 			continue
 		
-		obj.position = Vector3(x, height, local_z)
+		obj.position = Vector3(x, height + height_offset_npc, local_z)
 		obj.rotation.y = rng.randf_range(0, TAU)
 		
 		# Scale to target height
@@ -433,7 +636,7 @@ func _spawn_enemy_npc_clusters(chunk: Node3D, chunk_index: int, get_height_func:
 		var target_h: float = obj_data.target_height * rng.randf_range(1.0 - variation, 1.0 + variation)
 		_scale_to_target_height(obj, target_h)
 		
-		chunk.add_child(obj)
+		chunk.add_child.call_deferred(obj)
 		_register_spawn_position(x, local_z, chunk_index)
 
 
@@ -483,8 +686,8 @@ func _try_spawn_plane(chunk: Node3D, chunk_index: int, get_height_func: Callable
 	# Position the plane (it will fly forward towards player)
 	plane.position = Vector3(x, spawn_y, local_z)
 	
-	# Load the model
-	var model_scene := load(obj_data.model_path) as PackedScene
+	# Load the model (cached)
+	var model_scene := _get_cached_scene(obj_data.model_path)
 	if model_scene:
 		var model: Node3D = model_scene.instantiate() as Node3D
 		if model:
@@ -602,12 +805,26 @@ func _try_spawn_at_position(chunk: Node3D, chunk_index: int, get_height_func: Ca
 	
 	var height: float = get_height_func.call(x, local_z, chunk_index)
 	
+	# Get height offset based on category
+	var height_offset := 0.0
+	match category:
+		ObjectConfigScript.Category.TREE:
+			height_offset = height_offset_tree
+		ObjectConfigScript.Category.ROCK:
+			height_offset = height_offset_rock
+		ObjectConfigScript.Category.BUILDING, ObjectConfigScript.Category.BUILDING_LARGE:
+			height_offset = height_offset_building
+		ObjectConfigScript.Category.BUILDING_ENEMY:
+			height_offset = height_offset_spike
+		ObjectConfigScript.Category.NPC_FRIEND, ObjectConfigScript.Category.NPC_ENEMY:
+			height_offset = height_offset_npc
+	
 	# Create object
 	var obj: Node3D = _create_object(obj_data, rng, category)
 	if not obj:
 		return false
 	
-	obj.position = Vector3(x, height, local_z)
+	obj.position = Vector3(x, height + height_offset, local_z)
 	obj.rotation.y = rng.randf_range(0, TAU)
 	
 	# Scale to target height
@@ -615,7 +832,7 @@ func _try_spawn_at_position(chunk: Node3D, chunk_index: int, get_height_func: Ca
 	var target_h: float = obj_data.target_height * rng.randf_range(1.0 - variation, 1.0 + variation)
 	_scale_to_target_height(obj, target_h)
 	
-	chunk.add_child(obj)
+	chunk.add_child.call_deferred(obj)
 	_register_spawn_position(x, local_z, chunk_index)
 	return true
 
@@ -651,9 +868,9 @@ func _create_tree(obj_data: RefCounted, rng: RandomNumberGenerator) -> RigidBody
 	tree.set("object_id", obj_data.id)
 	tree.set("object_name", obj_data.display_name)
 	
-	# Load model
+	# Load model (cached)
 	var model: Node3D = null
-	var model_scene := load(obj_data.model_path) as PackedScene
+	var model_scene := _get_cached_scene(obj_data.model_path)
 	if model_scene:
 		model = model_scene.instantiate()
 		model.name = "Model"
@@ -703,9 +920,9 @@ func _create_building(obj_data: RefCounted, rng: RandomNumberGenerator) -> Rigid
 	building.set("object_id", obj_data.id)
 	building.set("object_name", obj_data.display_name)
 	
-	# Load model
+	# Load model (cached)
 	var model: Node3D = null
-	var model_scene := load(obj_data.model_path) as PackedScene
+	var model_scene := _get_cached_scene(obj_data.model_path)
 	if model_scene:
 		model = model_scene.instantiate()
 		model.name = "Model"
@@ -755,9 +972,9 @@ func _create_large_building(obj_data: RefCounted, rng: RandomNumberGenerator) ->
 	building.set("object_id", obj_data.id)
 	building.set("object_name", obj_data.display_name)
 	
-	# Load model
+	# Load model (cached)
 	var model: Node3D = null
-	var model_scene := load(obj_data.model_path) as PackedScene
+	var model_scene := _get_cached_scene(obj_data.model_path)
 	if model_scene:
 		model = model_scene.instantiate()
 		model.name = "Model"
@@ -817,9 +1034,9 @@ func _create_building_enemy(obj_data: RefCounted, rng: RandomNumberGenerator) ->
 	enemy.set("object_id", obj_data.id)
 	enemy.set("object_name", obj_data.display_name)
 	
-	# Load model
+	# Load model (cached)
 	var model: Node3D = null
-	var model_scene := load(obj_data.model_path) as PackedScene
+	var model_scene := _get_cached_scene(obj_data.model_path)
 	if model_scene:
 		model = model_scene.instantiate()
 		model.name = "Model"
@@ -882,8 +1099,8 @@ func _create_rock(obj_data: RefCounted, rng: RandomNumberGenerator) -> StaticBod
 	rock.collision_layer = 1
 	rock.collision_mask = 0
 	
-	# Load model
-	var model_scene := load(obj_data.model_path) as PackedScene
+	# Load model (cached)
+	var model_scene := _get_cached_scene(obj_data.model_path)
 	if model_scene:
 		var model := model_scene.instantiate()
 		model.name = "Model"
@@ -922,9 +1139,9 @@ func _create_friend_npc(obj_data: RefCounted, rng: RandomNumberGenerator) -> Cha
 	terrain_col.position.y = obj_data.collision_height / 2
 	npc.add_child(terrain_col)
 	
-	# Load model (separate from collision, will hop)
+	# Load model (separate from collision, will hop) - cached
 	var model: Node3D = null
-	var model_scene := load(obj_data.model_path) as PackedScene
+	var model_scene := _get_cached_scene(obj_data.model_path)
 	if model_scene:
 		model = model_scene.instantiate()
 		model.name = "Model"
@@ -988,9 +1205,9 @@ func _create_enemy_npc(obj_data: RefCounted, rng: RandomNumberGenerator) -> Char
 	terrain_col.position.y = obj_data.collision_height / 2
 	npc.add_child(terrain_col)
 	
-	# Load model (separate from collision, will hop when chasing)
+	# Load model (separate from collision, will hop when chasing) - cached
 	var model: Node3D = null
-	var model_scene := load(obj_data.model_path) as PackedScene
+	var model_scene := _get_cached_scene(obj_data.model_path)
 	if model_scene:
 		model = model_scene.instantiate()
 		model.name = "Model"

@@ -171,9 +171,10 @@ func spawn_hole_effects(chunk: Node3D, chunk_index: int, get_height_func: Callab
 		chunk.add_child(hole_container)
 		
 		if hole["type"] == "narrow":
+			# Death zone inside hole - smaller than hole opening, positioned lower
 			_create_death_collider(hole_container, 
-				Vector3(0, floor_y + 1.0, local_z),
-				Vector3(terrain_width + 4, 2.0, narrow_hole_width + 6))
+				Vector3(0, floor_y + hole_depth * 0.3, local_z),
+				Vector3(terrain_width - 2, hole_depth * 0.6, narrow_hole_width - 1.0))
 			
 			_create_hole_particles(hole_container,
 				Vector3(0, floor_y + 2.5, local_z),
@@ -185,9 +186,10 @@ func spawn_hole_effects(chunk: Node3D, chunk_index: int, get_height_func: Callab
 			terrain_y = get_height_func.call(hole_x, local_z, chunk_index)
 			floor_y = terrain_y - hole_depth
 			
+			# Death zone inside hole - smaller than hole opening, positioned lower
 			_create_death_collider(hole_container,
-				Vector3(hole_x, floor_y + 1.0, local_z),
-				Vector3(radius * 2.5, 2.0, radius * 2.5))
+				Vector3(hole_x, floor_y + hole_depth * 0.3, local_z),
+				Vector3(radius * 1.6, hole_depth * 0.6, radius * 1.6))
 			
 			_create_hole_particles(hole_container,
 				Vector3(hole_x, floor_y + 2.5, local_z),
