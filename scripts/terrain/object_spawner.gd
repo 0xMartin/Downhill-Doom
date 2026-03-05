@@ -14,6 +14,7 @@ const ObjectConfigScript := preload("res://scripts/config/object_config.gd")
 # Preloaded scripts for objects
 const TreeScript := preload("res://scripts/objects/tree.gd")
 const BuildingScript := preload("res://scripts/objects/building.gd")
+const LargeBuildingScript := preload("res://scripts/objects/large_building.gd")
 const SpikeScript := preload("res://scripts/objects/spike.gd")
 const FriendNPCScript := preload("res://scripts/objects/friend_npc.gd")
 const EnemyNPCScript := preload("res://scripts/objects/enemy_npc.gd")
@@ -323,7 +324,11 @@ func _spawn_zone_objects(chunk: Node3D, chunk_index: int, get_height_func: Calla
 		elif building_weight > 0.0 and roll >= forest_weight:
 			# Try to spawn building (with safe chunk check)
 			if chunk_index >= building_safe_chunks:
-				category = ObjectConfigScript.Category.BUILDING
+				# 25% chance for large building, 75% for small building
+				if rng.randf() < 0.25:
+					category = ObjectConfigScript.Category.BUILDING_LARGE
+				else:
+					category = ObjectConfigScript.Category.BUILDING
 		
 		# Additionally, try to spawn building enemy with separate probability
 		var enemy_roll := rng.randf()
@@ -355,6 +360,8 @@ func _try_spawn_at_position(chunk: Node3D, chunk_index: int, get_height_func: Ca
 	var min_dist := min_object_distance
 	if category == ObjectConfigScript.Category.BUILDING:
 		min_dist = 4.0
+	elif category == ObjectConfigScript.Category.BUILDING_LARGE:
+		min_dist = 6.0  # Large buildings need more space
 	elif category == ObjectConfigScript.Category.ROCK:
 		min_dist = 1.5
 	elif category == ObjectConfigScript.Category.NPC_FRIEND:
@@ -389,6 +396,8 @@ func _create_object(obj_data: RefCounted, rng: RandomNumberGenerator, category: 
 			return _create_tree(obj_data, rng)
 		ObjectConfigScript.Category.BUILDING:
 			return _create_building(obj_data, rng)
+		ObjectConfigScript.Category.BUILDING_LARGE:
+			return _create_large_building(obj_data, rng)
 		ObjectConfigScript.Category.BUILDING_ENEMY:
 			return _create_building_enemy(obj_data, rng)
 		ObjectConfigScript.Category.ROCK:
@@ -493,6 +502,68 @@ func _create_building(obj_data: RefCounted, rng: RandomNumberGenerator) -> Rigid
 			# Fallback to config values
 			box.size = obj_data.collision_size
 			col_shape.position.y = obj_data.collision_size.y / 2
+	else:
+		box.size = obj_data.collision_size
+		col_shape.position.y = obj_data.collision_size.y / 2
+	
+	col_shape.shape = box
+	detect_area.add_child(col_shape)
+	building.add_child(detect_area)
+	
+	return building
+
+## Create a large building instance (only destructible in supercharge)
+func _create_large_building(obj_data: RefCounted, rng: RandomNumberGenerator) -> RigidBody3D:
+	var building := RigidBody3D.new()
+	building.name = "LargeBuilding"
+	building.mass = 100.0  # Heavier than small buildings
+	building.freeze = true
+	building.collision_layer = 1  # Layer 1 so player (mask=1) collides with it
+	building.collision_mask = 0  # Don't need to detect other objects
+	building.set_script(LargeBuildingScript)
+	building.set("coin_value", obj_data.coins)
+	building.set("object_id", obj_data.id)
+	building.set("object_name", obj_data.display_name)
+	
+	# Load model
+	var model: Node3D = null
+	var model_scene := load(obj_data.model_path) as PackedScene
+	if model_scene:
+		model = model_scene.instantiate()
+		model.name = "Model"
+		_apply_material_recursive(model)
+		building.add_child(model)
+	
+	# Calculate bounding box from model
+	var aabb := AABB()
+	if model:
+		aabb = _get_model_aabb(model)
+	
+	# Physical collision shape (blocks player)
+	var phys_col := CollisionShape3D.new()
+	phys_col.name = "PhysicsCollision"
+	var phys_box := BoxShape3D.new()
+	if aabb.size != Vector3.ZERO:
+		phys_box.size = aabb.size * 0.9  # Slightly smaller than visual
+		phys_col.position = aabb.get_center()
+	else:
+		phys_box.size = obj_data.collision_size
+		phys_col.position.y = obj_data.collision_size.y / 2
+	phys_col.shape = phys_box
+	building.add_child(phys_col)
+	
+	# Detection area for script triggering (slightly larger)
+	var detect_area := Area3D.new()
+	detect_area.name = "DetectArea"
+	detect_area.collision_layer = 0
+	detect_area.collision_mask = 2
+	detect_area.monitoring = true
+	
+	var col_shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	if aabb.size != Vector3.ZERO:
+		box.size = aabb.size * 1.1  # Slightly larger for detection before collision
+		col_shape.position = aabb.get_center()
 	else:
 		box.size = obj_data.collision_size
 		col_shape.position.y = obj_data.collision_size.y / 2

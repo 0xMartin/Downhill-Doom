@@ -30,11 +30,8 @@ Malé objekty (překážky):
 - Excalibur
 
 Velké objekty:
-- Větrný mlýn
+- Dům
 - Malá kaple
-- Velky dům
-- Hostinec
-- Kovárna
+- Větrný mlýn
 - Strážní věž
 - Hrad
-- Věž kouzelníka

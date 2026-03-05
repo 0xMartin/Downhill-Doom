@@ -8,6 +8,7 @@ extends RefCounted
 enum Category {
 	TREE,
 	BUILDING,
+	BUILDING_LARGE,
 	BUILDING_ENEMY,
 	ROCK,
 	NPC_FRIEND,
@@ -204,7 +205,55 @@ static func _init_objects() -> void:
 		"col_height": 2.5,
 	})
 	
-	# ===== BUILDINGS =====
+	# ===== BUILDINGS (Small - always destructible) =====
+	_register_object({
+		"id": "building_well",
+		"name": "Well",
+		"category": Category.BUILDING,
+		"model": "res://assets/models/buildings/well.blend",
+		"height": 1.8,
+		"height_var": 0.1,
+		"spawn_chance": 1.0,
+		"coins": 10,
+		"destructible": true,
+		"col_size": Vector3(1.5, 1.5, 1.5),
+	})
+	_register_object({
+		"id": "building_market_stall",
+		"name": "Market Stall",
+		"category": Category.BUILDING,
+		"model": "res://assets/models/buildings/market_stall.blend",
+		"height": 2.2,
+		"height_var": 0.1,
+		"spawn_chance": 0.9,
+		"coins": 12,
+		"destructible": true,
+		"col_size": Vector3(2.5, 2.0, 2.0),
+	})
+	_register_object({
+		"id": "building_wooden_cart",
+		"name": "Wooden Cart",
+		"category": Category.BUILDING,
+		"model": "res://assets/models/buildings/wooden_cart.blend",
+		"height": 1.5,
+		"height_var": 0.1,
+		"spawn_chance": 0.8,
+		"coins": 15,
+		"destructible": true,
+		"col_size": Vector3(2.0, 1.5, 1.5),
+	})
+	_register_object({
+		"id": "building_barrels",
+		"name": "Barrel Pile",
+		"category": Category.BUILDING,
+		"model": "res://assets/models/buildings/barrels.blend",
+		"height": 1.2,
+		"height_var": 0.15,
+		"spawn_chance": 0.7,
+		"coins": 20,
+		"destructible": true,
+		"col_size": Vector3(1.5, 1.2, 1.5),
+	})
 	_register_object({
 		"id": "building_small_hut",
 		"name": "Small Hut",
@@ -212,10 +261,84 @@ static func _init_objects() -> void:
 		"model": "res://assets/models/buildings/small_hut.blend",
 		"height": 2.5,
 		"height_var": 0.1,
-		"spawn_chance": 0.8,
-		"coins": 25,
+		"spawn_chance": 0.6,
+		"coins": 40,
 		"destructible": true,
 		"col_size": Vector3(2.0, 2.0, 2.0),
+	})
+	_register_object({
+		"id": "building_excalibur",
+		"name": "Excalibur",
+		"category": Category.BUILDING,
+		"model": "res://assets/models/buildings/excalibur.blend",
+		"height": 1.8,
+		"height_var": 0.05,
+		"spawn_chance": 0.01,
+		"coins": 1500,
+		"destructible": true,
+		"col_size": Vector3(0.8, 1.8, 0.8),
+	})
+	
+	# ===== LARGE BUILDINGS (only destructible in supercharge) =====
+	_register_object({
+		"id": "building_house",
+		"name": "House",
+		"category": Category.BUILDING_LARGE,
+		"model": "res://assets/models/buildings/house.blend",
+		"height": 4.5,
+		"height_var": 0.1,
+		"spawn_chance": 1.0,
+		"coins": 300,
+		"destructible": true,
+		"col_size": Vector3(3.5, 4.0, 3.5),
+	})
+	_register_object({
+		"id": "building_chapel",
+		"name": "Small Chapel",
+		"category": Category.BUILDING_LARGE,
+		"model": "res://assets/models/buildings/small_chapel.blend",
+		"height": 5.0,
+		"height_var": 0.1,
+		"spawn_chance": 0.8,
+		"coins": 500,
+		"destructible": true,
+		"col_size": Vector3(3.0, 5.0, 4.0),
+	})
+	_register_object({
+		"id": "building_windmill",
+		"name": "Windmill",
+		"category": Category.BUILDING_LARGE,
+		"model": "res://assets/models/buildings/windmill.blend",
+		"height": 6.5,
+		"height_var": 0.1,
+		"spawn_chance": 0.6,
+		"coins": 700,
+		"destructible": true,
+		"col_size": Vector3(2.5, 6.5, 2.5),
+	})
+	_register_object({
+		"id": "building_tower",
+		"name": "Guard Tower",
+		"category": Category.BUILDING_LARGE,
+		"model": "res://assets/models/buildings/tower.blend",
+		"height": 7.0,
+		"height_var": 0.1,
+		"spawn_chance": 0.5,
+		"coins": 850,
+		"destructible": true,
+		"col_size": Vector3(2.5, 7.0, 2.5),
+	})
+	_register_object({
+		"id": "building_castle",
+		"name": "Castle",
+		"category": Category.BUILDING_LARGE,
+		"model": "res://assets/models/buildings/castle.blend",
+		"height": 8.0,
+		"height_var": 0.1,
+		"spawn_chance": 0.25,
+		"coins": 1500,
+		"destructible": true,
+		"col_size": Vector3(5.0, 8.0, 5.0),
 	})
 	
 	# ===== BUILDING ENEMIES =====
@@ -460,6 +583,10 @@ static func get_trees() -> Array:
 static func get_buildings() -> Array:
 	return get_objects_by_category(Category.BUILDING)
 
+## Get all large buildings
+static func get_large_buildings() -> Array:
+	return get_objects_by_category(Category.BUILDING_LARGE)
+
 ## Get all building enemies
 static func get_building_enemies() -> Array:
 	return get_objects_by_category(Category.BUILDING_ENEMY)
@@ -505,6 +632,8 @@ static func get_category_name(category: int) -> String:
 			return "Tree"
 		Category.BUILDING:
 			return "Building"
+		Category.BUILDING_LARGE:
+			return "Large Building"
 		Category.BUILDING_ENEMY:
 			return "Building Enemy"
 		Category.ROCK:

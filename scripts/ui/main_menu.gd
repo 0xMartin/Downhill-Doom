@@ -414,8 +414,8 @@ func _populate_object_cards(grid: GridContainer) -> void:
 	match current_section_index:
 		0:  # Trees
 			objects = ObjectConfigScript.get_trees()
-		1:  # Buildings
-			objects = ObjectConfigScript.get_buildings()
+		1:  # Buildings (includes both small and large buildings)
+			objects = ObjectConfigScript.get_buildings() + ObjectConfigScript.get_large_buildings()
 		2:  # Friend NPC
 			objects = ObjectConfigScript.get_npcs_friend()
 		3:  # Enemy NPC (NPC enemies like pawn, knight, horse)

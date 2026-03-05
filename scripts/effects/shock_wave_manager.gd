@@ -147,8 +147,11 @@ static func _damage_destructibles(position: Vector3, radius: float, scene_root: 
 				enemy_npc.die(null)
 				destroyed_count += 1
 	
-	# Buildings
+	# Buildings (only small buildings, not large buildings)
 	for building in scene_root.get_tree().get_nodes_in_group("buildings"):
+		# Skip large buildings - they can only be destroyed in supercharge mode
+		if building.is_in_group("large_buildings"):
+			continue
 		if _is_in_radius(building, position, radius):
 			if building.has_method("destroy"):
 				building.destroy(Vector3.ZERO)  # Zero velocity for shock wave destruction
