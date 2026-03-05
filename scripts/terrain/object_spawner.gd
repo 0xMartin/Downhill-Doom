@@ -49,7 +49,7 @@ var spike_wall_safe_chunks: int = 6  # Start later than regular enemies
 var spike_wall_min_spacing: float = 100.0  # Minimum distance between chains (half of hole frequency)
 var spike_wall_max_spacing: float = 160.0  # Maximum distance between chains
 var spike_wall_min_count: int = 3  # Minimum walls per chain
-var spike_wall_max_count: int = 10  # Maximum walls per chain
+var spike_wall_max_count: int = 6  # Maximum walls per chain
 var spike_wall_width: float = 3.0  # Width of each wall segment
 var spike_wall_max_angle: float = 25.0  # Maximum angle deviation per segment (degrees)
 
@@ -171,6 +171,11 @@ func _create_spike_wall_chain(chunk: Node3D, chunk_index: int, base_z: float, rn
 	# Get actual wall width from model bounding box
 	var actual_wall_width := _get_spike_wall_actual_width(spike_wall_data)
 	
+	# Scale factor for walls (20% smaller)
+	var wall_scale_factor := 0.8
+	# Spacing between walls - scaled width with significant overlap to ensure tight fit
+	var wall_spacing := actual_wall_width * wall_scale_factor * 0.65
+	
 	# Random starting X position (can start anywhere across terrain)
 	var start_x := rng.randf_range(-terrain_width / 2 + 4.0, terrain_width / 2 - 4.0)
 	
@@ -201,8 +206,8 @@ func _create_spike_wall_chain(chunk: Node3D, chunk_index: int, base_z: float, rn
 		# Skip if near a hole
 		if _is_near_hole(current_x, local_z, chunk_index):
 			# Try to skip this position and continue
-			current_x += cos(chain_direction) * actual_wall_width
-			current_z += sin(chain_direction) * actual_wall_width * 0.3
+			current_x += cos(chain_direction) * wall_spacing
+			current_z += sin(chain_direction) * wall_spacing * 0.3
 			continue
 		
 		# Get terrain height
@@ -224,6 +229,9 @@ func _create_spike_wall_chain(chunk: Node3D, chunk_index: int, base_z: float, rn
 		var target_h: float = spike_wall_data.target_height * rng.randf_range(1.0 - variation, 1.0 + variation)
 		_scale_to_target_height(wall, target_h)
 		
+		# Apply additional 20% size reduction
+		wall.scale *= wall_scale_factor
+		
 		chunk.add_child(wall)
 		
 		# Register position to prevent other objects spawning here
@@ -232,9 +240,9 @@ func _create_spike_wall_chain(chunk: Node3D, chunk_index: int, base_z: float, rn
 		_register_spawn_position(current_x - 1.5, local_z, chunk_index)
 		_register_spawn_position(current_x + 1.5, local_z, chunk_index)
 		
-		# Move to next wall position along the chain direction
-		current_x += cos(chain_direction) * actual_wall_width
-		current_z += sin(chain_direction) * actual_wall_width * 0.3  # Slight Z movement for curve
+		# Move to next wall position along the chain direction (tight spacing)
+		current_x += cos(chain_direction) * wall_spacing
+		current_z += sin(chain_direction) * wall_spacing * 0.3  # Slight Z movement for curve
 		
 		# Add slight angle variation for curve effect (but keep it subtle)
 		var angle_change := deg_to_rad(rng.randf_range(-spike_wall_max_angle, spike_wall_max_angle))
