@@ -89,7 +89,7 @@ func _ready() -> void:
 	_setup_balance_display()
 	_apply_safe_area_offset()
 	_setup_player_model()
-	_setup_snow_particles()
+	_setup_speed_lines()
 	
 	if play_button:
 		play_button.grab_focus()
@@ -1006,31 +1006,61 @@ func _update_balance_display() -> void:
 		balance_label.text = _format_balance(stats.get("coin_balance", 0))
 
 
-func _setup_snow_particles() -> void:
+func _setup_speed_lines() -> void:
 	var viewport_size: Vector2i = get_viewport().size
 	
-	var particles := GPUParticles2D.new()
-	particles.name = "SnowParticles"
-	particles.amount = 150
-	particles.lifetime = 10.0
-	particles.preprocess = 5.0
+	# Primary speed lines - diagonal motion suggesting downhill movement
+	var speed_lines := GPUParticles2D.new()
+	speed_lines.name = "SpeedLines"
+	speed_lines.amount = 25
+	speed_lines.lifetime = 2.5
+	speed_lines.preprocess = 2.0
 	
 	var material := ParticleProcessMaterial.new()
-	material.direction = Vector3(0, 1, 0)
-	material.spread = 5.0
-	material.gravity = Vector3(5, 80, 0)
-	material.initial_velocity_min = 20.0
-	material.initial_velocity_max = 40.0
-	material.scale_min = 2.0
-	material.scale_max = 5.0
+	# Direction pointing bottom-left (diagonal downhill feel)
+	material.direction = Vector3(-0.4, 1.0, 0).normalized()
+	material.spread = 3.0
+	material.gravity = Vector3(0, 0, 0)
+	material.initial_velocity_min = 400.0
+	material.initial_velocity_max = 600.0
+	material.scale_min = 3.0
+	material.scale_max = 8.0
 	material.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
-	material.emission_box_extents = Vector3(viewport_size.x / 2.0, 10, 1)
+	material.emission_box_extents = Vector3(viewport_size.x * 0.8, 10, 1)
+	# Color: cyan/blue with good visibility
+	material.color = Color(0.3, 0.6, 0.9, 0.3)
 	
-	particles.process_material = material
-	particles.position = Vector2(viewport_size.x / 2.0, 0)
-	particles.visibility_rect = Rect2(-viewport_size.x, -50, viewport_size.x * 2, viewport_size.y + 100)
+	speed_lines.process_material = material
+	speed_lines.position = Vector2(viewport_size.x / 2.0 + 200, -50)
+	speed_lines.visibility_rect = Rect2(-viewport_size.x, -100, viewport_size.x * 3, viewport_size.y + 200)
 	
-	$Background.add_sibling(particles)
+	$Background.add_sibling(speed_lines)
+	
+	# Secondary floating orbs - slow ambient movement  
+	var orbs := GPUParticles2D.new()
+	orbs.name = "FloatingOrbs"
+	orbs.amount = 15
+	orbs.lifetime = 12.0
+	orbs.preprocess = 6.0
+	
+	var orb_mat := ParticleProcessMaterial.new()
+	orb_mat.direction = Vector3(0.2, -0.3, 0).normalized()
+	orb_mat.spread = 45.0
+	orb_mat.gravity = Vector3(0, 0, 0)
+	orb_mat.initial_velocity_min = 15.0
+	orb_mat.initial_velocity_max = 35.0
+	orb_mat.scale_min = 10.0
+	orb_mat.scale_max = 28.0
+	orb_mat.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
+	orb_mat.emission_box_extents = Vector3(viewport_size.x / 2.0, viewport_size.y / 2.0, 1)
+	# Accent color glow
+	orb_mat.color = Color(0.25, 0.65, 0.96, 0.15)
+	
+	orbs.process_material = orb_mat
+	orbs.position = Vector2(viewport_size.x / 2.0, viewport_size.y / 2.0)
+	orbs.visibility_rect = Rect2(-100, -100, viewport_size.x + 200, viewport_size.y + 200)
+	
+	$Background.add_sibling(orbs)
 
 
 # ========== Stats Management ==========
