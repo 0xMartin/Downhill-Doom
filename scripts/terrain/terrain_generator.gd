@@ -28,10 +28,10 @@ signal terrain_ready
 @export var mountain_noise_strength: float = 3.5
 @export var grid_jitter: float = 0.35
 
-# Object spawning
+# Object spawning - reduced by 20% for performance
 @export_group("Objects")
-@export var tree_density: float = 0.5
-@export var rock_spawn_chance: float = 0.6
+@export var tree_density: float = 0.4
+@export var rock_spawn_chance: float = 0.48
 @export var rock_safe_chunks: int = 2
 @export var num_lanes: int = 5
 

@@ -57,6 +57,9 @@ const ShockWaveManager := preload("res://scripts/effects/shock_wave_manager.gd")
 # Dust particles
 var dust_particles: GPUParticles3D
 
+# Rock impact particle template (pre-created for cloning)
+var _rock_impact_particle_template: GPUParticles3D
+
 # Edge warning effect
 var edge_warning_left: MeshInstance3D
 var edge_warning_right: MeshInstance3D
@@ -90,6 +93,9 @@ func _ready() -> void:
 	
 	# Setup dust particles (under ball when on ground)
 	_setup_dust_particles()
+	
+	# Pre-create rock impact particle template
+	_create_rock_impact_template()
 	
 	# Setup edge warning effect
 	_setup_edge_warning()
@@ -465,12 +471,35 @@ func _spawn_rock_impact_particles(impact_pos: Vector3) -> void:
 	if not is_inside_tree():
 		return
 	
-	var particles := GPUParticles3D.new()
-	particles.name = "RockImpactParticles"
-	particles.one_shot = true
-	particles.explosiveness = 0.95
-	particles.amount = 25
-	particles.lifetime = 0.8
+	# Clone from pre-created template instead of building from scratch
+	if not _rock_impact_particle_template:
+		return
+	
+	var particles := _rock_impact_particle_template.duplicate() as GPUParticles3D
+	
+	var scene_root := get_tree().current_scene
+	if scene_root:
+		scene_root.add_child(particles)
+		particles.global_position = impact_pos
+		particles.visible = true
+		particles.emitting = true
+		
+		get_tree().create_timer(2.0).timeout.connect(func():
+			if is_instance_valid(particles):
+				particles.queue_free()
+		)
+
+
+func _create_rock_impact_template() -> void:
+	## Pre-create rock impact particle template for faster spawning
+	_rock_impact_particle_template = GPUParticles3D.new()
+	_rock_impact_particle_template.name = "RockImpactTemplate"
+	_rock_impact_particle_template.one_shot = true
+	_rock_impact_particle_template.explosiveness = 0.95
+	_rock_impact_particle_template.amount = 25
+	_rock_impact_particle_template.lifetime = 0.8
+	_rock_impact_particle_template.visible = false  # Hidden template
+	_rock_impact_particle_template.emitting = false
 	
 	var proc_material := ParticleProcessMaterial.new()
 	proc_material.direction = Vector3(0, 1, 0)
@@ -481,7 +510,7 @@ func _spawn_rock_impact_particles(impact_pos: Vector3) -> void:
 	proc_material.scale_min = 0.05
 	proc_material.scale_max = 0.12
 	proc_material.color = Color(0.5, 0.45, 0.4)  # Gray rock color
-	particles.process_material = proc_material
+	_rock_impact_particle_template.process_material = proc_material
 	
 	var mesh := BoxMesh.new()
 	mesh.size = Vector3(1.0, 1.0, 1.0)
@@ -489,18 +518,10 @@ func _spawn_rock_impact_particles(impact_pos: Vector3) -> void:
 	mesh_material.albedo_color = Color(0.5, 0.45, 0.4)
 	mesh_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	mesh.material = mesh_material
-	particles.draw_pass_1 = mesh
+	_rock_impact_particle_template.draw_pass_1 = mesh
 	
-	var scene_root := get_tree().current_scene
-	if scene_root:
-		scene_root.add_child(particles)
-		particles.global_position = impact_pos  # Set position AFTER adding to tree
-		particles.emitting = true
-		
-		get_tree().create_timer(2.0).timeout.connect(func():
-			if is_instance_valid(particles):
-				particles.queue_free()
-		)
+	# Add to scene but keep hidden
+	add_child(_rock_impact_particle_template)
 
 func _setup_unshaded_materials(node: Node) -> void:
 	# Disable shadows and set unshaded mode on all meshes

@@ -128,7 +128,9 @@ func _process(delta: float) -> void:
 func _update_active_state() -> void:
 	## Check if player is within detection range and in front of catapult
 	if not player or not is_instance_valid(player):
-		player = get_tree().get_first_node_in_group("player") as Node3D
+		# Only lookup once when invalid, not every frame
+		if not player:
+			player = get_tree().get_first_node_in_group("player") as Node3D
 		is_active = false
 		return
 	

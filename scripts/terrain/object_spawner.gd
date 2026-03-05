@@ -27,13 +27,13 @@ var terrain_width: float = 36.0
 var chunk_size: Vector2 = Vector2(100, 50)
 var num_lanes: int = 5
 
-# Base density settings (objects per 100 square units)
-var tree_density: float = 0.5
-var rock_density: float = 0.15
-var building_density: float = 0.2  # Increased base density
-var enemy_density: float = 0.24  # Building enemies (spikes)
-var npc_friend_density: float = 0.03
-var npc_enemy_density: float = 0.021  # 30% less than friend NPC
+# Base density settings (objects per 100 square units) - reduced by 20% for performance
+var tree_density: float = 0.4  # Was 0.5
+var rock_density: float = 0.12  # Was 0.15
+var building_density: float = 0.16  # Was 0.2
+var enemy_density: float = 0.19  # Was 0.24 (building enemies/spikes)
+var npc_friend_density: float = 0.024  # Was 0.03
+var npc_enemy_density: float = 0.017  # Was 0.021
 
 # Urban zone multiplier
 var urban_density_multiplier: float = 2.0

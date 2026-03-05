@@ -22,15 +22,23 @@ var bomb_mesh: MeshInstance3D
 var trail_mesh_instance: MeshInstance3D
 var trail_material: StandardMaterial3D
 var trail_points: Array[Vector3] = []
+var _surface_tool: SurfaceTool  # Reused for trail mesh building
+var _trail_array_mesh: ArrayMesh  # Reused mesh to avoid allocations
 
 # References
 var terrain_generator: Node3D = null
+var player: Node3D = null
 
 
 func _ready() -> void:
 	add_to_group("bombs")
 	
 	terrain_generator = get_tree().get_first_node_in_group("terrain_generator")
+	player = get_tree().get_first_node_in_group("player") as Node3D
+	
+	# Pre-allocate reusable objects
+	_surface_tool = SurfaceTool.new()
+	_trail_array_mesh = ArrayMesh.new()
 	
 	_create_bomb_mesh()
 	_create_trail()
@@ -109,8 +117,8 @@ func _update_trail_mesh() -> void:
 	if trail_points.size() < 2:
 		return
 	
-	var st := SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLE_STRIP)
+	_surface_tool.clear()
+	_surface_tool.begin(Mesh.PRIMITIVE_TRIANGLE_STRIP)
 	
 	var camera := get_viewport().get_camera_3d()
 	if not camera:
@@ -136,12 +144,15 @@ func _update_trail_mesh() -> void:
 		# Add vertices with fading alpha
 		var color := Color(TRAIL_COLOR.r, TRAIL_COLOR.g, TRAIL_COLOR.b, alpha * TRAIL_COLOR.a)
 		
-		st.set_color(color)
-		st.add_vertex(point + right - global_position)
-		st.set_color(color)
-		st.add_vertex(point - right - global_position)
+		_surface_tool.set_color(color)
+		_surface_tool.add_vertex(point + right - global_position)
+		_surface_tool.set_color(color)
+		_surface_tool.add_vertex(point - right - global_position)
 	
-	trail_mesh_instance.mesh = st.commit()
+	# Reuse ArrayMesh instead of creating new one
+	_trail_array_mesh.clear_surfaces()
+	_surface_tool.commit(_trail_array_mesh)
+	trail_mesh_instance.mesh = _trail_array_mesh
 	trail_mesh_instance.material_override = trail_material
 
 
@@ -157,9 +168,8 @@ func _on_ground_impact() -> void:
 			shock_wave_radius
 		)
 	
-	# Deal damage if player is in range
-	var player := get_tree().get_first_node_in_group("player") as Node3D
-	if player:
+	# Deal damage if player is in range (use cached reference)
+	if player and is_instance_valid(player):
 		var dist := global_position.distance_to(player.global_position)
 		if dist <= shock_wave_radius:
 			var gm: Node = get_node_or_null("/root/GameManager")

@@ -344,6 +344,11 @@ func _apply_safe_area_offset() -> void:
 		top_bar.offset_top = actual_top_offset
 		# Adjust bottom offset to maintain panel height (~64px)
 		top_bar.offset_bottom = actual_top_offset + 64.0
+	
+	# Move TimerLabel together with TopBar (26px gap below TopBar)
+	if timer_label:
+		timer_label.offset_top = actual_top_offset + 64.0 + 26.0
+		timer_label.offset_bottom = timer_label.offset_top + 32.0
 
 # ========== Supercharge UI ==========
 
