@@ -274,11 +274,34 @@ func _cleanup_chunk(chunk_index: int) -> void:
 		return
 	
 	var chunk: Node3D = chunks[chunk_index]
+	
+	# Return poolable objects to pool before destroying chunk
+	_return_objects_to_pool(chunk)
+	
 	_cleanup_node_recursive(chunk)
 	chunk.queue_free()
 	
 	chunks.erase(chunk_index)
 	hole_manager.cleanup_chunk(chunk_index)
+
+
+## Return spawned objects to pool for reuse
+func _return_objects_to_pool(chunk: Node3D) -> void:
+	var pool: Node = Engine.get_main_loop().root.get_node_or_null("ObjectPool")
+	if not pool:
+		return
+	
+	# Collect poolable children (don't modify while iterating)
+	var poolable_objects: Array[Node3D] = []
+	for child in chunk.get_children():
+		if child is Node3D and child.has_meta("pool_model_path"):
+			poolable_objects.append(child)
+	
+	# Return each to pool
+	for obj in poolable_objects:
+		var model_path: String = obj.get_meta("pool_model_path")
+		var category: int = obj.get_meta("pool_category")
+		pool.return_object(obj, model_path, category)
 
 func _cleanup_node_recursive(node: Node) -> void:
 	if node == null:

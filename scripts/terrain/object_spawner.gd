@@ -71,6 +71,9 @@ var color_palette_material: StandardMaterial3D
 var hole_manager: RefCounted  # HoleManager
 var zone_manager: RefCounted  # ZoneManager
 
+# Object pool reference (lazy-loaded from autoload)
+var _object_pool: Node = null
+
 # Track spawned positions per chunk to prevent overlap
 var spawned_positions: Dictionary = {}  # chunk_index -> Array[Vector2] (x, z)
 
@@ -141,6 +144,20 @@ func _get_cached_aabb(model_path: String) -> AABB:
 
 func set_hole_manager(manager: RefCounted) -> void:
 	hole_manager = manager
+
+## Get object pool singleton (lazy initialization)
+func _get_pool() -> Node:
+	if not _object_pool:
+		_object_pool = Engine.get_main_loop().root.get_node_or_null("ObjectPool")
+	return _object_pool
+
+## Return object to pool for reuse when chunk is cleaned up
+func return_object_to_pool(obj: Node3D, model_path: String, category: int) -> void:
+	var pool := _get_pool()
+	if pool:
+		pool.return_object(obj, model_path, category)
+	else:
+		obj.queue_free()
 
 ## Main spawn function - call this for each chunk
 ## Uses noise-based zone sampling at each spawn position
@@ -837,23 +854,81 @@ func _try_spawn_at_position(chunk: Node3D, chunk_index: int, get_height_func: Ca
 	return true
 
 ## Create an object instance based on category
+## Uses object pool when available for better performance
 func _create_object(obj_data: RefCounted, rng: RandomNumberGenerator, category: int) -> Node3D:
+	var model_path: String = obj_data.model_path
+	var pool := _get_pool()
+	
+	# Try to get from pool first
+	if pool and pool.has_available(model_path, category):
+		var obj: Node3D = pool.get_object(model_path, category)
+		if obj:
+			# Reconfigure pooled object with current data
+			_reconfigure_object(obj, obj_data, category)
+			return obj
+	
+	# No pooled object available, create new one
+	var obj: Node3D = null
 	match category:
 		ObjectConfigScript.Category.TREE:
-			return _create_tree(obj_data, rng)
+			obj = _create_tree(obj_data, rng)
 		ObjectConfigScript.Category.BUILDING:
-			return _create_building(obj_data, rng)
+			obj = _create_building(obj_data, rng)
 		ObjectConfigScript.Category.BUILDING_LARGE:
-			return _create_large_building(obj_data, rng)
+			obj = _create_large_building(obj_data, rng)
 		ObjectConfigScript.Category.BUILDING_ENEMY:
-			return _create_building_enemy(obj_data, rng)
+			obj = _create_building_enemy(obj_data, rng)
 		ObjectConfigScript.Category.ROCK:
-			return _create_rock(obj_data, rng)
+			obj = _create_rock(obj_data, rng)
 		ObjectConfigScript.Category.NPC_FRIEND:
-			return _create_friend_npc(obj_data, rng)
+			obj = _create_friend_npc(obj_data, rng)
 		ObjectConfigScript.Category.NPC_ENEMY:
-			return _create_enemy_npc(obj_data, rng)
-	return null
+			obj = _create_enemy_npc(obj_data, rng)
+	
+	# Store metadata for later pooling
+	if obj:
+		obj.set_meta("pool_model_path", model_path)
+		obj.set_meta("pool_category", category)
+	
+	return obj
+
+## Reconfigure a pooled object with new data
+func _reconfigure_object(obj: Node3D, obj_data: RefCounted, category: int) -> void:
+	# Reset transform
+	obj.position = Vector3.ZERO
+	obj.rotation = Vector3.ZERO
+	obj.scale = Vector3.ONE
+	
+	# Update script properties based on category
+	match category:
+		ObjectConfigScript.Category.TREE, ObjectConfigScript.Category.BUILDING, ObjectConfigScript.Category.BUILDING_LARGE:
+			if obj.has_method("set"):
+				obj.set("coin_value", obj_data.coins)
+				obj.set("object_id", obj_data.id)
+				obj.set("object_name", obj_data.display_name)
+			if obj is RigidBody3D:
+				obj.freeze = true
+				obj.linear_velocity = Vector3.ZERO
+				obj.angular_velocity = Vector3.ZERO
+		
+		ObjectConfigScript.Category.BUILDING_ENEMY:
+			if obj.has_method("set"):
+				obj.set("damage", obj_data.damage)
+				obj.set("coin_value", obj_data.coins)
+				obj.set("object_id", obj_data.id)
+				obj.set("object_name", obj_data.display_name)
+		
+		ObjectConfigScript.Category.ROCK:
+			pass  # Rocks don't have special properties
+		
+		ObjectConfigScript.Category.NPC_FRIEND, ObjectConfigScript.Category.NPC_ENEMY:
+			if obj.has_method("set"):
+				obj.set("coin_value", obj_data.coins)
+				obj.set("object_id", obj_data.id)
+				obj.set("object_name", obj_data.display_name)
+			# Reset NPC state
+			if obj.has_method("_pool_reset"):
+				obj.call("_pool_reset")
 
 ## Create a tree instance
 func _create_tree(obj_data: RefCounted, rng: RandomNumberGenerator) -> RigidBody3D:

@@ -44,16 +44,16 @@ color = Color(0.3, 0.28, 0.25, 0.5)
 [node name="ExplosionEffect" type="Node3D"]
 
 [node name="BoulderChunks" type="GPUParticles3D" parent="."]
-amount = 500
-lifetime = 1.2
+amount = 150
+lifetime = 1.0
 one_shot = true
 explosiveness = 1.0
 process_material = SubResource("ParticleProcessMaterial_chunks")
 draw_pass_1 = SubResource("BoxMesh_001")
 
 [node name="DustCloud" type="GPUParticles3D" parent="."]
-amount = 200
-lifetime = 0.8
+amount = 60
+lifetime = 0.6
 one_shot = true
 explosiveness = 0.95
 process_material = SubResource("ParticleProcessMaterial_dust")
