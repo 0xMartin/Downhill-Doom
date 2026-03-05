@@ -96,7 +96,7 @@ func _setup_collision() -> void:
 	
 	var shape := CollisionShape3D.new()
 	var box := BoxShape3D.new()
-	box.size = Vector3(3.5, 2.0, 4.0)  # Larger hitbox for easier hit
+	box.size = Vector3(5.5, 2.0, 3.5)  # Wide hitbox to cover wings
 	shape.shape = box
 	collision_area.add_child(shape)
 	

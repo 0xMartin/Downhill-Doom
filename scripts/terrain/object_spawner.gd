@@ -494,8 +494,8 @@ func _try_spawn_plane(chunk: Node3D, chunk_index: int, get_height_func: Callable
 			# Scale to target height
 			_scale_to_target_height(model, obj_data.target_height)
 			
-			# Make plane 65% smaller (35% of original size)
-			model.scale *= 0.35
+			# Make plane 75% smaller (25% of original size)
+			model.scale *= 0.25
 			
 			# Name the model so plane.gd can find it
 			model.name = "Model"
