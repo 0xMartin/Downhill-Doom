@@ -366,7 +366,7 @@ static func _init_objects() -> void:
 		"coins": 900,
 		"damage": 15,
 		"destructible": false,
-		"col_size": Vector3(3.0, 2.0, 0.8),  # Wide wall, box collision
+		"col_size": Vector3(3.0, 2.0, 0.8),  
 	})
 	
 	# ===== ROCKS (decoration) =====
@@ -515,9 +515,9 @@ static func _init_objects() -> void:
 		"name": "Dark Pawn",
 		"category": Category.NPC_ENEMY,
 		"model": "res://assets/models/npc_enemy/dark_pawn.blend",
-		"height": 1.8,  # 50% larger
+		"height": 1.8,  
 		"height_var": 0.1,
-		"spawn_chance": 0.4,  # 40% chance (most common)
+		"spawn_chance": 0.4, 
 		"coins": 50,
 		"damage": 5,
 		"destructible": true,
@@ -529,9 +529,9 @@ static func _init_objects() -> void:
 		"name": "Dark Knight",
 		"category": Category.NPC_ENEMY,
 		"model": "res://assets/models/npc_enemy/dark_knight.blend",
-		"height": 2.25,  # 50% larger
+		"height": 2.25, 
 		"height_var": 0.1,
-		"spawn_chance": 0.22,  # 22% chance
+		"spawn_chance": 0.22, 
 		"coins": 80,
 		"damage": 10,
 		"destructible": true,
@@ -543,9 +543,9 @@ static func _init_objects() -> void:
 		"name": "Horse Knight",
 		"category": Category.NPC_ENEMY,
 		"model": "res://assets/models/npc_enemy/horse_knight.blend",
-		"height": 2.7,  # 50% larger
+		"height": 2.7,  
 		"height_var": 0.1,
-		"spawn_chance": 0.18,  # 18% chance
+		"spawn_chance": 0.18, 
 		"coins": 160,
 		"damage": 17,
 		"destructible": true,
@@ -559,9 +559,9 @@ static func _init_objects() -> void:
 		"model": "res://assets/models/npc_enemy/catapult.blend",
 		"height": 2.4,
 		"height_var": 0.1,
-		"spawn_chance": 0.10,  # 10% chance (rare)
+		"spawn_chance": 0.10,  
 		"coins": 460,
-		"damage": 30,  # Direct hit damage
+		"damage": 30, 
 		"destructible": true,
 		"col_radius": 1.2,
 		"col_height": 2.0,

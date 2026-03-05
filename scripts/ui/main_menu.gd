@@ -461,8 +461,8 @@ func _create_object_card(obj_data: RefCounted, kill_count: int) -> PanelContaine
 	hbox.add_theme_constant_override("separation", 20)  # More spacing
 	card.add_child(hbox)
 	
-	# 3D Preview
-	var preview := _create_3d_preview(obj_data)
+	# 3D Preview - pass kill_count for silhouette effect
+	var preview := _create_3d_preview(obj_data, kill_count)
 	hbox.add_child(preview)
 	object_viewports.append(preview)
 	
@@ -515,7 +515,7 @@ func _create_object_card(obj_data: RefCounted, kill_count: int) -> PanelContaine
 	
 	return card
 
-func _create_3d_preview(obj_data: RefCounted) -> SubViewportContainer:
+func _create_3d_preview(obj_data: RefCounted, kill_count: int) -> SubViewportContainer:
 	var container := SubViewportContainer.new()
 	container.custom_minimum_size = Vector2(120, 120)  # Larger preview
 	container.stretch = true
@@ -536,14 +536,13 @@ func _create_3d_preview(obj_data: RefCounted) -> SubViewportContainer:
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	env.ambient_light_color = Color(1, 1, 1, 1)
 	
-	# Camera - set position and look direction manually (node not in tree yet)
+	# Camera - will be positioned based on object height
 	var camera := Camera3D.new()
+	camera.name = "Camera"
 	camera.environment = env
-	camera.fov = 35.0  # Narrower FOV for better framing
-	var cam_pos := Vector3(0, 0.6, 3.0)  # Further back
-	var target := Vector3(0, 0.2, 0)
-	camera.transform = Transform3D().looking_at(target - cam_pos, Vector3.UP)
-	camera.transform.origin = cam_pos
+	camera.fov = 35.0  # Base FOV
+	camera.near = 0.01  # Very close near plane
+	camera.far = 100.0  # Far enough
 	viewport.add_child(camera)
 	
 	# Light
@@ -561,14 +560,81 @@ func _create_3d_preview(obj_data: RefCounted) -> SubViewportContainer:
 		var model_scene: PackedScene = load(obj_data.model_path)
 		if model_scene:
 			var model := model_scene.instantiate()
-			# Scale to fit in view - use fixed scale for consistency
-			var target_h: float = maxf(float(obj_data.target_height), 0.5)
-			var scale_factor: float = 0.25 / target_h  # Smaller scale factor
-			scale_factor = minf(scale_factor, 0.15)  # Cap maximum scale
-			model.scale = Vector3(scale_factor, scale_factor, scale_factor)
 			holder.add_child(model)
+			
+			# Calculate combined AABB of all meshes (using local transforms)
+			var combined_aabb := AABB()
+			var first := true
+			for mesh_inst: MeshInstance3D in _find_all_mesh_instances(model):
+				if mesh_inst.mesh == null:
+					continue
+				var mesh_aabb := mesh_inst.mesh.get_aabb()
+				# Apply mesh instance's local transform
+				var local_transform: Transform3D = mesh_inst.transform
+				# Walk up to model root to get full local transform
+				var parent: Node = mesh_inst.get_parent()
+				while parent != null and parent != model:
+					if parent is Node3D:
+						local_transform = (parent as Node3D).transform * local_transform
+					parent = parent.get_parent()
+				mesh_aabb = local_transform * mesh_aabb
+				if first:
+					combined_aabb = mesh_aabb
+					first = false
+				else:
+					combined_aabb = combined_aabb.merge(mesh_aabb)
+			
+			# Determine object size - use AABB if valid, otherwise use target_height
+			var object_height: float = obj_data.target_height if obj_data.target_height > 0 else 1.0
+			var aabb_size := combined_aabb.size
+			var aabb_center := combined_aabb.get_center()
+			
+			# Use AABB if it's reasonable, otherwise estimate from height
+			if aabb_size.length() > 0.01:
+				object_height = maxf(maxf(aabb_size.x, aabb_size.y), aabb_size.z)
+			
+			# Calculate distance needed to fit object in view
+			# Using FOV of 35 degrees, half angle is 17.5 degrees
+			var half_fov := deg_to_rad(camera.fov / 2.0)
+			var distance := (object_height / 2.0) / tan(half_fov) * 1.4  # 1.4 for padding
+			
+			# Clamp distance to reasonable range
+			distance = clampf(distance, 0.5, 50.0)
+			
+			# Center the model first (move AABB center to origin)
+			if aabb_size.length() > 0.01:
+				holder.position.y = -aabb_center.y
+			
+			# Position camera to look at y=0 (where the model center now is)
+			var cam_pos := Vector3(0, 0, distance)
+			camera.transform.origin = cam_pos
+			camera.look_at(Vector3.ZERO, Vector3.UP)
+			
+			# Apply black silhouette shader if never destroyed
+			if kill_count == 0:
+				_apply_silhouette_material(model)
 	
 	return container
+
+
+## Find all MeshInstance3D nodes recursively
+func _find_all_mesh_instances(node: Node) -> Array[MeshInstance3D]:
+	var result: Array[MeshInstance3D] = []
+	if node is MeshInstance3D:
+		result.append(node as MeshInstance3D)
+	for child in node.get_children():
+		result.append_array(_find_all_mesh_instances(child))
+	return result
+
+
+## Apply black silhouette material to all meshes
+func _apply_silhouette_material(node: Node) -> void:
+	var silhouette_mat := StandardMaterial3D.new()
+	silhouette_mat.albedo_color = Color(0.0, 0.0, 0.0, 1.0)  # Pure black
+	silhouette_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED  # No lighting effects
+	
+	for mesh_inst: MeshInstance3D in _find_all_mesh_instances(node):
+		mesh_inst.material_override = silhouette_mat
 
 func _apply_button_style(button: Button) -> void:
 	var normal := StyleBoxFlat.new()
