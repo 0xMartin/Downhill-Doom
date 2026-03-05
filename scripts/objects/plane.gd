@@ -92,7 +92,7 @@ func _setup_collision() -> void:
 	collision_area = Area3D.new()
 	collision_area.name = "HitArea"
 	collision_area.collision_layer = 0
-	collision_area.collision_mask = 1  # Detect player (layer 1)
+	collision_area.collision_mask = 2  # Detect player (layer 2)
 	
 	var shape := CollisionShape3D.new()
 	var box := BoxShape3D.new()
