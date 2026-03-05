@@ -334,11 +334,27 @@ func _spawn_fragment(
 	fade_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	debris.material_override = fade_material
 	
+	# Extract scale from world transform to apply to debris
+	# This handles non-uniform scaling on objects like barrels
+	var mesh_scale := world_transform.basis.get_scale()
+	
+	# Clamp scale to prevent extreme values (safety check for stretched fragments)
+	var max_scale := 3.0
+	var min_scale := 0.1
+	mesh_scale.x = clampf(mesh_scale.x, min_scale, max_scale)
+	mesh_scale.y = clampf(mesh_scale.y, min_scale, max_scale)
+	mesh_scale.z = clampf(mesh_scale.z, min_scale, max_scale)
+	
 	# Position fragment - calculate position before adding to scene
 	var frag_center: Vector3 = frag_mesh.get_meta("fragment_center", Vector3.ZERO)
-	var world_pos := world_transform * frag_center
-	debris.position = world_pos  # Use local position, will be global since parent is scene root
+	# Apply scale to fragment center for correct world position
+	var scaled_center := frag_center * mesh_scale
+	var world_pos := world_transform.origin + world_transform.basis.orthonormalized() * scaled_center
+	debris.position = world_pos
 	debris.rotation = Vector3(randf() * 0.3, randf() * TAU, randf() * 0.3)
+	
+	# Apply the original mesh's scale to the debris fragment
+	debris.scale = mesh_scale
 	
 	# Calculate velocity (outward from center + impact direction) - mostly horizontal
 	var outward_dir := frag_center
