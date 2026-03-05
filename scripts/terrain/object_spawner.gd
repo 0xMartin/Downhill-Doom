@@ -19,6 +19,7 @@ const SpikeScript := preload("res://scripts/objects/spike.gd")
 const FriendNPCScript := preload("res://scripts/objects/friend_npc.gd")
 const EnemyNPCScript := preload("res://scripts/objects/enemy_npc.gd")
 const CatapultNPCScript := preload("res://scripts/objects/catapult_npc.gd")
+const PlaneNPCScript := preload("res://scripts/objects/plane.gd")
 
 # ========== SPAWNING CONFIGURATION ==========
 
@@ -67,6 +68,12 @@ var spawned_positions: Dictionary = {}  # chunk_index -> Array[Vector2] (x, z)
 
 # Spike wall chain tracking
 var next_spike_wall_z: float = 0.0  # Next Z position for spike wall chain
+
+# Plane spawning (aerial NPC) - global cooldown, spawns at chunk end
+var plane_spawn_chance: float = 0.50  # 50% chance per chunk (for testing)
+var plane_cooldown_distance: float = 200.0  # Reduced for testing
+var plane_last_spawn_z: float = 999999.0  # Z position of last plane spawn (positive = no spawn yet)
+var plane_safe_chunks: int = 5  # Start spawning earlier
 
 func _init(config: Dictionary) -> void:
 	terrain_width = config.get("terrain_width", 36.0)
@@ -119,6 +126,10 @@ func spawn_objects(chunk: Node3D, chunk_index: int, get_height_func: Callable) -
 	# Spawn enemy NPC clusters
 	if chunk_index >= npc_enemy_safe_chunks:
 		_spawn_enemy_npc_clusters(chunk, chunk_index, get_height_func)
+	
+	# Try to spawn enemy plane (aerial NPC with global cooldown)
+	if chunk_index >= plane_safe_chunks:
+		_try_spawn_plane(chunk, chunk_index, get_height_func)
 	
 	# Spawn trees, buildings, and building enemies based on position-level zone checking
 	_spawn_zone_objects(chunk, chunk_index, get_height_func)
@@ -424,6 +435,83 @@ func _spawn_enemy_npc_clusters(chunk: Node3D, chunk_index: int, get_height_func:
 		
 		chunk.add_child(obj)
 		_register_spawn_position(x, local_z, chunk_index)
+
+
+## Try to spawn an enemy plane (aerial NPC)
+## Planes have global cooldown and spawn at the end of the chunk, flying toward player
+func _try_spawn_plane(chunk: Node3D, chunk_index: int, get_height_func: Callable) -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(chunk_index * 77777 + 54321)
+	
+	# Calculate current chunk Z position (start of this chunk in world coords)
+	var chunk_start_z := -chunk_index * chunk_size.y
+	var chunk_end_z := chunk_start_z - chunk_size.y  # End of chunk (further from player)
+	
+	# Check cooldown - need enough distance since last plane
+	# Z goes negative as player progresses, so distance = last_spawn_z - chunk_end_z
+	var distance_since_last := plane_last_spawn_z - chunk_end_z
+	if distance_since_last < plane_cooldown_distance:
+		return
+	
+	# Roll for spawn chance
+	if rng.randf() > plane_spawn_chance:
+		return
+	
+	# Get plane data from config
+	var obj_data: RefCounted = ObjectConfigScript.get_object("npc_plane")
+	if not obj_data:
+		return
+	
+	# Spawn position: random X, at end of chunk, above terrain
+	var x := rng.randf_range(-terrain_width / 2 + 5.0, terrain_width / 2 - 5.0)
+	var local_z := -chunk_size.y * 2.5  # Spawn much further ahead (2.5 chunks ahead)
+	
+	# Get terrain height and add altitude
+	var height: float = get_height_func.call(x, local_z, chunk_index)
+	var altitude := rng.randf_range(12.0, 18.0)  # Random altitude above terrain
+	var spawn_y := height + altitude
+	
+	# Create plane instance
+	var plane := Node3D.new()
+	plane.set_script(PlaneNPCScript)
+	plane.name = "PlaneNPC_%d" % chunk_index
+	
+	# Set plane properties before adding to tree
+	plane.set("coin_value", obj_data.coins)
+	plane.set("damage", obj_data.damage)
+	
+	# Position the plane (it will fly forward towards player)
+	plane.position = Vector3(x, spawn_y, local_z)
+	
+	# Load the model
+	var model_scene := load(obj_data.model_path) as PackedScene
+	if model_scene:
+		var model: Node3D = model_scene.instantiate() as Node3D
+		if model:
+			# Apply color palette material
+			_apply_material_recursive(model)
+			
+			# Scale to target height
+			_scale_to_target_height(model, obj_data.target_height)
+			
+			# Make plane 65% smaller (35% of original size)
+			model.scale *= 0.35
+			
+			# Name the model so plane.gd can find it
+			model.name = "Model"
+			plane.add_child(model)
+	
+	# IMPORTANT: Add plane to scene root, NOT to chunk!
+	# This prevents the plane from being deleted when the chunk is recycled
+	# Convert local position to global (chunk position affects it)
+	var chunk_global_pos := chunk.global_position if chunk is Node3D else Vector3.ZERO
+	plane.global_position = chunk_global_pos + plane.position
+	
+	# Add to root
+	chunk.get_tree().root.add_child(plane)
+	
+	# Record spawn for cooldown tracking
+	plane_last_spawn_z = chunk_end_z
 
 
 ## Spawn zone-dependent objects (trees, buildings, enemies) with per-position zone check

@@ -13,6 +13,7 @@ enum Category {
 	ROCK,
 	NPC_FRIEND,
 	NPC_ENEMY,
+	NPC_AERIAL,
 }
 
 # ========== OBJECT DATA STRUCTURE ==========
@@ -566,6 +567,22 @@ static func _init_objects() -> void:
 		"col_radius": 1.2,
 		"col_height": 2.0,
 	})
+	
+	# ===== AERIAL NPC =====
+	_register_object({
+		"id": "npc_plane",
+		"name": "Enemy Plane",
+		"category": Category.NPC_AERIAL,
+		"model": "res://assets/models/npc_enemy/plane.blend",
+		"height": 3.0,
+		"height_var": 0.0,
+		"spawn_chance": 0.10,
+		"coins": 1400,
+		"damage": 40,
+		"destructible": true,
+		"col_radius": 2.0,
+		"col_height": 1.5,
+	})
 
 static func _register_object(data: Dictionary) -> void:
 	var obj := ObjectData.new(data)
@@ -660,4 +677,6 @@ static func get_category_name(category: int) -> String:
 			return "Friend NPC"
 		Category.NPC_ENEMY:
 			return "Enemy NPC"
+		Category.NPC_AERIAL:
+			return "Aerial Enemy"
 	return "Unknown"

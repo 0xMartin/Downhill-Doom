@@ -219,6 +219,9 @@ func restart_game() -> void:
 	if audio:
 		audio.stop_roll_sound()
 	
+	# Clean up planes and bombs that were added to root
+	_cleanup_root_objects()
+	
 	var st = get_node("/root/SceneTransition")
 	st.change_scene("res://scenes/game.tscn")
 
@@ -232,6 +235,10 @@ func go_to_menu() -> void:
 	if audio:
 		audio.stop_roll_sound()
 		audio.play_menu_music()
+	
+	# Clean up planes and bombs that were added to root
+	_cleanup_root_objects()
+	
 	var st = get_node("/root/SceneTransition")
 	st.change_scene("res://scenes/main_menu.tscn")
 
@@ -295,3 +302,10 @@ func end_supercharge() -> void:
 ## Check if supercharge is ready to activate
 func is_supercharge_ready() -> bool:
 	return supercharge >= max_supercharge and not is_supercharged
+
+## Clean up planes and bombs added to root (they don't get cleaned up with scene change)
+func _cleanup_root_objects() -> void:
+	var root := get_tree().root
+	for node in root.get_children():
+		if node.is_in_group("planes") or node.is_in_group("bombs"):
+			node.queue_free()

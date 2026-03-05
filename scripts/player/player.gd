@@ -47,8 +47,8 @@ var base_jump_force: float
 var base_max_speed: float
 const SUPERCHARGE_SCALE_MULTIPLIER: float = 2.0
 const SUPERCHARGE_SCALE_DURATION: float = 0.4
-const SUPERCHARGE_SPEED_BONUS: float = 1.25
-const SUPERCHARGE_JUMP_BONUS: float = 1.25
+const SUPERCHARGE_SPEED_BONUS: float = 1.3
+const SUPERCHARGE_JUMP_BONUS: float = 1.6
 
 # Shock wave effect class
 const ShockWaveManager := preload("res://scripts/effects/shock_wave_manager.gd")

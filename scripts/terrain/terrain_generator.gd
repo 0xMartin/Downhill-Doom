@@ -281,6 +281,10 @@ func get_decoration_height(local_x: float, local_z: float, chunk_index: int) -> 
 
 ## Get height at world coordinates (for external use)
 func get_height_at(world_x: float, world_z: float) -> float:
+	# Guard against null mesh_builder (can happen during initialization or far from spawned chunks)
+	if not mesh_builder:
+		return world_z * tan(deg_to_rad(slope_angle))
+	
 	var profile_height: float = mesh_builder.get_cross_section_height(world_x, world_z)
 	
 	var half_terrain := terrain_width / 2.0

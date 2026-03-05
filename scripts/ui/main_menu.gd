@@ -672,7 +672,9 @@ func _populate_object_cards(grid: GridContainer) -> void:
 		2:
 			objects = ObjectConfigScript.get_npcs_friend()
 		3:
+			# Include both ground-based and aerial enemy NPCs (planes)
 			objects = ObjectConfigScript.get_objects_by_category(ObjectConfigScript.Category.NPC_ENEMY)
+			objects += ObjectConfigScript.get_objects_by_category(ObjectConfigScript.Category.NPC_AERIAL)
 		4:
 			objects = ObjectConfigScript.get_building_enemies()
 	

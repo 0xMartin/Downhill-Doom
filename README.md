@@ -15,5 +15,3 @@
 
 * Item system
 * Sbirani itemu a spawnovani itemu (heal potion, shield, zbrane)
-
-* Enemy npc: letadlo
