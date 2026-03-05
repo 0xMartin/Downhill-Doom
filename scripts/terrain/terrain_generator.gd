@@ -114,9 +114,20 @@ func _init_subsystems() -> void:
 	
 	# Create sub-systems
 	hole_manager = HoleManagerScript.new(config)
+	if not hole_manager:
+		push_error("Failed to create HoleManager")
+		return
+	
 	mesh_builder = TerrainMeshBuilderScript.new(config)
+	if not mesh_builder:
+		push_error("Failed to create TerrainMeshBuilder")
+		return
 	mesh_builder.set_hole_manager(hole_manager)
+	
 	object_spawner = ObjectSpawnerScript.new(config)
+	if not object_spawner:
+		push_error("Failed to create ObjectSpawner")
+		return
 	object_spawner.set_hole_manager(hole_manager)
 
 func _exit_tree() -> void:
@@ -182,7 +193,13 @@ func _generate_chunk(chunk_index: int) -> void:
 	hole_manager.spawn_hole_effects(chunk, chunk_index, get_decoration_height)
 	
 	# 5. Spawn objects (trees, rocks, etc.)
-	object_spawner.spawn_objects(chunk, chunk_index, get_decoration_height)
+	if object_spawner:
+		object_spawner.spawn_objects(chunk, chunk_index, get_decoration_height)
+	else:
+		push_error("ObjectSpawner is null in chunk %d - reinitializing" % chunk_index)
+		_init_subsystems()
+		if object_spawner:
+			object_spawner.spawn_objects(chunk, chunk_index, get_decoration_height)
 	
 	chunks[chunk_index] = chunk
 	terrain_chunk_created.emit(chunk)

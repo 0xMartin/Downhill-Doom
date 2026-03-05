@@ -350,10 +350,23 @@ static func _init_objects() -> void:
 		"height": 1.95, 
 		"height_var": 0.1,
 		"spawn_chance": 1.0,
-		"coins": 50,
+		"coins": 700,
 		"damage": 15,
 		"destructible": false,
 		"col_radius": 1.6,  
+	})
+	_register_object({
+		"id": "enemy_spike_wall",
+		"name": "Spike Wall",
+		"category": Category.BUILDING_ENEMY,
+		"model": "res://assets/models/buildings_enemy/spike_wall.blend",
+		"height": 2.0, 
+		"height_var": 0.05,
+		"spawn_chance": 0.0,  # Spawned via chain system, not random
+		"coins": 900,
+		"damage": 15,
+		"destructible": false,
+		"col_size": Vector3(3.0, 2.0, 0.8),  # Wide wall, box collision
 	})
 	
 	# ===== ROCKS (decoration) =====
@@ -590,6 +603,11 @@ static func get_large_buildings() -> Array:
 ## Get all building enemies
 static func get_building_enemies() -> Array:
 	return get_objects_by_category(Category.BUILDING_ENEMY)
+
+## Get spike wall data specifically (for chain spawning)
+static func get_spike_wall() -> ObjectData:
+	_ensure_initialized()
+	return _objects.get("enemy_spike_wall", null)
 
 ## Get all rocks
 static func get_rocks() -> Array:

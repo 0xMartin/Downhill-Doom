@@ -44,6 +44,15 @@ var building_safe_chunks: int = 3
 var npc_friend_safe_chunks: int = 2
 var npc_enemy_safe_chunks: int = 5  # Later than friends
 
+# Spike wall chain configuration
+var spike_wall_safe_chunks: int = 6  # Start later than regular enemies
+var spike_wall_min_spacing: float = 100.0  # Minimum distance between chains (half of hole frequency)
+var spike_wall_max_spacing: float = 160.0  # Maximum distance between chains
+var spike_wall_min_count: int = 3  # Minimum walls per chain
+var spike_wall_max_count: int = 10  # Maximum walls per chain
+var spike_wall_width: float = 3.0  # Width of each wall segment
+var spike_wall_max_angle: float = 25.0  # Maximum angle deviation per segment (degrees)
+
 # Minimum distance between objects to prevent overlap
 var min_object_distance: float = 2.5
 
@@ -55,6 +64,9 @@ var zone_manager: RefCounted  # ZoneManager
 
 # Track spawned positions per chunk to prevent overlap
 var spawned_positions: Dictionary = {}  # chunk_index -> Array[Vector2] (x, z)
+
+# Spike wall chain tracking
+var next_spike_wall_z: float = 0.0  # Next Z position for spike wall chain
 
 func _init(config: Dictionary) -> void:
 	terrain_width = config.get("terrain_width", 36.0)
@@ -92,6 +104,10 @@ func spawn_objects(chunk: Node3D, chunk_index: int, get_height_func: Callable) -
 	# Clear previous spawn positions for this chunk
 	spawned_positions[chunk_index] = []
 	
+	# FIRST: Spawn spike wall chains (before other objects to reserve space)
+	if chunk_index >= spike_wall_safe_chunks:
+		_spawn_spike_wall_chains(chunk, chunk_index, get_height_func)
+	
 	# Spawn rocks everywhere (regardless of zone)
 	if chunk_index >= rock_safe_chunks:
 		_spawn_rocks(chunk, chunk_index, get_height_func)
@@ -106,6 +122,124 @@ func spawn_objects(chunk: Node3D, chunk_index: int, get_height_func: Callable) -
 	
 	# Spawn trees, buildings, and building enemies based on position-level zone checking
 	_spawn_zone_objects(chunk, chunk_index, get_height_func)
+
+## Spawn spike wall chains across the terrain
+## Chains are generated first to reserve space before other objects
+func _spawn_spike_wall_chains(chunk: Node3D, chunk_index: int, get_height_func: Callable) -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(chunk_index * 55555 + 12345)  # Unique seed for spike walls
+	
+	# Initialize next_spike_wall_z on first valid chunk
+	if next_spike_wall_z == 0.0:
+		next_spike_wall_z = -spike_wall_safe_chunks * chunk_size.y - rng.randf_range(spike_wall_min_spacing, spike_wall_max_spacing)
+	
+	# Calculate chunk Z range
+	var chunk_start_z := -chunk_index * chunk_size.y
+	var chunk_end_z := chunk_start_z - chunk_size.y
+	
+	# Check if any chains should spawn in this chunk
+	while next_spike_wall_z > chunk_end_z and next_spike_wall_z <= chunk_start_z:
+		# Spawn a chain at this Z position
+		_create_spike_wall_chain(chunk, chunk_index, next_spike_wall_z, rng, get_height_func)
+		
+		# Calculate next chain position
+		next_spike_wall_z -= rng.randf_range(spike_wall_min_spacing, spike_wall_max_spacing)
+
+## Calculate the actual width of the spike wall model from its bounding box
+func _get_spike_wall_actual_width(spike_wall_data: RefCounted) -> float:
+	# Load the model to get its actual dimensions
+	var model_scene := load(spike_wall_data.model_path) as PackedScene
+	if not model_scene:
+		return spike_wall_width  # Fallback to config value
+	
+	var temp_model := model_scene.instantiate()
+	var aabb := _get_model_aabb(temp_model)
+	temp_model.queue_free()
+	
+	if aabb.size == Vector3.ZERO:
+		return spike_wall_width  # Fallback
+	
+	# Wall width is the X dimension (assuming wall faces Z direction)
+	return aabb.size.x
+
+## Create a single spike wall chain (3-10 connected walls)
+func _create_spike_wall_chain(chunk: Node3D, chunk_index: int, base_z: float, rng: RandomNumberGenerator, get_height_func: Callable) -> void:
+	var spike_wall_data: RefCounted = ObjectConfigScript.get_spike_wall()
+	if not spike_wall_data:
+		return
+	
+	# Get actual wall width from model bounding box
+	var actual_wall_width := _get_spike_wall_actual_width(spike_wall_data)
+	
+	# Random starting X position (can start anywhere across terrain)
+	var start_x := rng.randf_range(-terrain_width / 2 + 4.0, terrain_width / 2 - 4.0)
+	
+	# Random chain count
+	var wall_count := rng.randi_range(spike_wall_min_count, spike_wall_max_count)
+	
+	# Random initial direction (primarily perpendicular to travel, but can be diagonal)
+	# Base angle: 0 degrees means chain extends along X axis (perpendicular to player travel)
+	# with +/- 30 degrees variation for diagonal chains
+	var chain_direction := deg_to_rad(rng.randf_range(-30.0, 30.0))
+	
+	var current_x := start_x
+	var current_z := base_z
+	
+	# Convert to local chunk Z coordinate
+	var chunk_start_z := -chunk_index * chunk_size.y
+
+	for i in range(wall_count):
+		# Convert to local Z
+		var local_z := current_z - chunk_start_z
+		
+		# Check bounds
+		if current_x < -terrain_width / 2 + 2.0 or current_x > terrain_width / 2 - 2.0:
+			break
+		if local_z < -chunk_size.y or local_z > 0:
+			break
+		
+		# Skip if near a hole
+		if _is_near_hole(current_x, local_z, chunk_index):
+			# Try to skip this position and continue
+			current_x += cos(chain_direction) * actual_wall_width
+			current_z += sin(chain_direction) * actual_wall_width * 0.3
+			continue
+		
+		# Get terrain height
+		var height: float = get_height_func.call(current_x, local_z, chunk_index)
+		
+		# Create the spike wall
+		var wall: StaticBody3D = _create_building_enemy(spike_wall_data, rng)
+		if not wall:
+			continue
+		
+		wall.position = Vector3(current_x, height, local_z)
+		# Wall rotation: perpendicular to chain direction (wall faces the player)
+		# chain_direction is the direction we're building the chain
+		# wall should face perpendicular to that (along Z axis when chain is along X)
+		wall.rotation.y = chain_direction
+		
+		# Scale to target height
+		var variation: float = spike_wall_data.height_variation
+		var target_h: float = spike_wall_data.target_height * rng.randf_range(1.0 - variation, 1.0 + variation)
+		_scale_to_target_height(wall, target_h)
+		
+		chunk.add_child(wall)
+		
+		# Register position to prevent other objects spawning here
+		_register_spawn_position(current_x, local_z, chunk_index)
+		# Also register nearby positions to create larger exclusion zone
+		_register_spawn_position(current_x - 1.5, local_z, chunk_index)
+		_register_spawn_position(current_x + 1.5, local_z, chunk_index)
+		
+		# Move to next wall position along the chain direction
+		current_x += cos(chain_direction) * actual_wall_width
+		current_z += sin(chain_direction) * actual_wall_width * 0.3  # Slight Z movement for curve
+		
+		# Add slight angle variation for curve effect (but keep it subtle)
+		var angle_change := deg_to_rad(rng.randf_range(-spike_wall_max_angle, spike_wall_max_angle))
+		# Dampen the change to prevent too sharp turns
+		chain_direction += angle_change * 0.5
 
 ## Spawn rocks (zone-independent)
 func _spawn_rocks(chunk: Node3D, chunk_index: int, get_height_func: Callable) -> void:
@@ -607,8 +741,12 @@ func _create_building_enemy(obj_data: RefCounted, rng: RandomNumberGenerator) ->
 	if aabb.size != Vector3.ZERO:
 		phys_box.size = aabb.size * 0.7  # Slightly smaller for physical collision
 		phys_col.position = aabb.get_center()
+	elif obj_data.collision_size != Vector3.ZERO:
+		# Use explicit collision_size if specified
+		phys_box.size = obj_data.collision_size * 0.9
+		phys_col.position.y = obj_data.collision_size.y / 2
 	else:
-		# Fallback
+		# Fallback to collision_radius
 		phys_box.size = Vector3(obj_data.collision_radius * 1.2, obj_data.collision_radius * 1.2, obj_data.collision_radius * 1.2)
 		phys_col.position.y = obj_data.collision_radius * 0.6
 	phys_col.shape = phys_box
@@ -626,8 +764,12 @@ func _create_building_enemy(obj_data: RefCounted, rng: RandomNumberGenerator) ->
 	if aabb.size != Vector3.ZERO:
 		dmg_box.size = aabb.size * 1.1  # Slightly larger for damage detection
 		dmg_col.position = aabb.get_center()
+	elif obj_data.collision_size != Vector3.ZERO:
+		# Use explicit collision_size if specified
+		dmg_box.size = obj_data.collision_size * 1.1
+		dmg_col.position.y = obj_data.collision_size.y / 2
 	else:
-		# Fallback
+		# Fallback to collision_radius
 		dmg_box.size = Vector3(obj_data.collision_radius * 2, obj_data.collision_radius * 2, obj_data.collision_radius * 2)
 		dmg_col.position.y = obj_data.collision_radius
 	dmg_col.shape = dmg_box
