@@ -70,8 +70,8 @@ var spawned_positions: Dictionary = {}  # chunk_index -> Array[Vector2] (x, z)
 var next_spike_wall_z: float = 0.0  # Next Z position for spike wall chain
 
 # Plane spawning (aerial NPC) - global cooldown, spawns at chunk end
-var plane_spawn_chance: float = 0.50  # 50% chance per chunk (for testing)
-var plane_cooldown_distance: float = 200.0  # Reduced for testing
+var plane_spawn_chance: float = 0.05  # 5% chance per chunk
+var plane_cooldown_distance: float = 600.0  # ~30 sec at typical speed
 var plane_last_spawn_z: float = 999999.0  # Z position of last plane spawn (positive = no spawn yet)
 var plane_safe_chunks: int = 5  # Start spawning earlier
 
@@ -495,7 +495,7 @@ func _try_spawn_plane(chunk: Node3D, chunk_index: int, get_height_func: Callable
 			_scale_to_target_height(model, obj_data.target_height)
 			
 			# Make plane 75% smaller (25% of original size)
-			model.scale *= 0.25
+			# model.scale *= 0.25
 			
 			# Name the model so plane.gd can find it
 			model.name = "Model"

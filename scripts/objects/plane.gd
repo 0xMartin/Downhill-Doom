@@ -16,13 +16,13 @@ const FLIGHT_SPEED_MIN: float = 22.0  # m/s
 const FLIGHT_SPEED_MAX: float = 28.0
 const FLIGHT_ALTITUDE_MIN: float = 10.0  # meters above terrain (lower)
 const FLIGHT_ALTITUDE_MAX: float = 14.0
-const DESPAWN_DISTANCE: float = 80.0  # Distance behind player to despawn
+const DESPAWN_DISTANCE: float = 150.0  # Distance behind player to despawn (enough for contrail to fade)
 
 # Bomb dropping
 const BOMB_DROP_DISTANCE: float = 50.0  # Start dropping when within this distance
 const BOMB_DROP_INTERVAL: float = 0.5  # Seconds between drops (4x faster)
 const BOMB_SPREAD: float = 4.0  # Max random X spread
-const SHOCK_WAVE_RADIUS: float = 9.0
+const SHOCK_WAVE_RADIUS: float = 12.0
 
 # Tilt animation
 const TILT_SPEED: float = 1.5  # How fast the tilt changes
@@ -44,6 +44,7 @@ var velocity: Vector3 = Vector3.ZERO
 # Bomb state
 var time_since_last_bomb: float = 0.0
 var can_drop_bombs := false
+var passed_player := false  # True when plane has passed behind player (stops bombing)
 
 # Animation state
 var tilt_phase: float = 0.0
@@ -52,6 +53,12 @@ var target_tilt: float = 0.0
 
 # Collision
 var collision_area: Area3D
+
+# Audio
+var jet_audio: AudioStreamPlayer3D
+
+# Contrail (smoke trail)
+var contrail: GPUParticles3D
 
 
 func _ready() -> void:
@@ -79,6 +86,12 @@ func _ready() -> void:
 	# Setup collision area for player hit detection
 	_setup_collision()
 	
+	# Setup jet engine sound (spatial 3D audio)
+	_setup_jet_audio()
+	
+	# Setup contrail (smoke trail)
+	_setup_contrail()
+	
 	# Find player reference
 	player = get_tree().get_first_node_in_group("player") as Node3D
 	
@@ -102,6 +115,93 @@ func _setup_collision() -> void:
 	
 	collision_area.body_entered.connect(_on_player_collision)
 	add_child(collision_area)
+
+
+func _setup_jet_audio() -> void:
+	## Create spatial 3D audio for jet engine sound
+	jet_audio = AudioStreamPlayer3D.new()
+	jet_audio.name = "JetAudio"
+	
+	# Load jet sound
+	var jet_stream := load("res://assets/sounds/sfx/jet_sound.mp3") as AudioStream
+	if jet_stream:
+		jet_audio.stream = jet_stream
+		jet_audio.autoplay = true
+		jet_audio.bus = "SFX"
+		jet_audio.volume_db = 12.0  # Louder volume
+		
+		# 3D spatial settings - large range for distant audibility
+		jet_audio.unit_size = 50.0  # Reference distance (louder at distance)
+		jet_audio.max_distance = 300.0  # Max audible distance
+		jet_audio.attenuation_model = AudioStreamPlayer3D.ATTENUATION_LOGARITHMIC
+		jet_audio.max_db = 6.0  # Max volume boost when close
+		
+		# Loop the sound
+		jet_audio.finished.connect(_on_jet_audio_finished)
+		
+		add_child(jet_audio)
+
+
+func _on_jet_audio_finished() -> void:
+	## Restart jet sound for looping
+	if jet_audio and is_instance_valid(jet_audio) and not is_dead:
+		jet_audio.play()
+
+
+func _setup_contrail() -> void:
+	## Create contrail/smoke trail behind the plane
+	contrail = GPUParticles3D.new()
+	contrail.name = "Contrail"
+	contrail.amount = 60
+	contrail.lifetime = 3.0  # Long trail
+	contrail.explosiveness = 0.0
+	contrail.emitting = true
+	
+	var proc_mat := ParticleProcessMaterial.new()
+	# Emit behind the plane (negative Z direction relative to plane)
+	proc_mat.direction = Vector3(0, 0, -1)
+	proc_mat.spread = 5.0  # Tight spread
+	proc_mat.initial_velocity_min = 1.0
+	proc_mat.initial_velocity_max = 2.0
+	proc_mat.gravity = Vector3(0, 0.5, 0)  # Slight upward drift
+	proc_mat.damping_min = 1.0
+	proc_mat.damping_max = 2.0
+	
+	# Scale: start small, grow, then fade
+	proc_mat.scale_min = 0.3
+	proc_mat.scale_max = 0.5
+	var scale_curve := Curve.new()
+	scale_curve.add_point(Vector2(0.0, 0.3))
+	scale_curve.add_point(Vector2(0.3, 1.0))
+	scale_curve.add_point(Vector2(1.0, 1.5))
+	var scale_tex := CurveTexture.new()
+	scale_tex.curve = scale_curve
+	proc_mat.scale_curve = scale_tex
+	
+	# Color: white smoke that fades out
+	var color_ramp := Gradient.new()
+	color_ramp.set_color(0, Color(0.9, 0.9, 0.95, 0.7))  # Bright white-gray
+	color_ramp.set_color(1, Color(0.7, 0.7, 0.75, 0.0))  # Fade to transparent
+	var color_tex := GradientTexture1D.new()
+	color_tex.gradient = color_ramp
+	proc_mat.color_ramp = color_tex
+	
+	contrail.process_material = proc_mat
+	
+	# Simple sphere mesh for smoke puffs
+	var mesh := SphereMesh.new()
+	mesh.radius = 0.8
+	mesh.height = 1.6
+	var mesh_mat := StandardMaterial3D.new()
+	mesh_mat.albedo_color = Color(0.95, 0.95, 1.0)
+	mesh_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mesh_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mesh.material = mesh_mat
+	contrail.draw_pass_1 = mesh
+	
+	# Position behind the plane (at engine/tail)
+	contrail.position = Vector3(0, 0, 2.0)  # Behind the plane
+	add_child(contrail)
 
 
 func _process(delta: float) -> void:
@@ -153,6 +253,10 @@ func _update_bombing(delta: float) -> void:
 		player = get_tree().get_first_node_in_group("player") as Node3D
 		return
 	
+	# Don't drop bombs if already passed behind player
+	if passed_player:
+		return
+	
 	var distance_to_player := global_position.distance_to(player.global_position)
 	
 	# Start dropping when close enough
@@ -198,8 +302,13 @@ func _check_despawn() -> void:
 	if not player:
 		return
 	
-	# Plane flies in +Z direction, so when plane.z > player.z + DESPAWN_DISTANCE, despawn
-	# (plane has passed the player and is now behind them)
+	# Check if plane has just passed behind player (stop bombing)
+	if not passed_player and global_position.z > player.global_position.z + 10.0:
+		passed_player = true
+		can_drop_bombs = false  # Stop dropping bombs once behind player
+	
+	# Plane flies in +Z direction, despawn when far enough behind for contrail to fade
+	# (contrail lifetime is 3s, at ~25m/s that's ~75m, we use 150m for safety)
 	if global_position.z > player.global_position.z + DESPAWN_DISTANCE:
 		queue_free()
 
@@ -226,6 +335,15 @@ func _die(player_velocity: Vector3 = Vector3.FORWARD * 20.0) -> void:
 		return
 	is_dead = true
 	is_active = false
+	
+	# Stop jet engine sound
+	if jet_audio and is_instance_valid(jet_audio):
+		jet_audio.stop()
+		jet_audio.queue_free()
+	
+	# Stop contrail
+	if contrail and is_instance_valid(contrail):
+		contrail.emitting = false
 	
 	# Award coins and record stats BEFORE destruction
 	var gm: Node = get_node_or_null("/root/GameManager")

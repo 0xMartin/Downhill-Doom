@@ -29,6 +29,7 @@ var game_manager: Node
 var hit_cooldown: float = 0.0  # Prevent multiple hits from same rock
 
 var terrain_slope: float = 15.0  # Will be set from terrain generator
+var terrain_generator: Node  # Reference to terrain for height queries
 var audio_manager: Node
 var jump_cooldown: float = 0.0  # Time until next jump allowed
 var is_on_ground: bool = true  # Track if player is touching ground
@@ -55,6 +56,13 @@ const ShockWaveManager := preload("res://scripts/effects/shock_wave_manager.gd")
 
 # Dust particles
 var dust_particles: GPUParticles3D
+
+# Edge warning effect
+var edge_warning_left: MeshInstance3D
+var edge_warning_right: MeshInstance3D
+var edge_warning_material: StandardMaterial3D
+const EDGE_WARNING_DISTANCE: float = 6.0  # Start showing warning at this distance from edge
+const TERRAIN_HALF_WIDTH: float = 18.0  # Half of terrain_width (36/2)
 
 func _ready() -> void:
 	# Get autoload references
@@ -83,6 +91,9 @@ func _ready() -> void:
 	# Setup dust particles (under ball when on ground)
 	_setup_dust_particles()
 	
+	# Setup edge warning effect
+	_setup_edge_warning()
+	
 	# Pre-create supercharge effects (hidden) to avoid first-activation lag
 	_precreate_supercharge_effects()
 	
@@ -100,13 +111,13 @@ func _ready() -> void:
 	start_y = global_position.y
 	
 	# Wait for terrain
-	var terrain = get_tree().get_first_node_in_group("terrain_generator")
-	if terrain:
-		terrain_slope = terrain.slope_angle
-		if terrain.is_ready:
+	terrain_generator = get_tree().get_first_node_in_group("terrain_generator")
+	if terrain_generator:
+		terrain_slope = terrain_generator.slope_angle
+		if terrain_generator.is_ready:
 			_start_rolling()
 		else:
-			terrain.terrain_ready.connect(_start_rolling)
+			terrain_generator.terrain_ready.connect(_start_rolling)
 	else:
 		# No terrain generator, start immediately
 		await get_tree().create_timer(0.1).timeout
@@ -230,6 +241,9 @@ func _physics_process(delta: float) -> void:
 	
 	# Update particle effects
 	_update_particles(current_forward_speed)
+	
+	# Update edge warning
+	_update_edge_warning()
 
 func _update_particles(speed: float) -> void:
 	var speed_ratio := speed / max_speed
@@ -375,6 +389,9 @@ func die() -> void:
 		return
 	
 	is_dead = true
+	
+	# Clean up edge warning effects
+	_cleanup_edge_warnings()
 	
 	# Stop rolling sound
 	if audio_manager:
@@ -549,6 +566,117 @@ func _setup_dust_particles() -> void:
 	
 	add_child(dust_particles)
 	dust_particles.position = Vector3(0, -sphere_radius, 0)  # At the bottom of the ball
+
+
+## Setup edge warning visual effect (red glow near terrain boundaries)
+func _setup_edge_warning() -> void:
+	## Create shared material for both warning walls
+	edge_warning_material = StandardMaterial3D.new()
+	edge_warning_material.albedo_color = Color(1.0, 0.0, 0.0, 0.0)  # Red, starts invisible
+	edge_warning_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	edge_warning_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	edge_warning_material.cull_mode = BaseMaterial3D.CULL_DISABLED  # Visible from both sides
+	edge_warning_material.no_depth_test = false  # Proper depth testing for 3D feel
+	edge_warning_material.render_priority = 5
+	
+	# Create left edge warning wall
+	edge_warning_left = _create_edge_warning_mesh()
+	edge_warning_left.name = "EdgeWarningLeft"
+	get_tree().root.add_child(edge_warning_left)
+	
+	# Create right edge warning wall
+	edge_warning_right = _create_edge_warning_mesh()
+	edge_warning_right.name = "EdgeWarningRight"
+	get_tree().root.add_child(edge_warning_right)
+
+
+func _create_edge_warning_mesh() -> MeshInstance3D:
+	## Create a tall vertical wall mesh for edge warning (3D barrier effect)
+	var mesh_instance := MeshInstance3D.new()
+	
+	# Create a box mesh that looks like a glowing wall section
+	var box := BoxMesh.new()
+	box.size = Vector3(0.3, 12.0, 40.0)  # Thin (0.3m), tall (12m), long (40m along Z)
+	
+	mesh_instance.mesh = box
+	mesh_instance.material_override = edge_warning_material
+	mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	mesh_instance.visible = false  # Start hidden
+	
+	return mesh_instance
+
+
+func _update_edge_warning() -> void:
+	## Update edge warning visibility based on player proximity to edges
+	if not edge_warning_left or not edge_warning_right:
+		return
+	
+	var player_x := global_position.x
+	var player_y := global_position.y
+	var player_z := global_position.z
+	
+	# Calculate distance to each edge
+	var left_edge := -TERRAIN_HALF_WIDTH
+	var right_edge := TERRAIN_HALF_WIDTH
+	
+	var dist_to_left := player_x - left_edge  # Positive when inside terrain
+	var dist_to_right := right_edge - player_x  # Positive when inside terrain
+	
+	# Left edge warning
+	if dist_to_left < EDGE_WARNING_DISTANCE and dist_to_left > 0:
+		var intensity := 1.0 - (dist_to_left / EDGE_WARNING_DISTANCE)
+		intensity = intensity * intensity  # Quadratic falloff (more intense closer to edge)
+		_show_edge_warning(edge_warning_left, left_edge, player_y, player_z, intensity, false)
+	else:
+		edge_warning_left.visible = false
+	
+	# Right edge warning
+	if dist_to_right < EDGE_WARNING_DISTANCE and dist_to_right > 0:
+		var intensity := 1.0 - (dist_to_right / EDGE_WARNING_DISTANCE)
+		intensity = intensity * intensity  # Quadratic falloff
+		_show_edge_warning(edge_warning_right, right_edge, player_y, player_z, intensity, true)
+	else:
+		edge_warning_right.visible = false
+
+
+func _show_edge_warning(warning: MeshInstance3D, edge_x: float, _player_y: float, player_z: float, intensity: float, is_right: bool) -> void:
+	## Position and show edge warning wall at the actual barrier position
+	warning.visible = true
+	
+	# Get terrain height at the edge position (not player height)
+	var terrain_y: float = 0.0
+	if terrain_generator and terrain_generator.has_method("get_height_at"):
+		terrain_y = terrain_generator.get_height_at(edge_x, player_z - 15.0)
+	
+	# Position the warning wall exactly at the barrier, at terrain level
+	# Wall extends from player_z forward (negative Z) to cover ahead view
+	warning.global_position = Vector3(edge_x, terrain_y + 6.0, player_z - 15.0)  # Centered ahead, at terrain height
+	
+	# Rotate to match slope angle (tilted downhill - negative X rotation)
+	var slope_radians := deg_to_rad(terrain_slope)
+	warning.rotation = Vector3(-slope_radians, 0.0, 0.0)  # Tilt down to match slope
+	
+	# Update material opacity and color based on intensity
+	var alpha := clampf(intensity * 0.6, 0.0, 0.6)  # Max 60% opacity
+	# Gradient from orange (far) to red (close)
+	var red := 1.0
+	var green := 0.3 * (1.0 - intensity)  # More orange when further
+	edge_warning_material.albedo_color = Color(red, green, 0.0, alpha)
+
+
+func _cleanup_edge_warnings() -> void:
+	## Remove edge warning meshes from scene (they're added to root, not player)
+	if edge_warning_left and is_instance_valid(edge_warning_left):
+		edge_warning_left.queue_free()
+		edge_warning_left = null
+	if edge_warning_right and is_instance_valid(edge_warning_right):
+		edge_warning_right.queue_free()
+		edge_warning_right = null
+
+
+func _exit_tree() -> void:
+	## Clean up edge warnings when player is removed from scene
+	_cleanup_edge_warnings()
 
 # ========== Supercharge System ==========
 
