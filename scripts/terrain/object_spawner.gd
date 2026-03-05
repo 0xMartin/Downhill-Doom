@@ -1338,6 +1338,8 @@ func _get_model_aabb(node: Node) -> AABB:
 func _apply_material_recursive(node: Node) -> void:
 	if node is MeshInstance3D:
 		var mesh_instance := node as MeshInstance3D
+		# Disable shadows for all spawned objects (big performance win on mobile)
+		mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		if mesh_instance.mesh:
 			var surface_count := mesh_instance.mesh.get_surface_count()
 			for i in range(surface_count):

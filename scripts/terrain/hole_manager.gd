@@ -220,7 +220,7 @@ func _create_hole_particles(parent: Node3D, pos: Vector3, emission_box: Vector3)
 	var particles := GPUParticles3D.new()
 	particles.name = "HoleFog"
 	particles.position = pos
-	particles.amount = 64
+	particles.amount = 30  # Reduced from 64 for mobile performance
 	particles.lifetime = 5.0
 	particles.speed_scale = 0.5
 	particles.visibility_aabb = AABB(Vector3(-30, -20, -30), Vector3(60, 40, 60))
@@ -234,8 +234,8 @@ func _create_hole_particles(parent: Node3D, pos: Vector3, emission_box: Vector3)
 	mat.gravity = Vector3(0, 0.12, 0)
 	mat.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
 	mat.emission_box_extents = emission_box / 2.0
-	mat.scale_min = 7.0
-	mat.scale_max = 14.0
+	mat.scale_min = 8.4  # 20% larger (was 7.0)
+	mat.scale_max = 16.8  # 20% larger (was 14.0)
 	
 	var gradient := Gradient.new()
 	gradient.set_color(0, Color(1.0, 0.2, 0.2, 0.0))

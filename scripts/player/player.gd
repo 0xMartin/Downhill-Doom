@@ -554,7 +554,7 @@ func _setup_unshaded_materials(node: Node) -> void:
 func _setup_dust_particles() -> void:
 	dust_particles = GPUParticles3D.new()
 	dust_particles.name = "DustParticles"
-	dust_particles.amount = 20
+	dust_particles.amount = 12  # Reduced from 20 for mobile performance
 	dust_particles.lifetime = 0.8
 	dust_particles.explosiveness = 0.0
 	dust_particles.emitting = false
@@ -810,7 +810,7 @@ func _create_supercharge_particles() -> void:
 	# Create particle system that emits glowing particles around the player
 	supercharge_particles = GPUParticles3D.new()
 	supercharge_particles.name = "SuperchargeParticles"
-	supercharge_particles.amount = 60
+	supercharge_particles.amount = 12  # Reduced from 60 for mobile performance
 	supercharge_particles.lifetime = 0.8
 	supercharge_particles.explosiveness = 0.0
 	supercharge_particles.randomness = 0.3
@@ -827,8 +827,8 @@ func _create_supercharge_particles() -> void:
 	proc_material.initial_velocity_min = 0.5
 	proc_material.initial_velocity_max = 1.5
 	proc_material.gravity = Vector3(0, 0.5, 0)  # Float up slowly
-	proc_material.scale_min = 0.15
-	proc_material.scale_max = 0.35
+	proc_material.scale_min = 0.18  # 20% larger (was 0.15)
+	proc_material.scale_max = 0.42  # 20% larger (was 0.35)
 	
 	# Color gradient from bright red/orange to transparent
 	var color_ramp := Gradient.new()

@@ -126,6 +126,8 @@ func _on_time_changed(time: float) -> void:
 
 func _on_game_paused(is_paused: bool) -> void:
 	pause_menu.visible = is_paused
+	# Disable sparkle animation processing when paused to save CPU
+	set_process(!is_paused)
 
 func _on_health_changed(health: int, max_health: int) -> void:
 	health_bar.max_value = max_health

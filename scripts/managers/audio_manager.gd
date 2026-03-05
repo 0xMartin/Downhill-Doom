@@ -95,24 +95,31 @@ func _ready() -> void:
 	if menu_stream:
 		menu_stream.loop = true
 		menu_music_player.stream = menu_stream
+	
+	# Disable processing by default - enabled when roll sound starts
+	set_process(false)
 
 func _process(delta: float) -> void:
 	# Handle roll sound fade based on ground contact with debounce
-	if roll_sound_playing:
-		# Smooth volume transition
-		var current_vol := roll_sound_player.volume_db
-		if abs(current_vol - roll_target_volume) > 0.5:
-			var fade_speed := 80.0 / ROLL_FADE_TIME  # dB per second (faster for larger range)
-			if current_vol < roll_target_volume:
-				roll_sound_player.volume_db = min(current_vol + fade_speed * delta, roll_target_volume)
-			else:
-				roll_sound_player.volume_db = max(current_vol - fade_speed * delta, roll_target_volume)
-		
-		# Pause playback when fully silent to save resources
-		if roll_sound_player.volume_db <= ROLL_SILENT_DB + 1.0 and not roll_ground_contact:
-			roll_sound_player.stream_paused = true
-		elif roll_ground_contact and roll_sound_player.stream_paused:
-			roll_sound_player.stream_paused = false
+	# Only process when roll sound is active (optimization)
+	if not roll_sound_playing:
+		set_process(false)
+		return
+	
+	# Smooth volume transition
+	var current_vol := roll_sound_player.volume_db
+	if abs(current_vol - roll_target_volume) > 0.5:
+		var fade_speed := 80.0 / ROLL_FADE_TIME  # dB per second (faster for larger range)
+		if current_vol < roll_target_volume:
+			roll_sound_player.volume_db = min(current_vol + fade_speed * delta, roll_target_volume)
+		else:
+			roll_sound_player.volume_db = max(current_vol - fade_speed * delta, roll_target_volume)
+	
+	# Pause playback when fully silent to save resources
+	if roll_sound_player.volume_db <= ROLL_SILENT_DB + 1.0 and not roll_ground_contact:
+		roll_sound_player.stream_paused = true
+	elif roll_ground_contact and roll_sound_player.stream_paused:
+		roll_sound_player.stream_paused = false
 
 # ========== UI Sounds ==========
 
@@ -200,6 +207,7 @@ func start_roll_sound() -> void:
 		roll_sound_player.stream_paused = true  # Start paused
 		roll_sound_player.play()
 		roll_sound_playing = true
+		set_process(true)  # Re-enable processing for volume fading
 
 func stop_roll_sound() -> void:
 	roll_sound_player.stop()
