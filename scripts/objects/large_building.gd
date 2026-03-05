@@ -8,6 +8,7 @@ extends RigidBody3D
 @export var object_name: String = "Large Building"
 
 var is_destroyed := false
+var gm: Node = null
 
 func _ready() -> void:
 	# Start as static (frozen) - will animate destruction when hit
@@ -15,11 +16,27 @@ func _ready() -> void:
 	add_to_group("buildings")
 	add_to_group("large_buildings")
 	
+	# Cache GameManager reference
+	gm = get_node_or_null("/root/GameManager")
+	
 	# Find and connect to DetectArea child (created by object_spawner)
 	await get_tree().process_frame  # Wait for children to be ready
 	var detect_area := get_node_or_null("DetectArea") as Area3D
 	if detect_area:
 		detect_area.body_entered.connect(_on_detect_area_body_entered)
+
+func _physics_process(_delta: float) -> void:
+	if is_destroyed:
+		return
+	
+	# Dynamically toggle collision based on supercharge state
+	# When supercharged, disable physical collision so player passes through
+	if gm and gm.is_supercharged:
+		if collision_layer != 0:
+			collision_layer = 0
+	else:
+		if collision_layer != 1:
+			collision_layer = 1
 
 func _on_detect_area_body_entered(body: Node) -> void:
 	if is_destroyed:
