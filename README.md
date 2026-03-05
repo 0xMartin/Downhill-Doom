@@ -1,7 +1,7 @@
 # Downhill Doom
 
 * Pridat vice modelu pro vice friend npc (ovce, krava, pes, kocka, tukan, tucnak, postolka, delfin)
-* enemy budovy (spike hradba, vysoka spike hradba)
+* enemy budovy (vysoka spike hradba)
 
 * Implementovat system ktery bude npc s nizsi pravdepodobnosti spawnuti zacinat spawnovat az kdyz hrace ujede urcitou vzdalenost
  

@@ -247,14 +247,52 @@ func _update_ground_state() -> void:
 	# Simple ground check: raycast downward (small tolerance for easier jumping)
 	# Scale the raycast length with the current supercharge scale
 	var current_radius := sphere_radius * supercharge_current_scale
+	
+	# Increase ground tolerance when supercharged - larger ball has more terrain irregularity issues
+	var base_tolerance := 0.8
+	var ground_tolerance: float
+	if is_supercharged:
+		# Much larger tolerance for 2x scale ball - terrain bumps cause hovering
+		ground_tolerance = base_tolerance + current_radius * 0.8  # ~1.9m total when supercharged
+	else:
+		ground_tolerance = base_tolerance
+	
 	var space_state := get_world_3d().direct_space_state
+	
+	# Main center raycast
 	var query := PhysicsRayQueryParameters3D.create(
 		global_position,
-		global_position + Vector3(0, -current_radius - 0.8, 0)  # 0.8m tolerance under sphere
+		global_position + Vector3(0, -current_radius - ground_tolerance, 0)
 	)
 	query.exclude = [get_rid()]
 	var result := space_state.intersect_ray(query)
-	is_on_ground = not result.is_empty()
+	
+	if not result.is_empty():
+		is_on_ground = true
+		return
+	
+	# When supercharged, also check additional points around the sphere for better coverage
+	if is_supercharged:
+		var check_offsets: Array[Vector3] = [
+			Vector3(current_radius * 0.7, 0, 0),
+			Vector3(-current_radius * 0.7, 0, 0),
+			Vector3(0, 0, current_radius * 0.7),
+			Vector3(0, 0, -current_radius * 0.7),
+		]
+		
+		for offset: Vector3 in check_offsets:
+			var check_pos: Vector3 = global_position + offset
+			query = PhysicsRayQueryParameters3D.create(
+				check_pos,
+				check_pos + Vector3(0, -current_radius - ground_tolerance, 0)
+			)
+			query.exclude = [get_rid()]
+			result = space_state.intersect_ray(query)
+			if not result.is_empty():
+				is_on_ground = true
+				return
+	
+	is_on_ground = false
 
 func _input(event: InputEvent) -> void:
 	if is_dead or not can_move:
