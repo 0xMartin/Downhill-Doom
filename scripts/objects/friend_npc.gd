@@ -192,52 +192,68 @@ func _play_death_animation(player: Node = null) -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.randomize()
 	
-	# Determine fly direction (away from player or random)
-	var fly_direction := Vector3.ZERO
+	# Launch FORWARD in player's direction with random spread
+	var fly_direction := Vector3(0, 0, -1)  # Default forward
 	if player and player is Node3D:
-		fly_direction = (global_position - player.global_position).normalized()
-		fly_direction.y = 0
+		# Use player's velocity direction as base
+		var player_vel := Vector3.ZERO
+		if player.has_method("get_linear_velocity"):
+			player_vel = player.get_linear_velocity()
+		elif "linear_velocity" in player:
+			player_vel = player.linear_velocity
+		
+		if player_vel.length() > 1.0:
+			fly_direction = player_vel.normalized()
+			fly_direction.y = 0
+		else:
+			# Use direction from player to NPC
+			fly_direction = (global_position - player.global_position).normalized()
+			fly_direction.y = 0
 	
 	if fly_direction.length() < 0.1:
-		# Random direction
-		var angle := rng.randf_range(0, TAU)
-		fly_direction = Vector3(cos(angle), 0, sin(angle))
+		fly_direction = Vector3(0, 0, -1)
 	
-	# Add upward component (lower = more horizontal launch)
-	fly_direction = fly_direction.normalized()
-	fly_direction.y = rng.randf_range(0.3, 0.5)
 	fly_direction = fly_direction.normalized()
 	
-	# Random rotation velocity (faster spin)
+	# Add random horizontal spread (up to 45 degrees left/right)
+	var spread_angle := rng.randf_range(-0.7, 0.7)
+	fly_direction = fly_direction.rotated(Vector3.UP, spread_angle)
+	
+	# Add upward arc component
+	fly_direction.y = rng.randf_range(0.4, 0.7)
+	fly_direction = fly_direction.normalized()
+	
+	# Tumbling rotation
 	var rotation_velocity := Vector3(
-		rng.randf_range(-20.0, 20.0),
-		rng.randf_range(-20.0, 20.0),
-		rng.randf_range(-20.0, 20.0)
+		rng.randf_range(-15.0, 15.0),
+		rng.randf_range(-8.0, 8.0),
+		rng.randf_range(-15.0, 15.0)
 	)
 	
-	# Animate flying away - much stronger launch!
-	var velocity := fly_direction * rng.randf_range(25.0, 40.0)
-	var gravity := 12.0
-	var lifetime := 1.5
+	# Launch velocity - forward arc
+	var launch_speed := rng.randf_range(25.0, 38.0)
+	var velocity := fly_direction * launch_speed
+	var anim_gravity := 22.0
+	var lifetime := 0.9
 	var elapsed := 0.0
 	
 	while elapsed < lifetime and is_instance_valid(self):
 		var delta := get_process_delta_time()
 		elapsed += delta
 		
-		# Apply physics
-		velocity.y -= gravity * delta
+		# Apply physics - parabolic arc
+		velocity.y -= anim_gravity * delta
 		global_position += velocity * delta
 		
-		# Apply rotation
+		# Apply tumbling rotation
 		if model:
 			model.rotation += rotation_velocity * delta
 		else:
 			rotation += rotation_velocity * delta
 		
-		# Air resistance
-		velocity.x *= 0.98
-		velocity.z *= 0.98
+		# Light air resistance
+		velocity.x *= 0.99
+		velocity.z *= 0.99
 		
 		var tree := get_tree()
 		if tree == null:
