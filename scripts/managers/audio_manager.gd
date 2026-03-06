@@ -58,8 +58,20 @@ const ROLL_FADE_TIME: float = 0.15  # Fade duration (half)
 const ROLL_DEBOUNCE_TIME: float = 0.1  # Debounce for ground contact changes
 const ROLL_SILENT_DB: float = -80.0  # Volume at which sound is considered silent
 
+# Supercharge pitch shift
+var is_supercharged: bool = false
+const SUPERCHARGE_PITCH_BOOST: float = 1.2  # 20% higher pitch during supercharge
+
 func _ready() -> void:
 	_load_settings()
+	
+	# Connect to GameManager for supercharge state
+	var gm := get_node_or_null("/root/GameManager")
+	if gm:
+		if gm.has_signal("supercharge_activated"):
+			gm.supercharge_activated.connect(_on_supercharge_activated)
+		if gm.has_signal("supercharge_ended"):
+			gm.supercharge_ended.connect(_on_supercharge_ended)
 	
 	# Create audio players
 	menu_music_player = AudioStreamPlayer.new()
@@ -266,7 +278,7 @@ func play_shock_wave_sound() -> void:
 		var player := AudioStreamPlayer.new()
 		player.stream = stream
 		player.volume_db = _get_sfx_db(-2.0)  # Slightly loud impact sound
-		player.pitch_scale = randf_range(0.95, 1.05)  # Slight variation
+		player.pitch_scale = _get_sfx_pitch(randf_range(0.95, 1.05))
 		add_child(player)
 		player.play()
 		player.finished.connect(player.queue_free)
@@ -295,7 +307,7 @@ func play_tree_hit_sound() -> void:
 		var player := AudioStreamPlayer.new()
 		player.stream = stream
 		player.volume_db = _get_sfx_db(-5.0)
-		player.pitch_scale = randf_range(0.9, 1.1)  # Slight pitch variation
+		player.pitch_scale = _get_sfx_pitch(randf_range(0.9, 1.1))
 		add_child(player)
 		player.play()
 		player.finished.connect(player.queue_free)
@@ -310,7 +322,7 @@ func play_building_hit_sound() -> void:
 		var player := AudioStreamPlayer.new()
 		player.stream = stream
 		player.volume_db = _get_sfx_db(-3.0)
-		player.pitch_scale = randf_range(0.9, 1.1)
+		player.pitch_scale = _get_sfx_pitch(randf_range(0.9, 1.1))
 		add_child(player)
 		player.play()
 		player.finished.connect(player.queue_free)
@@ -325,7 +337,7 @@ func play_npc_death_sound(npc_type: String) -> void:
 		var player := AudioStreamPlayer.new()
 		player.stream = stream
 		player.volume_db = _get_sfx_db(-2.0)
-		player.pitch_scale = randf_range(0.95, 1.05)
+		player.pitch_scale = _get_sfx_pitch(randf_range(0.95, 1.05))
 		add_child(player)
 		player.play()
 		player.finished.connect(player.queue_free)
@@ -416,6 +428,22 @@ func _get_sfx_db(base_db: float = 0.0) -> float:
 	if sfx_volume <= 0.0:
 		return -80.0
 	return base_db + linear_to_db(sfx_volume)
+
+
+## Get pitch with supercharge boost applied
+func _get_sfx_pitch(base_pitch: float = 1.0) -> float:
+	if is_supercharged:
+		return base_pitch * SUPERCHARGE_PITCH_BOOST
+	return base_pitch
+
+
+func _on_supercharge_activated() -> void:
+	is_supercharged = true
+
+
+func _on_supercharge_ended() -> void:
+	is_supercharged = false
+
 
 func _apply_music_volume() -> void:
 	var target_db := _get_music_db(-5.0)

@@ -34,6 +34,11 @@ var supercharge_glow_tween: Tween
 var supercharge_bar_glow_tween: Tween
 var supercharge_ready: bool = false
 
+# Low health effects
+var low_health_pulse_time: float = 0.0
+var is_low_health: bool = false
+const LOW_HEALTH_THRESHOLD: float = 0.3  # 30% health
+
 func _ready() -> void:
 	gm = get_node("/root/GameManager")
 	audio = get_node("/root/AudioManager")
@@ -81,6 +86,21 @@ func _process(delta: float) -> void:
 		sparkle.rotation = sparkle_time  # Spin while orbiting
 		var pulse := 0.6 + 0.3 * sin(sparkle_time * 3.0)
 		sparkle.modulate.a = pulse
+	
+	# Low health pulse effect on health bar
+	if is_low_health:
+		low_health_pulse_time += delta * 4.0  # Fast pulse
+		var pulse_intensity := 0.5 + 0.5 * sin(low_health_pulse_time)
+		# Pulse scale
+		var scale_pulse := 1.0 + 0.08 * pulse_intensity
+		health_bar.scale = Vector2(scale_pulse, scale_pulse)
+		# Pulse color (red tint)
+		var red_amount := 0.3 * pulse_intensity
+		health_bar.modulate = Color(1.0 + red_amount, 1.0 - red_amount * 0.5, 1.0 - red_amount * 0.5, 1.0)
+		# Pulse vignette opacity
+		if red_flash.visible:
+			var vignette_pulse := 0.15 + 0.1 * pulse_intensity
+			red_flash.modulate.a = vignette_pulse
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
@@ -134,19 +154,40 @@ func _on_health_changed(health: int, max_health: int) -> void:
 	health_bar.value = health
 	health_label.text = "%d/%d" % [health, max_health]
 	
-	# Juice animation - shrink and expand
-	var tween := create_tween()
-	tween.tween_property(health_bar, "scale", Vector2(0.95, 0.8), 0.05)
-	tween.tween_property(health_bar, "scale", Vector2.ONE, 0.1)
+	# Check for low health state
+	var health_ratio := float(health) / float(max_health) if max_health > 0 else 1.0
+	var was_low_health := is_low_health
+	is_low_health = health_ratio <= LOW_HEALTH_THRESHOLD and health > 0
+	
+	# Show/hide danger vignette for low health
+	if is_low_health and not was_low_health:
+		# Entering low health - show persistent vignette
+		red_flash.visible = true
+		red_flash.modulate.a = 0.15
+	elif not is_low_health and was_low_health:
+		# Exiting low health - hide vignette and reset health bar
+		red_flash.visible = false
+		health_bar.scale = Vector2.ONE
+		health_bar.modulate = Color.WHITE
+	
+	# Juice animation - shrink and expand (only if not in low health pulse)
+	if not is_low_health:
+		var tween := create_tween()
+		tween.tween_property(health_bar, "scale", Vector2(0.95, 0.8), 0.05)
+		tween.tween_property(health_bar, "scale", Vector2.ONE, 0.1)
 
 func _on_player_hit(damage: int) -> void:
-	# Flash red overlay
+	# Flash red overlay (bright flash that fades)
 	red_flash.visible = true
 	red_flash.modulate.a = 1.0
 	
 	var tween := create_tween()
-	tween.tween_property(red_flash, "modulate:a", 0.0, 0.3)
-	tween.tween_callback(func(): red_flash.visible = false)
+	# If low health, fade to vignette level instead of hiding
+	if is_low_health:
+		tween.tween_property(red_flash, "modulate:a", 0.15, 0.3)
+	else:
+		tween.tween_property(red_flash, "modulate:a", 0.0, 0.3)
+		tween.tween_callback(func(): red_flash.visible = false)
 	
 	# Show damage popup
 	show_damage_popup(damage)
