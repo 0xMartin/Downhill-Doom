@@ -397,14 +397,10 @@ func _spawn_landing_shock_wave() -> void:
 	else:
 		ShockWaveManager.spawn_shock_wave(shock_position, ShockWaveManager.Source.PLAYER)
 	
-	# Small screen shake for impact
+	# Screen shake for impact (no vibration)
 	var camera := get_viewport().get_camera_3d()
 	if camera and camera.has_method("shake"):
-		camera.shake(0.4)
-	
-	# Haptic feedback
-	if audio_manager:
-		audio_manager.vibrate(80)
+		camera.shake(0.8)
 
 
 func die() -> void:

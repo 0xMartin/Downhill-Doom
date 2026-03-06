@@ -1,8 +1,8 @@
 # Downhill Doom
 
 ## Prioritni
-* Pridat vice modelu pro vice friend npc (ovce, krava, pes, kocka, tukan, tucnak, postolka, delfin)
-* enemy budovy (vysoka spike hradba)
+* Pridat vice modelu pro vice friend npc (pes, kocka, tukan, tucnak)
+* zvuk: letadlo, ovce, pes, kocka, tukan, tucnak, krava (lepši zvuk)
 
 * Implementovat system ktery bude npc s nizsi pravdepodobnosti spawnuti zacinat spawnovat az kdyz hrace ujede urcitou vzdalenost
  

@@ -113,6 +113,7 @@ static func _apply_shock_wave_effects(position: Vector3, radius: float, source: 
 			_damage_destructibles(position, radius, scene_root)
 		Source.ENEMY:
 			_damage_player(position, radius, scene_root)
+			_shake_camera_by_distance(position, radius, scene_root)
 
 
 ## Damage/destroy destructible objects (trees, NPCs, buildings) in radius
@@ -186,3 +187,35 @@ static func _is_in_radius(node: Node, position: Vector3, radius: float) -> bool:
 	var node_pos: Vector3 = (node as Node3D).global_position
 	var distance := position.distance_to(node_pos)
 	return distance <= radius
+
+
+## Shake camera based on distance from explosion (for enemy shock waves)
+## Maximum shake at explosion center, fades to zero at max_distance
+static func _shake_camera_by_distance(position: Vector3, radius: float, scene_root: Node) -> void:
+	var player := scene_root.get_tree().get_first_node_in_group("player")
+	if not player or not player is Node3D:
+		return
+	
+	var player_pos: Vector3 = (player as Node3D).global_position
+	var distance := position.distance_to(player_pos)
+	
+	# Shake range is larger than damage radius (can feel explosions from further away)
+	var max_shake_distance := radius * 3.0
+	
+	if distance > max_shake_distance:
+		return
+	
+	# Calculate intensity: max at center, zero at max_shake_distance
+	# intensity = 1.0 at distance 0, 0.0 at max_shake_distance
+	var intensity_factor := 1.0 - (distance / max_shake_distance)
+	intensity_factor = clampf(intensity_factor, 0.0, 1.0)
+	
+	# Apply easing for more natural falloff (quadratic)
+	intensity_factor = intensity_factor * intensity_factor
+	
+	# Calculate final shake intensity (max 1.6 at center, min 0.2 at edge)
+	var shake_intensity := 0.2 + intensity_factor * 1.4
+	
+	var camera := scene_root.get_viewport().get_camera_3d()
+	if camera and camera.has_method("shake"):
+		camera.shake(shake_intensity)
