@@ -10,7 +10,7 @@ signal game_started
 signal game_paused(is_paused: bool)
 signal object_destroyed(object_id: String, object_name: String, coins: int)
 signal time_changed(time: float)
-signal supercharge_changed(charge: float, max_charge: float)
+signal supercharge_changed(current: int, required: int)
 signal supercharge_activated
 signal supercharge_ended
 
@@ -28,12 +28,13 @@ var max_health: int = 100
 var health: int = 100
 var infinite_health: bool = false  # Debug: skip damage
 
-# Supercharge system
-var supercharge: float = 0.0
-var max_supercharge: float = 100.0
+# Supercharge system (count-based with escalating requirements)
+var supercharge_objects: int = 0  # Objects destroyed since last supercharge
+var supercharge_activations: int = 0  # How many times supercharge has been activated
 var is_supercharged: bool = false
-var supercharge_duration: float = 6.0  # Duration in seconds
+var supercharge_duration: float = 10.0  # Duration in seconds
 var supercharge_timer: float = 0.0
+const SUPERCHARGE_BASE_REQUIREMENT: int = 10  # First activation needs 10, then 20, 30...
 
 # Player reference
 var player: Node3D
@@ -65,13 +66,14 @@ func _process(_delta: float) -> void:
 			distance = current_distance
 			distance_changed.emit(distance)
 		
-		# Handle supercharge timer and gradual bar drain
+		# Handle supercharge timer countdown
 		if is_supercharged:
 			supercharge_timer -= _delta
-			# Update the bar to show remaining time as a percentage
+			# During supercharge, emit smooth values for progress bar
+			# Use 1000x scale for smooth animation, HUD will detect active state
 			var remaining_ratio := supercharge_timer / supercharge_duration
-			supercharge = max_supercharge * remaining_ratio
-			supercharge_changed.emit(supercharge, max_supercharge)
+			var scaled_current := int(remaining_ratio * 1000.0)
+			supercharge_changed.emit(scaled_current, 1000)
 			
 			if supercharge_timer <= 0:
 				end_supercharge()
@@ -85,10 +87,11 @@ func start_game() -> void:
 	is_paused = false
 	
 	# Reset supercharge
-	supercharge = 0.0
+	supercharge_objects = 0
+	supercharge_activations = 0
 	is_supercharged = false
 	supercharge_timer = 0.0
-	supercharge_changed.emit(supercharge, max_supercharge)
+	supercharge_changed.emit(supercharge_objects, get_supercharge_requirement())
 	
 	# Reset stats
 	destroyed_objects.clear()
@@ -149,8 +152,8 @@ func record_destroyed_object(object_id: String, object_name: String, coin_value:
 	# Emit signal for UI updates
 	object_destroyed.emit(object_id, object_name, coin_value)
 	
-	# Add supercharge from destroying objects (10 charge per object)
-	add_supercharge(10.0)
+	# Add supercharge progress from destroying objects
+	add_supercharge_object()
 
 ## Get count of destroyed objects by ID
 func get_destroyed_count(object_id: String) -> int:
@@ -263,22 +266,25 @@ static func format_time_static(time_seconds: float) -> String:
 
 # ========== Supercharge System ==========
 
-## Add charge from destroying objects
-func add_supercharge(amount: float) -> void:
+## Get current supercharge requirement based on activation count
+func get_supercharge_requirement() -> int:
+	return SUPERCHARGE_BASE_REQUIREMENT * (supercharge_activations + 1)
+
+## Add one object to supercharge counter (called when destroying objects)
+func add_supercharge_object() -> void:
 	if is_supercharged:
 		return  # Don't charge while supercharged
 	
-	supercharge = minf(supercharge + amount, max_supercharge)
-	supercharge_changed.emit(supercharge, max_supercharge)
+	supercharge_objects += 1
+	supercharge_changed.emit(supercharge_objects, get_supercharge_requirement())
 
 ## Activate supercharge if fully charged
 func activate_supercharge() -> bool:
-	if supercharge < max_supercharge or is_supercharged:
+	if supercharge_objects < get_supercharge_requirement() or is_supercharged:
 		return false
 	
 	is_supercharged = true
 	supercharge_timer = supercharge_duration
-	# Keep supercharge at max - let _process gradually drain it based on remaining time
 	supercharge_activated.emit()
 	
 	# Play sound
@@ -295,13 +301,14 @@ func end_supercharge() -> void:
 	
 	is_supercharged = false
 	supercharge_timer = 0.0
-	supercharge = 0.0  # Empty bar when ending
-	supercharge_changed.emit(supercharge, max_supercharge)
+	supercharge_activations += 1  # Increment for next requirement
+	supercharge_objects = 0  # Reset counter
+	supercharge_changed.emit(supercharge_objects, get_supercharge_requirement())
 	supercharge_ended.emit()
 
 ## Check if supercharge is ready to activate
 func is_supercharge_ready() -> bool:
-	return supercharge >= max_supercharge and not is_supercharged
+	return supercharge_objects >= get_supercharge_requirement() and not is_supercharged
 
 ## Clean up planes and bombs added to root (they don't get cleaned up with scene change)
 func _cleanup_root_objects() -> void:

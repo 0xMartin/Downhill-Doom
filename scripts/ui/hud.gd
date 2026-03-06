@@ -33,6 +33,7 @@ var supercharge_button: TextureButton
 var supercharge_glow_tween: Tween
 var supercharge_bar_glow_tween: Tween
 var supercharge_ready: bool = false
+var supercharge_count_label: Label
 
 # Low health effects
 var low_health_pulse_time: float = 0.0
@@ -485,6 +486,25 @@ func _create_supercharge_ui() -> void:
 	
 	bar_container.add_child(supercharge_bar)
 	
+	# Create centered container for the label
+	var label_center := CenterContainer.new()
+	label_center.name = "LabelCenter"
+	label_center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	bar_container.add_child(label_center)
+	
+	# Create count label overlay on the bar (shows "current\n━\nrequired")
+	supercharge_count_label = Label.new()
+	supercharge_count_label.name = "SuperchargeCountLabel"
+	supercharge_count_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	supercharge_count_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	supercharge_count_label.text = "0\n━\n10"
+	supercharge_count_label.add_theme_font_size_override("font_size", 16)
+	supercharge_count_label.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 1.0))
+	# Bold effect via outline
+	supercharge_count_label.add_theme_constant_override("outline_size", 4)
+	supercharge_count_label.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 0.9))
+	label_center.add_child(supercharge_count_label)
+	
 	# Create CenterContainer to center the circular button
 	var button_center := CenterContainer.new()
 	button_center.name = "ButtonCenter"
@@ -538,16 +558,25 @@ func _create_supercharge_ui() -> void:
 	supercharge_button.pressed.connect(_on_supercharge_button_pressed)
 	button_bg.add_child(supercharge_button)
 
-func _on_supercharge_changed(charge: float, max_charge: float) -> void:
+func _on_supercharge_changed(current: int, required: int) -> void:
 	if not supercharge_bar:
 		return
 	
-	supercharge_bar.max_value = max_charge
-	supercharge_bar.value = charge
+	supercharge_bar.max_value = required
+	supercharge_bar.value = current
+	
+	# Update count label - during supercharge show remaining seconds
+	if supercharge_count_label:
+		if gm.is_supercharged:
+			# Show remaining time during supercharge
+			var remaining_secs := int(ceil(gm.supercharge_timer))
+			supercharge_count_label.text = str(remaining_secs) + "\n━\n" + str(int(gm.supercharge_duration))
+		else:
+			supercharge_count_label.text = str(current) + "\n━\n" + str(required)
 	
 	# Check if ready
 	var was_ready := supercharge_ready
-	supercharge_ready = charge >= max_charge and not gm.is_supercharged
+	supercharge_ready = current >= required and not gm.is_supercharged
 	
 	# Update button appearance
 	if supercharge_ready and not was_ready:

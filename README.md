@@ -2,7 +2,7 @@
 
 ## Prioritni
 * Pridat vice modelu pro vice friend npc (pes, kocka, tukan, tucnak)
-* zvuk: letadlo, ovce, pes, kocka, tukan, tucnak, krava (lepši zvuk)
+* zvuk: pes, kocka, tukan, tucnak
 
 * Implementovat system ktery bude npc s nizsi pravdepodobnosti spawnuti zacinat spawnovat az kdyz hrace ujede urcitou vzdalenost
  

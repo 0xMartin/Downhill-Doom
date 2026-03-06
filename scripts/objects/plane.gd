@@ -383,9 +383,9 @@ func _die(player_velocity: Vector3 = Vector3.FORWARD * 20.0) -> void:
 		if gm.has_method("record_destroyed_object"):
 			gm.record_destroyed_object(object_id, object_name, coin_value)
 	
-	# Play sound
-	if audio_manager and audio_manager.has_method("play_sfx"):
-		audio_manager.play_sfx("explosion")
+	# Play death sound
+	if audio_manager and audio_manager.has_method("play_npc_death_sound"):
+		audio_manager.play_npc_death_sound("plane")
 	
 	# Use DestructionManager to shatter the plane (like buildings)
 	var destruction := get_node_or_null("/root/DestructionManager")

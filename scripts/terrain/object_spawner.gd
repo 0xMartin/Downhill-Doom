@@ -67,7 +67,6 @@ var height_offset_spike: float = 0.2  # Spikes need clearance
 
 # ========== INTERNAL STATE ==========
 
-var color_palette_material: StandardMaterial3D
 var hole_manager: RefCounted  # HoleManager
 var zone_manager: RefCounted  # ZoneManager
 
@@ -99,8 +98,6 @@ func _init(config: Dictionary) -> void:
 	num_lanes = config.get("num_lanes", 5)
 	rock_safe_chunks = config.get("rock_safe_chunks", 2)
 	
-	_setup_material()
-	
 	# Create zone manager with noise-based zones
 	var ZoneManagerScript := preload("res://scripts/terrain/zone_manager.gd")
 	zone_manager = ZoneManagerScript.new({
@@ -109,15 +106,6 @@ func _init(config: Dictionary) -> void:
 		"forest_threshold": -0.1,
 		"building_threshold": 0.1,
 	})
-
-func _setup_material() -> void:
-	color_palette_material = StandardMaterial3D.new()
-	var texture := load("res://assets/textures/color-palette.png") as Texture2D
-	if texture:
-		color_palette_material.albedo_texture = texture
-		color_palette_material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
-	color_palette_material.roughness = 0.9
-	color_palette_material.shading_mode = BaseMaterial3D.SHADING_MODE_PER_VERTEX
 
 ## Get cached PackedScene (avoids repeated load() calls)
 func _get_cached_scene(model_path: String) -> PackedScene:
@@ -710,7 +698,7 @@ func _try_spawn_plane(chunk: Node3D, chunk_index: int, get_height_func: Callable
 		var model: Node3D = model_scene.instantiate() as Node3D
 		if model:
 			# Apply color palette material
-			_apply_material_recursive(model)
+			_disable_shadows_recursive(model)
 			
 			# Scale to target height
 			_scale_to_target_height(model, obj_data.target_height)
@@ -950,7 +938,7 @@ func _create_tree(obj_data: RefCounted, rng: RandomNumberGenerator) -> RigidBody
 	if model_scene:
 		model = model_scene.instantiate()
 		model.name = "Model"
-		_apply_material_recursive(model)
+		_disable_shadows_recursive(model)
 		tree.add_child(model)
 	
 	# Detection area with AABB-based collision
@@ -1002,7 +990,7 @@ func _create_building(obj_data: RefCounted, rng: RandomNumberGenerator) -> Rigid
 	if model_scene:
 		model = model_scene.instantiate()
 		model.name = "Model"
-		_apply_material_recursive(model)
+		_disable_shadows_recursive(model)
 		building.add_child(model)
 	
 	# Detection area with AABB-based collision
@@ -1054,7 +1042,7 @@ func _create_large_building(obj_data: RefCounted, rng: RandomNumberGenerator) ->
 	if model_scene:
 		model = model_scene.instantiate()
 		model.name = "Model"
-		_apply_material_recursive(model)
+		_disable_shadows_recursive(model)
 		building.add_child(model)
 	
 	# Calculate bounding box from model
@@ -1116,7 +1104,7 @@ func _create_building_enemy(obj_data: RefCounted, rng: RandomNumberGenerator) ->
 	if model_scene:
 		model = model_scene.instantiate()
 		model.name = "Model"
-		_apply_material_recursive(model)
+		_disable_shadows_recursive(model)
 		enemy.add_child(model)
 	
 	# Calculate AABB from model for collision
@@ -1180,7 +1168,7 @@ func _create_rock(obj_data: RefCounted, rng: RandomNumberGenerator) -> StaticBod
 	if model_scene:
 		var model := model_scene.instantiate()
 		model.name = "Model"
-		_apply_material_recursive(model)
+		_disable_shadows_recursive(model)
 		rock.add_child(model)
 	
 	var col_shape := CollisionShape3D.new()
@@ -1221,7 +1209,7 @@ func _create_friend_npc(obj_data: RefCounted, rng: RandomNumberGenerator) -> Cha
 	if model_scene:
 		model = model_scene.instantiate()
 		model.name = "Model"
-		_apply_material_recursive(model)
+		_disable_shadows_recursive(model)
 		npc.add_child(model)
 	
 	# Calculate AABB from model for detection area
@@ -1287,7 +1275,7 @@ func _create_enemy_npc(obj_data: RefCounted, rng: RandomNumberGenerator) -> Char
 	if model_scene:
 		model = model_scene.instantiate()
 		model.name = "Model"
-		_apply_material_recursive(model)
+		_disable_shadows_recursive(model)
 		npc.add_child(model)
 	
 	# Calculate AABB from model for detection area
@@ -1411,30 +1399,20 @@ func _get_model_aabb(node: Node) -> AABB:
 	
 	return combined_aabb
 
-func _apply_material_recursive(node: Node) -> void:
+func _disable_shadows_recursive(node: Node) -> void:
 	if node is MeshInstance3D:
 		var mesh_instance := node as MeshInstance3D
 		# Disable shadows for all spawned objects (big performance win on mobile)
 		mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		# Make materials unshaded (no reflections, no lighting calculations)
 		if mesh_instance.mesh:
-			var surface_count := mesh_instance.mesh.get_surface_count()
-			for i in range(surface_count):
-				var existing_mat := mesh_instance.get_active_material(i)
-				var new_mat: StandardMaterial3D
-				
-				if existing_mat is StandardMaterial3D:
-					new_mat = existing_mat.duplicate() as StandardMaterial3D
-				else:
-					new_mat = StandardMaterial3D.new()
-					new_mat.albedo_color = Color(0.5, 0.5, 0.5)
-				
-				new_mat.albedo_texture = color_palette_material.albedo_texture
-				new_mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
-				new_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-				mesh_instance.set_surface_override_material(i, new_mat)
+			for i in range(mesh_instance.mesh.get_surface_count()):
+				var mat := mesh_instance.get_active_material(i)
+				if mat is StandardMaterial3D:
+					mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	
 	for child in node.get_children():
-		_apply_material_recursive(child)
+		_disable_shadows_recursive(child)
 
 ## Clean up spawn positions for removed chunk
 func cleanup_chunk(chunk_index: int) -> void:
