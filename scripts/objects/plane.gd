@@ -14,8 +14,8 @@ const BombScript := preload("res://scripts/objects/bomb.gd")
 # Flight parameters
 const FLIGHT_SPEED_MIN: float = 22.0  # m/s
 const FLIGHT_SPEED_MAX: float = 28.0
-const FLIGHT_ALTITUDE_MIN: float = 10.0  # meters above terrain (lower)
-const FLIGHT_ALTITUDE_MAX: float = 14.0
+const FLIGHT_ALTITUDE_MIN: float = 8.0  # meters above terrain (lower)
+const FLIGHT_ALTITUDE_MAX: float = 11.0
 const DESPAWN_DISTANCE: float = 150.0  # Distance behind player to despawn (enough for contrail to fade)
 
 # Bomb dropping
@@ -27,6 +27,11 @@ const SHOCK_WAVE_RADIUS: float = 12.0
 # Tilt animation
 const TILT_SPEED: float = 1.5  # How fast the tilt changes
 const TILT_MAX_ANGLE: float = 8.0  # Maximum tilt in degrees
+
+# Contrail trail
+const TRAIL_LENGTH: int = 180
+const TRAIL_WIDTH: float = 0.3
+const TRAIL_COLOR := Color(1.0, 1.0, 1.0, 0.7)
 
 # Internal state
 var is_dead := false
@@ -57,8 +62,10 @@ var collision_area: Area3D
 # Audio
 var jet_audio: AudioStreamPlayer3D
 
-# Contrail (smoke trail)
-var contrail: GPUParticles3D
+# Contrail trail
+var trail_points: Array[Vector3] = []
+var trail_mesh: MeshInstance3D
+var trail_material: StandardMaterial3D
 
 
 func _ready() -> void:
@@ -77,7 +84,8 @@ func _ready() -> void:
 	tilt_phase = rng.randf() * TAU  # Random starting phase
 	
 	# Find model
-	await get_tree().process_frame
+	if get_tree():
+		await get_tree().process_frame
 	model = get_node_or_null("Model")
 	if model:
 		# Face toward player (+Z direction since player is at less negative Z)
@@ -149,59 +157,76 @@ func _on_jet_audio_finished() -> void:
 
 
 func _setup_contrail() -> void:
-	## Create contrail/smoke trail behind the plane
-	contrail = GPUParticles3D.new()
-	contrail.name = "Contrail"
-	contrail.amount = 60
-	contrail.lifetime = 3.0  # Long trail
-	contrail.explosiveness = 0.0
-	contrail.emitting = true
+	## Create simple ribbon trail mesh
+	trail_mesh = MeshInstance3D.new()
+	trail_mesh.name = "Contrail"
 	
-	var proc_mat := ParticleProcessMaterial.new()
-	# Emit behind the plane (negative Z direction relative to plane)
-	proc_mat.direction = Vector3(0, 0, -1)
-	proc_mat.spread = 5.0  # Tight spread
-	proc_mat.initial_velocity_min = 1.0
-	proc_mat.initial_velocity_max = 2.0
-	proc_mat.gravity = Vector3(0, 0.5, 0)  # Slight upward drift
-	proc_mat.damping_min = 1.0
-	proc_mat.damping_max = 2.0
+	trail_material = StandardMaterial3D.new()
+	trail_material.albedo_color = TRAIL_COLOR
+	trail_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	trail_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	trail_material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	trail_material.vertex_color_use_as_albedo = true
 	
-	# Scale: start small, grow, then fade
-	proc_mat.scale_min = 0.3
-	proc_mat.scale_max = 0.5
-	var scale_curve := Curve.new()
-	scale_curve.add_point(Vector2(0.0, 0.3))
-	scale_curve.add_point(Vector2(0.3, 1.0))
-	scale_curve.add_point(Vector2(1.0, 1.5))
-	var scale_tex := CurveTexture.new()
-	scale_tex.curve = scale_curve
-	proc_mat.scale_curve = scale_tex
+	# Trail is added to root, not to plane (so it stays in world space)
+	get_tree().root.call_deferred("add_child", trail_mesh)
+
+
+func _update_trail() -> void:
+	## Add current position to trail and rebuild mesh
+	if not trail_mesh or not is_instance_valid(trail_mesh):
+		return
 	
-	# Color: white smoke that fades out
-	var color_ramp := Gradient.new()
-	color_ramp.set_color(0, Color(0.9, 0.9, 0.95, 0.7))  # Bright white-gray
-	color_ramp.set_color(1, Color(0.7, 0.7, 0.75, 0.0))  # Fade to transparent
-	var color_tex := GradientTexture1D.new()
-	color_tex.gradient = color_ramp
-	proc_mat.color_ramp = color_tex
+	var tail_pos := global_position + Vector3(0, 0, 1.5)  # Behind plane
+	trail_points.insert(0, tail_pos)
+	if trail_points.size() > TRAIL_LENGTH:
+		trail_points.resize(TRAIL_LENGTH)
 	
-	contrail.process_material = proc_mat
+	if trail_points.size() < 2:
+		return
 	
-	# Simple sphere mesh for smoke puffs
-	var mesh := SphereMesh.new()
-	mesh.radius = 0.8
-	mesh.height = 1.6
-	var mesh_mat := StandardMaterial3D.new()
-	mesh_mat.albedo_color = Color(0.95, 0.95, 1.0)
-	mesh_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	mesh_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	mesh.material = mesh_mat
-	contrail.draw_pass_1 = mesh
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLE_STRIP)
 	
-	# Position behind the plane (at engine/tail)
-	contrail.position = Vector3(0, 0, 2.0)  # Behind the plane
-	add_child(contrail)
+	var camera := get_viewport().get_camera_3d()
+	if not camera:
+		return
+	
+	var cam_pos := camera.global_position
+	
+	for i in range(trail_points.size()):
+		var point := trail_points[i]
+		var alpha: float = 1.0 - (float(i) / float(trail_points.size()))
+		var width: float = TRAIL_WIDTH * alpha
+		
+		# Calculate perpendicular direction for ribbon
+		var to_cam := (cam_pos - point).normalized()
+		var forward: Vector3
+		if i < trail_points.size() - 1:
+			forward = (trail_points[i] - trail_points[i + 1]).normalized()
+		else:
+			forward = velocity.normalized()
+		
+		var right := forward.cross(to_cam).normalized() * width
+		
+		# Add vertices with fading alpha
+		var color := Color(TRAIL_COLOR.r, TRAIL_COLOR.g, TRAIL_COLOR.b, alpha * TRAIL_COLOR.a)
+		
+		st.set_color(color)
+		st.add_vertex(point + right)
+		st.set_color(color)
+		st.add_vertex(point - right)
+	
+	trail_mesh.mesh = st.commit()
+	trail_mesh.material_override = trail_material
+
+
+func _cleanup_trail() -> void:
+	## Remove trail mesh from scene
+	if trail_mesh and is_instance_valid(trail_mesh):
+		trail_mesh.queue_free()
+		trail_mesh = null
+	trail_points.clear()
 
 
 func _process(delta: float) -> void:
@@ -213,6 +238,9 @@ func _process(delta: float) -> void:
 	
 	# Move plane
 	_update_flight(delta)
+	
+	# Update trail
+	_update_trail()
 	
 	# Check if should drop bombs
 	_update_bombing(delta)
@@ -310,6 +338,7 @@ func _check_despawn() -> void:
 	# Plane flies in +Z direction, despawn when far enough behind for contrail to fade
 	# (contrail lifetime is 3s, at ~25m/s that's ~75m, we use 150m for safety)
 	if global_position.z > player.global_position.z + DESPAWN_DISTANCE:
+		_cleanup_trail()
 		queue_free()
 
 
@@ -341,9 +370,8 @@ func _die(player_velocity: Vector3 = Vector3.FORWARD * 20.0) -> void:
 		jet_audio.stop()
 		jet_audio.queue_free()
 	
-	# Stop contrail
-	if contrail and is_instance_valid(contrail):
-		contrail.emitting = false
+	# Cleanup trail
+	_cleanup_trail()
 	
 	# Award coins and record stats BEFORE destruction
 	var gm: Node = get_node_or_null("/root/GameManager")

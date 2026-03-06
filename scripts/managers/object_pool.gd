@@ -32,6 +32,24 @@ func _ready() -> void:
 	_pool_holder.name = "PooledObjects"
 	_pool_holder.visible = false
 	add_child(_pool_holder)
+	
+	# Periodically clean invalid entries from pools
+	var timer := Timer.new()
+	timer.wait_time = 5.0
+	timer.autostart = true
+	timer.timeout.connect(_cleanup_invalid_entries)
+	add_child(timer)
+
+
+## Remove invalid/freed objects from all pools
+func _cleanup_invalid_entries() -> void:
+	for key in _pools.keys():
+		var pool: Array = _pools[key]
+		var i := pool.size() - 1
+		while i >= 0:
+			if not is_instance_valid(pool[i]):
+				pool.remove_at(i)
+			i -= 1
 
 
 ## Get pool key for a model+category combination
@@ -53,7 +71,8 @@ func get_object(model_path: String, category: int) -> Node3D:
 	if not _pools.has(key) or _pools[key].size() == 0:
 		return null
 	
-	var obj: Node3D = _pools[key].pop_back()
+	# Pop as Variant to avoid typed assignment error on freed instances
+	var obj = _pools[key].pop_back()
 	
 	# Validate object is still valid
 	if not is_instance_valid(obj):

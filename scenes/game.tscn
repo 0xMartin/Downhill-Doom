@@ -4,7 +4,7 @@
 [ext_resource type="Script" uid="uid://b1fqoe2lmpcri" path="res://scripts/player/camera_follow.gd" id="2_camera"]
 [ext_resource type="Script" uid="uid://rrb4obtt7obu" path="res://scripts/terrain/terrain_generator.gd" id="3_terrain"]
 [ext_resource type="PackedScene" uid="uid://hud001" path="res://scenes/hud.tscn" id="4_hud"]
-[ext_resource type="PackedScene" path="res://scenes/death_menu.tscn" id="5_death"]
+[ext_resource type="PackedScene" uid="uid://death001" path="res://scenes/death_menu.tscn" id="5_death"]
 [ext_resource type="Texture2D" uid="uid://dhwpgg8erh5n5" path="res://assets/skybox/Epic_GloriousPink_EquiRect.png" id="6_skybox"]
 
 [sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_1"]
@@ -21,9 +21,13 @@ ambient_light_source = 1
 ambient_light_color = Color(1, 1, 1, 1)
 ambient_light_energy = 0.6
 fog_enabled = true
-fog_light_color = Color(0.7, 0.75, 0.85, 1)
-fog_density = 0.002
-fog_sky_affect = 0.3
+fog_mode = 1
+fog_light_color = Color(0.6915058, 0.7331261, 0.95488065, 1)
+fog_density = 1.0
+fog_sky_affect = 0.833
+fog_depth_curve = 1.5
+fog_depth_begin = 40.0
+fog_depth_end = 180.0
 
 [node name="Game" type="Node3D" unique_id=1842668777]
 
@@ -34,15 +38,13 @@ environment = SubResource("Environment_1")
 transform = Transform3D(1, 0, 0, 0, 0.5, 0.866, 0, -0.866, 0.5, 0, 50, 50)
 light_color = Color(1, 0.98, 0.95, 1)
 light_energy = 1.2
-shadow_enabled = false
 
 [node name="TerrainGenerator" type="Node3D" parent="." unique_id=1904949631]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -7.4005804, 0)
 script = ExtResource("3_terrain")
-chunk_size = Vector2(100, 50)
+chunks_ahead = 4
 chunks_behind = 1
-noise_height = 1.0
-tree_density = 0.5
-terrain_width = 36.0
+tree_density = 0.55
 
 [node name="Player" parent="." unique_id=1084123691 instance=ExtResource("1_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -3, -25)

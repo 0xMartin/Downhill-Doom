@@ -54,7 +54,8 @@ func _ready() -> void:
 		model.rotation.y = PI
 	
 	# Connect detection area
-	await get_tree().process_frame
+	if get_tree():
+		await get_tree().process_frame
 	var detect_area := get_node_or_null("DetectArea") as Area3D
 	if detect_area:
 		detect_area.body_entered.connect(_on_detect_area_body_entered)
@@ -262,7 +263,10 @@ func _play_death_animation(killer: Node = null) -> void:
 		anim_velocity.x *= 0.98
 		anim_velocity.z *= 0.98
 		
-		await get_tree().process_frame
+		var tree := get_tree()
+		if tree == null:
+			break
+		await tree.process_frame
 	
 	# Remove from scene
 	if is_instance_valid(self):

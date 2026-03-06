@@ -24,6 +24,7 @@ var trail_material: StandardMaterial3D
 var trail_points: Array[Vector3] = []
 var _surface_tool: SurfaceTool  # Reused for trail mesh building
 var _trail_array_mesh: ArrayMesh  # Reused mesh to avoid allocations
+var min_flight_time: float = 0.8  # Minimum time before bomb can explode (prevents mid-air issue)
 
 # References
 var terrain_generator: Node3D = null
@@ -103,12 +104,14 @@ func _process(delta: float) -> void:
 		trail_points.resize(TRAIL_LENGTH)
 	_update_trail_mesh()
 	
-	# Get terrain height at bomb position
-	if terrain_generator and terrain_generator.has_method("get_height_at"):
+	# Get terrain height at bomb position (accounting for holes)
+	if terrain_generator and terrain_generator.has_method("get_ground_level_at"):
+		ground_level = terrain_generator.get_ground_level_at(global_position.x, global_position.z)
+	elif terrain_generator and terrain_generator.has_method("get_height_at"):
 		ground_level = terrain_generator.get_height_at(global_position.x, global_position.z)
 	
-	# Check ground collision
-	if global_position.y <= ground_level + 0.5:
+	# Check ground collision (only after minimum flight time to prevent mid-air explosions)
+	if time_alive >= min_flight_time and global_position.y <= ground_level + 0.5:
 		_on_ground_impact()
 
 

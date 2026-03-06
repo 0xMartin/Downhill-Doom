@@ -48,7 +48,8 @@ func _ready() -> void:
 	fire_time = FIRE_FRAME / ANIMATION_FPS
 	
 	# Find model and animation player
-	await get_tree().process_frame
+	if get_tree():
+		await get_tree().process_frame
 	model = get_node_or_null("Model")
 	if model:
 		# No model rotation needed - catapult CharacterBody3D rotates to face player
@@ -373,7 +374,10 @@ func _play_death_animation(killer: Node = null) -> void:
 		anim_velocity.x *= 0.98
 		anim_velocity.z *= 0.98
 		
-		await get_tree().process_frame
+		var tree := get_tree()
+		if tree == null:
+			break
+		await tree.process_frame
 	
 	if is_instance_valid(self):
 		queue_free()

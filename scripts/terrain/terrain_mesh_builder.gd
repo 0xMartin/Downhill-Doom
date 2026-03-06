@@ -267,7 +267,7 @@ func get_cross_section_height(world_x: float, world_z: float) -> float:
 	var slope_end := half_terrain + mountain_width - peak_curve_width
 	
 	var mountain_noise := noise.get_noise_2d(world_x * 0.4, world_z * 0.4) * mountain_noise_strength * 2.0
-	var peak_variation := noise.get_noise_2d(world_x * 0.08, world_z * 0.08) * 10.0
+	var peak_variation := noise.get_noise_2d(world_x * 0.08, world_z * 0.08) * 18.0
 	
 	if effective_abs_x <= slope_end:
 		var t := (effective_abs_x - mountain_start) / (slope_end - mountain_start)
@@ -291,7 +291,8 @@ func get_terrain_color(height: float, world_x: float, world_z: float, hole_dista
 	var rock_light := Color(0.30, 0.29, 0.27)
 	var rock_medium := Color(0.26, 0.25, 0.24)
 	var rock_dark := Color(0.22, 0.21, 0.20)
-	var snow_color := Color(0.90, 0.91, 0.93)
+	var snow_color := Color(0.95, 0.97, 1.0)  # Pure bright white snow
+	var snow_color_shadow := Color(0.85, 0.88, 0.95)  # Slightly blue shadow snow
 	
 	var color_noise := noise.get_noise_2d(world_x * 5, world_z * 5)
 	var detail_noise := noise.get_noise_2d(world_x * 8, world_z * 8)
@@ -339,22 +340,34 @@ func get_terrain_color(height: float, world_x: float, world_z: float, hole_dista
 		var rock_color := rock_medium.lerp(rock_dark, (detail_noise + 1.0) * 0.3)
 		return grass_color.lerp(rock_color, blend)
 	
-	if mountain_progress < 0.75:
+	# Middle mountain - rock with snow patches
+	if mountain_progress < 0.35:
+		var rock_color: Color
 		if detail_noise > 0.2:
-			return rock_light
+			rock_color = rock_light
 		elif detail_noise > -0.2:
-			return rock_medium
+			rock_color = rock_medium
 		else:
-			return rock_dark
+			rock_color = rock_dark
+		
+		# Light snow patches on mid-mountain
+		if mountain_progress > 0.25 and height > 6.0:
+			var snow_patch_noise := noise.get_noise_2d(world_x * 3, world_z * 3)
+			if snow_patch_noise > 0.2:
+				var patch_blend := (snow_patch_noise - 0.2) / 0.8 * 0.4
+				var snow_shade := snow_color if detail_noise > 0 else snow_color_shadow
+				return rock_color.lerp(snow_shade, patch_blend)
+		return rock_color
 	
-	var peak_progress := (mountain_progress - 0.75) / 0.25
+	# Upper mountain - heavy snow coverage (starts at 35% progress)
+	var peak_progress := (mountain_progress - 0.35) / 0.65
 	var rock_color := rock_medium if detail_noise > 0 else rock_dark
 	
-	if peak_progress > 0.35:
-		var snow_blend := (peak_progress - 0.35) / 0.65
-		return rock_color.lerp(snow_color, snow_blend * 0.7)
-	
-	return rock_color
+	# Snow blends in progressively faster
+	var snow_blend := peak_progress * (1.0 + peak_progress)  # Accelerating blend
+	var snow_shade := snow_color if detail_noise > -0.2 else snow_color_shadow
+	# Strong snow coverage - up to 98% at outer peaks
+	return rock_color.lerp(snow_shade, clampf(snow_blend, 0.0, 0.98))
 
 func _add_hole_wall_edge(st: SurfaceTool, color: Color, top_a: Vector3, top_b: Vector3, depth: float) -> void:
 	var bottom_a := Vector3(top_a.x, top_a.y - depth, top_a.z)

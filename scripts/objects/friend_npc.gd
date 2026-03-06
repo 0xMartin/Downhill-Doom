@@ -49,7 +49,8 @@ func _ready() -> void:
 		model.rotation.y = PI
 	
 	# Connect detection area
-	await get_tree().process_frame
+	if get_tree():
+		await get_tree().process_frame
 	var detect_area := get_node_or_null("DetectArea") as Area3D
 	if detect_area:
 		detect_area.body_entered.connect(_on_detect_area_body_entered)
@@ -131,7 +132,10 @@ func _start_wander_cycle() -> void:
 	var timeout := 10.0
 	var elapsed := 0.0
 	while is_moving and elapsed < timeout and not is_dead:
-		await get_tree().process_frame
+		var tree := get_tree()
+		if tree == null:
+			return
+		await tree.process_frame
 		elapsed += get_process_delta_time()
 	
 	# Start next cycle
@@ -235,7 +239,10 @@ func _play_death_animation(player: Node = null) -> void:
 		velocity.x *= 0.98
 		velocity.z *= 0.98
 		
-		await get_tree().process_frame
+		var tree := get_tree()
+		if tree == null:
+			break
+		await tree.process_frame
 	
 	# Remove from scene
 	if is_instance_valid(self):

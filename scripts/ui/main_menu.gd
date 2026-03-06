@@ -526,6 +526,7 @@ func _rebuild_stats_panel() -> void:
 	object_grid.columns = 1
 	object_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	object_grid.add_theme_constant_override("v_separation", 12)
+	object_grid.mouse_filter = Control.MOUSE_FILTER_PASS  # Allow touch events to pass through for scrolling
 	scroll.add_child(object_grid)
 	
 	_populate_object_cards(object_grid)
@@ -697,6 +698,7 @@ func _populate_object_cards(grid: GridContainer) -> void:
 func _create_object_card(obj_data: RefCounted, kill_count: int) -> PanelContainer:
 	var card := PanelContainer.new()
 	card.custom_minimum_size = Vector2(620, 120)
+	card.mouse_filter = Control.MOUSE_FILTER_PASS  # Allow touch events to pass through for scrolling
 	
 	var style := StyleBoxFlat.new()
 	style.bg_color = COLOR_BG_DARK
@@ -708,6 +710,7 @@ func _create_object_card(obj_data: RefCounted, kill_count: int) -> PanelContaine
 	
 	var hbox := HBoxContainer.new()
 	hbox.add_theme_constant_override("separation", 18)
+	hbox.mouse_filter = Control.MOUSE_FILTER_PASS  # Pass through touch events
 	card.add_child(hbox)
 	
 	# 3D Preview
@@ -718,6 +721,7 @@ func _create_object_card(obj_data: RefCounted, kill_count: int) -> PanelContaine
 	# Info section
 	var info := VBoxContainer.new()
 	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	info.mouse_filter = Control.MOUSE_FILTER_PASS  # Pass through touch events
 	info.add_theme_constant_override("separation", 6)
 	hbox.add_child(info)
 	
@@ -731,11 +735,13 @@ func _create_object_card(obj_data: RefCounted, kill_count: int) -> PanelContaine
 	# Stats row
 	var stats_row := HBoxContainer.new()
 	stats_row.add_theme_constant_override("separation", 20)
+	stats_row.mouse_filter = Control.MOUSE_FILTER_PASS  # Pass through touch events
 	info.add_child(stats_row)
 	
 	# Coins
 	var coin_row := HBoxContainer.new()
 	coin_row.add_theme_constant_override("separation", 5)
+	coin_row.mouse_filter = Control.MOUSE_FILTER_PASS  # Pass through touch events
 	stats_row.add_child(coin_row)
 	
 	var coin_icon := TextureRect.new()
@@ -744,6 +750,7 @@ func _create_object_card(obj_data: RefCounted, kill_count: int) -> PanelContaine
 	coin_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	coin_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	coin_icon.modulate = COLOR_ACCENT_GOLD if kill_count > 0 else COLOR_TEXT_MUTED
+	coin_icon.mouse_filter = Control.MOUSE_FILTER_PASS  # Pass through touch events
 	coin_row.add_child(coin_icon)
 	
 	var coin_label := Label.new()
@@ -769,8 +776,10 @@ func _create_object_card(obj_data: RefCounted, kill_count: int) -> PanelContaine
 func _create_kill_badge(count: int) -> HBoxContainer:
 	var container := HBoxContainer.new()
 	container.add_theme_constant_override("separation", 8)
+	container.mouse_filter = Control.MOUSE_FILTER_PASS  # Allow touch events to pass through for scrolling
 	
 	var badge := PanelContainer.new()
+	badge.mouse_filter = Control.MOUSE_FILTER_PASS  # Allow touch events to pass through for scrolling
 	var badge_style := StyleBoxFlat.new()
 	badge_style.set_corner_radius_all(10)
 	badge_style.set_content_margin_all(6)
@@ -800,6 +809,7 @@ func _create_3d_preview(obj_data: RefCounted, kill_count: int) -> SubViewportCon
 	var container := SubViewportContainer.new()
 	container.custom_minimum_size = Vector2(100, 100)
 	container.stretch = true
+	container.mouse_filter = Control.MOUSE_FILTER_PASS  # Allow touch events to pass through for scrolling
 	
 	var viewport := SubViewport.new()
 	viewport.name = "SubViewport"

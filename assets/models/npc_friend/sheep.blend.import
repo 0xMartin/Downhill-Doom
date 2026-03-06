@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://cce85xbeghvfr"
-path="res://.godot/imported/borovice_1.blend-07bfcccd153757751192e5c2a96fe9a2.scn"
+uid="uid://c4kotfjdavt0t"
+path="res://.godot/imported/sheep.blend-08ff0e41b38de592cb07e246e9ca307c.scn"
 
 [deps]
 
-source_file="res://assets/models/trees/borovice_1.blend"
-dest_files=["res://.godot/imported/borovice_1.blend-07bfcccd153757751192e5c2a96fe9a2.scn"]
+source_file="res://assets/models/npc_friend/sheep.blend"
+dest_files=["res://.godot/imported/sheep.blend-08ff0e41b38de592cb07e246e9ca307c.scn"]
 
 [params]
 

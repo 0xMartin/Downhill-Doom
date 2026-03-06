@@ -118,6 +118,18 @@ func is_point_in_hole(local_x: float, local_z: float, chunk_index: int) -> bool:
 	
 	return false
 
+## Check if a point in world coordinates is inside a hole
+func is_point_in_hole_world(world_x: float, world_z: float) -> bool:
+	# Convert world_z to chunk_index and local_z
+	var chunk_index := int(floorf(-world_z / chunk_size.y))
+	var local_z := world_z + chunk_index * chunk_size.y
+	
+	# Check the current chunk and adjacent chunks (in case point is near boundary)
+	for ci in [chunk_index - 1, chunk_index, chunk_index + 1]:
+		if is_point_in_hole(world_x, local_z + (chunk_index - ci) * chunk_size.y, ci):
+			return true
+	return false
+
 func get_distance_to_nearest_hole(local_x: float, local_z: float, chunk_index: int) -> float:
 	if not chunk_holes.has(chunk_index):
 		return INF
@@ -171,10 +183,11 @@ func spawn_hole_effects(chunk: Node3D, chunk_index: int, get_height_func: Callab
 		chunk.add_child(hole_container)
 		
 		if hole["type"] == "narrow":
-			# Death zone inside hole - smaller than hole opening, positioned lower
+			# Death zone inside hole - covers entire bottom surface with extra margin
+			var collider_width := narrow_hole_width + narrow_hole_irregularity * 2 + 4.0
 			_create_death_collider(hole_container, 
 				Vector3(0, floor_y + hole_depth * 0.3, local_z),
-				Vector3(terrain_width - 2, hole_depth * 0.6, narrow_hole_width - 1.0))
+				Vector3(terrain_width + 4, hole_depth * 0.6, collider_width))
 			
 			_create_hole_particles(hole_container,
 				Vector3(0, floor_y + 2.5, local_z),
@@ -186,10 +199,11 @@ func spawn_hole_effects(chunk: Node3D, chunk_index: int, get_height_func: Callab
 			terrain_y = get_height_func.call(hole_x, local_z, chunk_index)
 			floor_y = terrain_y - hole_depth
 			
-			# Death zone inside hole - smaller than hole opening, positioned lower
+			# Death zone inside hole - covers entire bottom surface with extra margin
+			var collider_size := (radius + 2.0) * 2.2
 			_create_death_collider(hole_container,
 				Vector3(hole_x, floor_y + hole_depth * 0.3, local_z),
-				Vector3(radius * 1.6, hole_depth * 0.6, radius * 1.6))
+				Vector3(collider_size, hole_depth * 0.6, collider_size))
 			
 			_create_hole_particles(hole_container,
 				Vector3(hole_x, floor_y + 2.5, local_z),
@@ -220,7 +234,7 @@ func _create_hole_particles(parent: Node3D, pos: Vector3, emission_box: Vector3)
 	var particles := GPUParticles3D.new()
 	particles.name = "HoleFog"
 	particles.position = pos
-	particles.amount = 30  # Reduced from 64 for mobile performance
+	particles.amount = 40
 	particles.lifetime = 5.0
 	particles.speed_scale = 0.5
 	particles.visibility_aabb = AABB(Vector3(-30, -20, -30), Vector3(60, 40, 60))

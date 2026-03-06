@@ -1,11 +1,12 @@
 # Downhill Doom
 
+## Prioritni
 * Pridat vice modelu pro vice friend npc (ovce, krava, pes, kocka, tukan, tucnak, postolka, delfin)
 * enemy budovy (vysoka spike hradba)
 
 * Implementovat system ktery bude npc s nizsi pravdepodobnosti spawnuti zacinat spawnovat az kdyz hrace ujede urcitou vzdalenost
  
-* Velepsovani hrace (max zivoty, delka overcharge, velikost shock wave, počet potřebny na dobiti overcharge)
+* Velepsovani hrace (max zivoty, delka overcharge, velikost shock wave, počet potřebny na dobiti overcharge, sila skoku)
 * Shop pro boosty do hry (double hp, double coins, no enemy npc, no enemy building)
 
 * Lepsi sound fx a soundtrack

@@ -87,10 +87,10 @@ var _aabb_cache: Dictionary = {}  # model_path -> AABB
 var next_spike_wall_z: float = 0.0  # Next Z position for spike wall chain
 
 # Plane spawning (aerial NPC) - global cooldown, spawns at chunk end
-var plane_spawn_chance: float = 0.05  # 5% chance per chunk
-var plane_cooldown_distance: float = 600.0  # ~30 sec at typical speed
+var plane_spawn_chance: float = 0.25  # 25% chance per chunk (high frequency)
+var plane_cooldown_distance: float = 150.0  # ~7 sec at typical speed (very frequent)
 var plane_last_spawn_z: float = 999999.0  # Z position of last plane spawn (positive = no spawn yet)
-var plane_safe_chunks: int = 5  # Start spawning earlier
+var plane_safe_chunks: int = 3  # Start spawning very early
 
 func _init(config: Dictionary) -> void:
 	terrain_width = config.get("terrain_width", 36.0)
@@ -660,8 +660,9 @@ func _spawn_enemy_npc_clusters(chunk: Node3D, chunk_index: int, get_height_func:
 ## Try to spawn an enemy plane (aerial NPC)
 ## Planes have global cooldown and spawn at the end of the chunk, flying toward player
 func _try_spawn_plane(chunk: Node3D, chunk_index: int, get_height_func: Callable) -> void:
+	# Use fully random seed for unique results every game
 	var rng := RandomNumberGenerator.new()
-	rng.seed = hash(chunk_index * 77777 + 54321)
+	rng.randomize()
 	
 	# Calculate current chunk Z position (start of this chunk in world coords)
 	var chunk_start_z := -chunk_index * chunk_size.y
@@ -1328,7 +1329,7 @@ func _create_enemy_npc(obj_data: RefCounted, rng: RandomNumberGenerator) -> Char
 
 func _is_near_hole(x: float, z: float, chunk_index: int) -> bool:
 	if hole_manager:
-		return hole_manager.get_distance_to_nearest_hole(x, z, chunk_index) < 3.0
+		return hole_manager.get_distance_to_nearest_hole(x, z, chunk_index) < 5.0
 	return false
 
 func _is_position_available(x: float, z: float, chunk_index: int, min_dist: float = -1.0) -> bool:

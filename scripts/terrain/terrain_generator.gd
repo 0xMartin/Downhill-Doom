@@ -386,3 +386,14 @@ func get_height_at(world_x: float, world_z: float) -> float:
 	height += world_z * tan(deg_to_rad(slope_angle))
 	
 	return height
+
+## Get actual ground level accounting for holes (for collision detection)
+func get_ground_level_at(world_x: float, world_z: float) -> float:
+	var base_height := get_height_at(world_x, world_z)
+	
+	# Check if point is in a hole
+	if hole_manager and hole_manager.has_method("is_point_in_hole_world"):
+		if hole_manager.is_point_in_hole_world(world_x, world_z):
+			return base_height - hole_depth
+	
+	return base_height

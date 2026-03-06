@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://b55enenm1hj5g"
-path="res://.godot/imported/smrk_1.blend-2f74912e70433e50ab214a7a9bb99e50.scn"
+uid="uid://c01kcuamtm40i"
+path="res://.godot/imported/big_spike_wall.blend-adf2bac6cb2f8903a1937b0550a95ea8.scn"
 
 [deps]
 
-source_file="res://assets/models/trees/smrk_1.blend"
-dest_files=["res://.godot/imported/smrk_1.blend-2f74912e70433e50ab214a7a9bb99e50.scn"]
+source_file="res://assets/models/buildings_enemy/big_spike_wall.blend"
+dest_files=["res://.godot/imported/big_spike_wall.blend-adf2bac6cb2f8903a1937b0550a95ea8.scn"]
 
 [params]
 

@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://cugo8jjnabijr"
-path="res://.godot/imported/borovice_2.blend-0fc8de66f5625f0dda520fd25df33512.scn"
+uid="uid://cidtvu8s0rsyp"
+path="res://.godot/imported/tree_6.blend-2285c12528e0e5c1e2b435094db0c8fb.scn"
 
 [deps]
 
-source_file="res://assets/models/trees/borovice_2.blend"
-dest_files=["res://.godot/imported/borovice_2.blend-0fc8de66f5625f0dda520fd25df33512.scn"]
+source_file="res://assets/models/trees/tree_6.blend"
+dest_files=["res://.godot/imported/tree_6.blend-2285c12528e0e5c1e2b435094db0c8fb.scn"]
 
 [params]
 

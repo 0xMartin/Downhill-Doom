@@ -57,6 +57,10 @@ const ShockWaveManager := preload("res://scripts/effects/shock_wave_manager.gd")
 # Dust particles
 var dust_particles: GPUParticles3D
 
+# Atmospheric particles (snow/dust in the air)
+var atmosphere_particles: GPUParticles3D
+var atmosphere_proc_mat: ParticleProcessMaterial
+
 # Rock impact particle template (pre-created for cloning)
 var _rock_impact_particle_template: GPUParticles3D
 
@@ -102,6 +106,9 @@ func _ready() -> void:
 	
 	# Pre-create supercharge effects (hidden) to avoid first-activation lag
 	_precreate_supercharge_effects()
+	
+	# Setup atmospheric particles (snow/dust in air)
+	_setup_atmosphere_particles()
 	
 	# Enable continuous collision detection for fast-moving physics
 	continuous_cd = true
@@ -159,6 +166,20 @@ func _physics_process(delta: float) -> void:
 	
 	# Check if on ground (simple raycast down)
 	_update_ground_state()
+	
+	# Update atmosphere particles position (follows player, doesn't rotate)
+	# Also adjust particle velocity based on player speed
+	if atmosphere_particles and is_instance_valid(atmosphere_particles):
+		atmosphere_particles.global_position = global_position + Vector3(0, 4, -8)
+		
+		# Adapt particle movement to player velocity
+		if atmosphere_proc_mat:
+			var player_speed := linear_velocity.length()
+			# Scale gravity towards camera based on speed (more speed = particles fly faster towards camera)
+			var speed_factor := clampf(player_speed / max_speed, 0.2, 1.5)
+			atmosphere_proc_mat.gravity = Vector3(0, -0.5, player_speed * 0.7)
+			atmosphere_proc_mat.initial_velocity_min = 2.0 + player_speed * 0.15
+			atmosphere_proc_mat.initial_velocity_max = 5.0 + player_speed * 0.3
 	
 	# Update supercharge scale smoothly
 	_update_supercharge_scale(delta)
@@ -554,7 +575,7 @@ func _setup_unshaded_materials(node: Node) -> void:
 func _setup_dust_particles() -> void:
 	dust_particles = GPUParticles3D.new()
 	dust_particles.name = "DustParticles"
-	dust_particles.amount = 12  # Reduced from 20 for mobile performance
+	dust_particles.amount = 30
 	dust_particles.lifetime = 0.8
 	dust_particles.explosiveness = 0.0
 	dust_particles.emitting = false
@@ -565,8 +586,8 @@ func _setup_dust_particles() -> void:
 	proc_mat.initial_velocity_min = 2.0
 	proc_mat.initial_velocity_max = 4.0
 	proc_mat.gravity = Vector3(0, -3, 0)
-	proc_mat.scale_min = 0.1
-	proc_mat.scale_max = 0.25
+	proc_mat.scale_min = 0.15
+	proc_mat.scale_max = 0.35
 	proc_mat.color = Color(0.95, 0.97, 1.0, 0.6)  # Bright snow/dust color
 	var color_ramp := Gradient.new()
 	color_ramp.set_color(0, Color(0.95, 0.97, 1.0, 0.7))
@@ -587,6 +608,64 @@ func _setup_dust_particles() -> void:
 	
 	add_child(dust_particles)
 	dust_particles.position = Vector3(0, -sphere_radius, 0)  # At the bottom of the ball
+
+
+## Setup atmospheric particles (snow/dust floating in air around player)
+func _setup_atmosphere_particles() -> void:
+	atmosphere_particles = GPUParticles3D.new()
+	atmosphere_particles.name = "AtmosphereParticles"
+	atmosphere_particles.amount = 120
+	atmosphere_particles.lifetime = 2.0
+	atmosphere_particles.explosiveness = 0.0
+	atmosphere_particles.randomness = 1.0
+	atmosphere_particles.emitting = true
+	atmosphere_particles.local_coords = true  # Stay relative to emitter
+	atmosphere_particles.visibility_aabb = AABB(Vector3(-25, -10, -30), Vector3(50, 20, 60))
+	
+	atmosphere_proc_mat = ParticleProcessMaterial.new()
+	# Emit from large box around player
+	atmosphere_proc_mat.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
+	atmosphere_proc_mat.emission_box_extents = Vector3(18, 8, 15)
+	
+	# Base motion - will be modified by velocity
+	atmosphere_proc_mat.direction = Vector3(0, 0, 1)  # Toward camera
+	atmosphere_proc_mat.spread = 45.0
+	atmosphere_proc_mat.initial_velocity_min = 1.0
+	atmosphere_proc_mat.initial_velocity_max = 3.0
+	atmosphere_proc_mat.gravity = Vector3(0, 0, 5.0)  # Base towards camera
+	
+	# Small scale for subtle particles
+	atmosphere_proc_mat.scale_min = 0.05
+	atmosphere_proc_mat.scale_max = 0.1
+	
+	# White/light blue color with subtle fade
+	var color_ramp := Gradient.new()
+	color_ramp.set_color(0, Color(1.0, 1.0, 1.0, 0.0))  # Fade in
+	color_ramp.add_point(0.1, Color(0.95, 0.97, 1.0, 0.4))
+	color_ramp.add_point(0.6, Color(0.9, 0.95, 1.0, 0.35))
+	color_ramp.set_color(1, Color(0.9, 0.95, 1.0, 0.0))  # Fade out
+	var color_tex := GradientTexture1D.new()
+	color_tex.gradient = color_ramp
+	atmosphere_proc_mat.color_ramp = color_tex
+	
+	atmosphere_particles.process_material = atmosphere_proc_mat
+	
+	# Simple quad mesh for snow flakes
+	var quad := QuadMesh.new()
+	quad.size = Vector2(0.25, 0.25)
+	var quad_mat := StandardMaterial3D.new()
+	quad_mat.albedo_color = Color(1.0, 1.0, 1.0)
+	quad_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	quad_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	quad_mat.vertex_color_use_as_albedo = true
+	quad_mat.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	quad.material = quad_mat
+	atmosphere_particles.draw_pass_1 = quad
+	atmosphere_particles.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	
+	add_child(atmosphere_particles)
+	atmosphere_particles.top_level = true  # Don't inherit rotation from player!
+	atmosphere_particles.global_position = global_position + Vector3(0, 4, -8)
 
 
 ## Setup edge warning visual effect (red glow near terrain boundaries)
@@ -660,18 +739,14 @@ func _update_edge_warning() -> void:
 		edge_warning_right.visible = false
 
 
-func _show_edge_warning(warning: MeshInstance3D, edge_x: float, _player_y: float, player_z: float, intensity: float, is_right: bool) -> void:
+func _show_edge_warning(warning: MeshInstance3D, edge_x: float, player_y: float, player_z: float, intensity: float, is_right: bool) -> void:
 	## Position and show edge warning wall at the actual barrier position
 	warning.visible = true
 	
-	# Get terrain height at the edge position (not player height)
-	var terrain_y: float = 0.0
-	if terrain_generator and terrain_generator.has_method("get_height_at"):
-		terrain_y = terrain_generator.get_height_at(edge_x, player_z - 15.0)
-	
-	# Position the warning wall exactly at the barrier, at terrain level
-	# Wall extends from player_z forward (negative Z) to cover ahead view
-	warning.global_position = Vector3(edge_x, terrain_y + 6.0, player_z - 15.0)  # Centered ahead, at terrain height
+	# Use player's Y position as reference (more reliable than calculating edge terrain height)
+	# Box is 12m tall centered, so offset 0 puts center at player level
+	# This ensures the warning is always visible at the player's horizon
+	warning.global_position = Vector3(edge_x, player_y, player_z - 15.0)
 	
 	# Rotate to match slope angle (tilted downhill - negative X rotation)
 	var slope_radians := deg_to_rad(terrain_slope)
@@ -810,7 +885,7 @@ func _create_supercharge_particles() -> void:
 	# Create particle system that emits glowing particles around the player
 	supercharge_particles = GPUParticles3D.new()
 	supercharge_particles.name = "SuperchargeParticles"
-	supercharge_particles.amount = 12  # Reduced from 60 for mobile performance
+	supercharge_particles.amount = 40
 	supercharge_particles.lifetime = 0.8
 	supercharge_particles.explosiveness = 0.0
 	supercharge_particles.randomness = 0.3
@@ -821,7 +896,7 @@ func _create_supercharge_particles() -> void:
 	# Configure particle behavior - emit from sphere surface, drift upward
 	var proc_material := ParticleProcessMaterial.new()
 	proc_material.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE_SURFACE
-	proc_material.emission_sphere_radius = sphere_radius * 1.1
+	proc_material.emission_sphere_radius = sphere_radius * 1.5
 	proc_material.direction = Vector3(0, 1, 0)
 	proc_material.spread = 30.0
 	proc_material.initial_velocity_min = 0.5
@@ -868,7 +943,7 @@ func _create_supercharge_trail() -> void:
 	
 	supercharge_trail = GPUParticles3D.new()
 	supercharge_trail.name = "SuperchargeTrail"
-	supercharge_trail.amount = 100
+	supercharge_trail.amount = 200
 	supercharge_trail.lifetime = 1.2
 	supercharge_trail.explosiveness = 0.0
 	supercharge_trail.randomness = 0.2
@@ -881,7 +956,7 @@ func _create_supercharge_trail() -> void:
 	# Configure trail to emit behind and upward
 	var proc_material := ParticleProcessMaterial.new()
 	proc_material.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
-	proc_material.emission_box_extents = Vector3(sphere_radius * 0.8, 0.2, 0.1)
+	proc_material.emission_box_extents = Vector3(sphere_radius * 1.2, 0.4, 0.3)
 	proc_material.direction = Vector3(0, 0.8, 1.0)  # Backward and up
 	proc_material.spread = 25.0
 	proc_material.initial_velocity_min = 4.0

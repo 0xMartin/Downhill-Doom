@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://ncq08td2wun7"
-path="res://.godot/imported/strom_bez_listi.blend-f8cfb54f888149b1206523dc72dd3acc.scn"
+uid="uid://be6s1xwpmjewb"
+path="res://.godot/imported/cow.blend-109f34514322284d38dc3e17292c6d23.scn"
 
 [deps]
 
-source_file="res://assets/models/trees/strom_bez_listi.blend"
-dest_files=["res://.godot/imported/strom_bez_listi.blend-f8cfb54f888149b1206523dc72dd3acc.scn"]
+source_file="res://assets/models/npc_friend/cow.blend"
+dest_files=["res://.godot/imported/cow.blend-109f34514322284d38dc3e17292c6d23.scn"]
 
 [params]
 
