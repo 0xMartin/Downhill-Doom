@@ -444,6 +444,32 @@ static func _init_objects() -> void:
 		"col_radius": 0.25,
 		"col_height": 0.35,
 	})
+	_register_object({
+		"id": "npc_sheep",
+		"name": "Sheep",
+		"category": Category.NPC_FRIEND,
+		"model": "res://assets/models/npc_friend/sheep.blend",
+		"height": 1.1,
+		"height_var": 0.1,
+		"spawn_chance": 0.6,
+		"coins": 20,
+		"destructible": true,
+		"col_radius": 0.4,
+		"col_height": 0.6,
+	})
+	_register_object({
+		"id": "npc_cow",
+		"name": "Cow",
+		"category": Category.NPC_FRIEND,
+		"model": "res://assets/models/npc_friend/cow.blend",
+		"height": 1.2,
+		"height_var": 0.1,
+		"spawn_chance": 0.4,
+		"coins": 25,
+		"destructible": true,
+		"col_radius": 0.5,
+		"col_height": 0.8,
+	})
 	
 	# ===== ENEMY NPCs =====
 	_register_object({
