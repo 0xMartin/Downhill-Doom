@@ -14,8 +14,8 @@ const BombScript := preload("res://scripts/objects/bomb.gd")
 # Flight parameters
 const FLIGHT_SPEED_MIN: float = 22.0  # m/s
 const FLIGHT_SPEED_MAX: float = 28.0
-const FLIGHT_ALTITUDE_MIN: float = 8.0  # meters above terrain (lower)
-const FLIGHT_ALTITUDE_MAX: float = 11.0
+const FLIGHT_ALTITUDE_MIN: float = 6.0  # meters above terrain (lower)
+const FLIGHT_ALTITUDE_MAX: float = 8.0
 const DESPAWN_DISTANCE: float = 150.0  # Distance behind player to despawn (enough for contrail to fade)
 
 # Bomb dropping

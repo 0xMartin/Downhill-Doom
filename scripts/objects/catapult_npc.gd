@@ -326,80 +326,9 @@ func die(killer: Node = null) -> void:
 		gm.add_coin(coin_value)
 		gm.record_destroyed_object(object_id, object_name, coin_value)
 	
-	# Play death animation
-	_play_death_animation(killer)
-
-
-func _play_death_animation(killer: Node = null) -> void:
-	var rng := RandomNumberGenerator.new()
-	rng.randomize()
-	
-	# Launch FORWARD in player's direction with random spread
-	var fly_direction := Vector3(0, 0, -1)  # Default forward
-	if killer and killer is Node3D:
-		# Use killer's velocity direction as base
-		var killer_vel := Vector3.ZERO
-		if killer.has_method("get_linear_velocity"):
-			killer_vel = killer.get_linear_velocity()
-		elif "linear_velocity" in killer:
-			killer_vel = killer.linear_velocity
-		
-		if killer_vel.length() > 1.0:
-			fly_direction = killer_vel.normalized()
-			fly_direction.y = 0
-		else:
-			fly_direction = (global_position - killer.global_position).normalized()
-			fly_direction.y = 0
-	
-	if fly_direction.length() < 0.1:
-		fly_direction = Vector3(0, 0, -1)
-	
-	fly_direction = fly_direction.normalized()
-	
-	# Add random horizontal spread (up to 45 degrees left/right)
-	var spread_angle := rng.randf_range(-0.7, 0.7)
-	fly_direction = fly_direction.rotated(Vector3.UP, spread_angle)
-	
-	# Add upward arc component
-	fly_direction.y = rng.randf_range(0.4, 0.7)
-	fly_direction = fly_direction.normalized()
-	
-	# Tumbling rotation (slower for catapult - it's bigger)
-	var rotation_velocity := Vector3(
-		rng.randf_range(-8.0, 8.0),
-		rng.randf_range(-5.0, 5.0),
-		rng.randf_range(-8.0, 8.0)
-	)
-	
-	# Launch velocity - forward arc
-	var launch_speed := rng.randf_range(22.0, 32.0)
-	var anim_velocity := fly_direction * launch_speed
-	var anim_gravity := 22.0
-	var lifetime := 0.9
-	var elapsed := 0.0
-	
-	while elapsed < lifetime and is_instance_valid(self):
-		var delta := get_process_delta_time()
-		elapsed += delta
-		
-		# Apply physics - parabolic arc
-		anim_velocity.y -= anim_gravity * delta
-		global_position += anim_velocity * delta
-		
-		# Apply tumbling rotation
-		if model:
-			model.rotation += rotation_velocity * delta
-		else:
-			rotation += rotation_velocity * delta
-		
-		# Light air resistance
-		anim_velocity.x *= 0.99
-		anim_velocity.z *= 0.99
-		
-		var tree := get_tree()
-		if tree == null:
-			break
-		await tree.process_frame
-	
-	if is_instance_valid(self):
+	# Fling animation via DestructionManager (slower rotation for big catapult)
+	var dm := get_node_or_null("/root/DestructionManager")
+	if dm:
+		dm.fling_object(self, killer, model, 22.0, 32.0, 0.5)
+	else:
 		queue_free()

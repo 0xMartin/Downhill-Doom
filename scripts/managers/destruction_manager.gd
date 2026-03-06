@@ -438,3 +438,98 @@ func _extract_color_from_material(material: Material) -> Color:
 	if material is StandardMaterial3D:
 		return (material as StandardMaterial3D).albedo_color
 	return Color(0.6, 0.5, 0.4)
+
+
+## ========== Fling Animation ==========
+## Universal fling animation for NPCs and objects when hit by player
+
+## Fling an object forward in the killer's direction with tumbling rotation
+## @param target: The Node3D to fling and remove
+## @param killer: The player/killer node (used to determine direction)
+## @param model_node: Optional child node to rotate (if null, rotates target itself)
+## @param speed_min: Minimum launch speed
+## @param speed_max: Maximum launch speed
+## @param rotation_scale: Multiplier for rotation speed (1.0 = normal, 0.5 = slower for big objects)
+func fling_object(
+	target: Node3D,
+	killer: Node = null,
+	model_node: Node3D = null,
+	speed_min: float = 25.0,
+	speed_max: float = 38.0,
+	rotation_scale: float = 1.0
+) -> void:
+	if not is_instance_valid(target):
+		return
+	
+	var rng := RandomNumberGenerator.new()
+	rng.randomize()
+	
+	# Determine fly direction - forward in killer's movement direction
+	var fly_direction := Vector3(0, 0, -1)  # Default forward
+	if killer and killer is Node3D:
+		var killer_vel := Vector3.ZERO
+		if killer.has_method("get_linear_velocity"):
+			killer_vel = killer.get_linear_velocity()
+		elif "linear_velocity" in killer:
+			killer_vel = killer.linear_velocity
+		
+		if killer_vel.length() > 1.0:
+			fly_direction = killer_vel.normalized()
+			fly_direction.y = 0
+		else:
+			fly_direction = (target.global_position - killer.global_position).normalized()
+			fly_direction.y = 0
+	
+	if fly_direction.length() < 0.1:
+		fly_direction = Vector3(0, 0, -1)
+	
+	fly_direction = fly_direction.normalized()
+	
+	# Add random horizontal spread (up to ~40 degrees)
+	var spread_angle := rng.randf_range(-0.7, 0.7)
+	fly_direction = fly_direction.rotated(Vector3.UP, spread_angle)
+	
+	# Add upward arc
+	fly_direction.y = rng.randf_range(0.4, 0.7)
+	fly_direction = fly_direction.normalized()
+	
+	# Tumbling rotation (scaled for object size)
+	var rotation_velocity := Vector3(
+		rng.randf_range(-15.0, 15.0) * rotation_scale,
+		rng.randf_range(-8.0, 8.0) * rotation_scale,
+		rng.randf_range(-15.0, 15.0) * rotation_scale
+	)
+	
+	# Launch velocity
+	var launch_speed := rng.randf_range(speed_min, speed_max)
+	var velocity := fly_direction * launch_speed
+	var gravity := 22.0
+	var lifetime := 0.9
+	var elapsed := 0.0
+	
+	# Rotate model or target
+	var rotate_target: Node3D = model_node if model_node else target
+	
+	while elapsed < lifetime and is_instance_valid(target):
+		var delta := target.get_process_delta_time()
+		elapsed += delta
+		
+		# Parabolic arc
+		velocity.y -= gravity * delta
+		target.global_position += velocity * delta
+		
+		# Tumbling
+		if is_instance_valid(rotate_target):
+			rotate_target.rotation += rotation_velocity * delta
+		
+		# Air resistance
+		velocity.x *= 0.99
+		velocity.z *= 0.99
+		
+		var tree := target.get_tree()
+		if tree == null:
+			break
+		await tree.process_frame
+	
+	if is_instance_valid(target):
+		target.queue_free()
