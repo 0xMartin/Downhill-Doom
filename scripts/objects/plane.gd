@@ -108,6 +108,15 @@ func _ready() -> void:
 	velocity = Vector3(0, 0, flight_speed)
 
 
+func _exit_tree() -> void:
+	# Clean up trail when plane is removed from scene (e.g., game reset)
+	_cleanup_trail()
+	
+	# Clean up audio
+	if jet_audio and is_instance_valid(jet_audio) and jet_audio.is_inside_tree():
+		jet_audio.queue_free()
+
+
 func _setup_collision() -> void:
 	## Create collision area for player to destroy the plane
 	collision_area = Area3D.new()
