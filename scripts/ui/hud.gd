@@ -558,6 +558,22 @@ func _create_multiplier_ui() -> void:
 	multiplier_panel.pivot_offset = Vector2(coin_size / 2, coin_size / 2)
 	add_child(multiplier_panel)
 	
+	# Dark circular shadow background
+	var shadow_bg := PanelContainer.new()
+	shadow_bg.name = "ShadowBackground"
+	shadow_bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	var bg_style := StyleBoxFlat.new()
+	bg_style.bg_color = Color(0.12, 0.12, 0.14, 0.92)
+	bg_style.corner_radius_top_left = 42
+	bg_style.corner_radius_top_right = 42
+	bg_style.corner_radius_bottom_left = 42
+	bg_style.corner_radius_bottom_right = 42
+	bg_style.shadow_color = Color(0, 0, 0, 0.5)
+	bg_style.shadow_size = 6
+	bg_style.shadow_offset = Vector2(0, 3)
+	shadow_bg.add_theme_stylebox_override("panel", bg_style)
+	multiplier_panel.add_child(shadow_bg)
+	
 	# SVG coin frame background
 	var coin_frame := TextureRect.new()
 	coin_frame.name = "CoinFrame"

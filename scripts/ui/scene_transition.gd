@@ -18,6 +18,11 @@ const LAYER_PATHS := [
 const STRIPE_DELAY := 0.12  # Delay between each stripe
 const STRIPE_DURATION := 0.25  # How long each stripe takes to slide in
 
+# Scale/rotation animation ranges - dramatic effect
+const SCALE_MIN := 0.25
+const SCALE_MAX := 2.5
+const ROTATION_MAX := 180.0
+
 # Internal
 var _target_scene: String = ""
 var _layers: Array[TextureRect] = []
@@ -63,8 +68,7 @@ func change_scene(target: String) -> void:
 func _transition_to_game() -> void:
 	var screen_size := get_viewport().get_visible_rect().size
 	
-	# Each stripe starts off-screen diagonally (top-left)
-	# Offset based on stripe index - later stripes are further away
+	# Each stripe starts off-screen diagonally (top-left) with random scale/rotation
 	for i in range(LAYER_COUNT):
 		var offset := Vector2(
 			-screen_size.x * (0.6 + i * 0.3),
@@ -72,6 +76,13 @@ func _transition_to_game() -> void:
 		)
 		_layers[i].position = offset
 		_layers[i].visible = true
+		# Random starting scale and rotation
+		var start_scale := randf_range(SCALE_MIN, SCALE_MAX)
+		_layers[i].scale = Vector2(start_scale, start_scale)
+		var rotation_dir := 1.0 if randf() > 0.5 else -1.0
+		_layers[i].rotation = deg_to_rad(randf_range(0.0, ROTATION_MAX) * rotation_dir)
+		# Set pivot to center for proper rotation
+		_layers[i].pivot_offset = screen_size / 2.0
 	
 	# Animate stripes sliding in one by one
 	var last_tween: Tween
@@ -79,13 +90,15 @@ func _transition_to_game() -> void:
 		var tween := create_tween()
 		tween.set_ease(Tween.EASE_OUT)
 		tween.set_trans(Tween.TRANS_QUART)
+		tween.set_parallel(true)
 		
 		# Each stripe has increasing delay
-		if i > 0:
-			tween.tween_interval(STRIPE_DELAY * i)
+		var delay := STRIPE_DELAY * i
 		
 		# Slide to final position (0,0 - each SVG defines its own shape position)
-		tween.tween_property(_layers[i], "position", Vector2.ZERO, STRIPE_DURATION)
+		tween.tween_property(_layers[i], "position", Vector2.ZERO, STRIPE_DURATION).set_delay(delay)
+		tween.tween_property(_layers[i], "scale", Vector2.ONE, STRIPE_DURATION).set_delay(delay)
+		tween.tween_property(_layers[i], "rotation", 0.0, STRIPE_DURATION).set_delay(delay)
 		last_tween = tween
 	
 	# Wait for last stripe to arrive
@@ -106,19 +119,24 @@ func _transition_to_game() -> void:
 			screen_size.x * (0.6 + i * 0.3),
 			screen_size.y * (0.6 + i * 0.3)
 		)
+		# Random exit scale and rotation
+		var exit_scale := randf_range(SCALE_MIN, SCALE_MAX)
+		var rotation_dir := 1.0 if randf() > 0.5 else -1.0
+		var exit_rotation := deg_to_rad(randf_range(0.0, ROTATION_MAX) * rotation_dir)
 		
 		var tween := create_tween()
 		tween.set_ease(Tween.EASE_IN)
 		tween.set_trans(Tween.TRANS_QUART)
+		tween.set_parallel(true)
 		
 		# Reverse order - last stripe (front, i=4) exits first (no delay)
 		# First stripe (back, i=0) exits last (most delay)
 		var reverse_i := LAYER_COUNT - 1 - i
 		var delay := STRIPE_DELAY * reverse_i * 0.8
-		if delay > 0:
-			tween.tween_interval(delay)
 		
-		tween.tween_property(_layers[i], "position", exit_offset, STRIPE_DURATION)
+		tween.tween_property(_layers[i], "position", exit_offset, STRIPE_DURATION).set_delay(delay)
+		tween.tween_property(_layers[i], "scale", Vector2(exit_scale, exit_scale), STRIPE_DURATION).set_delay(delay)
+		tween.tween_property(_layers[i], "rotation", exit_rotation, STRIPE_DURATION).set_delay(delay)
 		
 		# Track the tween with the longest delay (it will finish last)
 		if delay >= max_delay:
@@ -133,7 +151,7 @@ func _transition_to_menu() -> void:
 	var screen_size := get_viewport().get_visible_rect().size
 	var calm_multiplier := 1.3  # Slower for calm feel
 	
-	# Each stripe starts off-screen diagonally (bottom-right)
+	# Each stripe starts off-screen diagonally (bottom-right) with random scale/rotation
 	for i in range(LAYER_COUNT):
 		var reverse_i := LAYER_COUNT - 1 - i
 		var offset := Vector2(
@@ -142,6 +160,13 @@ func _transition_to_menu() -> void:
 		)
 		_layers[i].position = offset
 		_layers[i].visible = true
+		# Random starting scale and rotation
+		var start_scale := randf_range(SCALE_MIN, SCALE_MAX)
+		_layers[i].scale = Vector2(start_scale, start_scale)
+		var rotation_dir := 1.0 if randf() > 0.5 else -1.0
+		_layers[i].rotation = deg_to_rad(randf_range(0.0, ROTATION_MAX) * rotation_dir)
+		# Set pivot to center for proper rotation
+		_layers[i].pivot_offset = screen_size / 2.0
 	
 	# Animate stripes sliding in (reverse order - bottom stripes first)
 	var last_tween: Tween
@@ -149,12 +174,14 @@ func _transition_to_menu() -> void:
 		var tween := create_tween()
 		tween.set_ease(Tween.EASE_OUT)
 		tween.set_trans(Tween.TRANS_SINE)  # Smoother for calm feel
+		tween.set_parallel(true)
 		
 		var delay_index := LAYER_COUNT - 1 - i
-		if delay_index > 0:
-			tween.tween_interval(STRIPE_DELAY * delay_index * calm_multiplier)
+		var delay := STRIPE_DELAY * delay_index * calm_multiplier
 		
-		tween.tween_property(_layers[i], "position", Vector2.ZERO, STRIPE_DURATION * calm_multiplier)
+		tween.tween_property(_layers[i], "position", Vector2.ZERO, STRIPE_DURATION * calm_multiplier).set_delay(delay)
+		tween.tween_property(_layers[i], "scale", Vector2.ONE, STRIPE_DURATION * calm_multiplier).set_delay(delay)
+		tween.tween_property(_layers[i], "rotation", 0.0, STRIPE_DURATION * calm_multiplier).set_delay(delay)
 		last_tween = tween
 	
 	await last_tween.finished
@@ -170,15 +197,21 @@ func _transition_to_menu() -> void:
 			-screen_size.x * (0.6 + i * 0.3),
 			-screen_size.y * (0.6 + i * 0.3)
 		)
+		# Random exit scale and rotation
+		var exit_scale := randf_range(SCALE_MIN, SCALE_MAX)
+		var rotation_dir := 1.0 if randf() > 0.5 else -1.0
+		var exit_rotation := deg_to_rad(randf_range(0.0, ROTATION_MAX) * rotation_dir)
 		
 		var tween := create_tween()
 		tween.set_ease(Tween.EASE_IN)
 		tween.set_trans(Tween.TRANS_SINE)
+		tween.set_parallel(true)
 		
-		if i > 0:
-			tween.tween_interval(STRIPE_DELAY * i * calm_multiplier)
+		var delay := STRIPE_DELAY * i * calm_multiplier
 		
-		tween.tween_property(_layers[i], "position", exit_offset, STRIPE_DURATION * calm_multiplier)
+		tween.tween_property(_layers[i], "position", exit_offset, STRIPE_DURATION * calm_multiplier).set_delay(delay)
+		tween.tween_property(_layers[i], "scale", Vector2(exit_scale, exit_scale), STRIPE_DURATION * calm_multiplier).set_delay(delay)
+		tween.tween_property(_layers[i], "rotation", exit_rotation, STRIPE_DURATION * calm_multiplier).set_delay(delay)
 		last_tween = tween
 	
 	await last_tween.finished
@@ -188,6 +221,8 @@ func _hide_all_layers() -> void:
 	for layer in _layers:
 		layer.visible = false
 		layer.position = Vector2.ZERO
+		layer.scale = Vector2.ONE
+		layer.rotation = 0.0
 
 ## Legacy API support
 func fade_in() -> void:
