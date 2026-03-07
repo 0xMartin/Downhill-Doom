@@ -12,7 +12,7 @@
 
 [sub_resource type="Gradient" id="Gradient_bg"]
 offsets = PackedFloat32Array(0, 0.5, 1)
-colors = PackedColorArray(0.04, 0.06, 0.10, 1, 0.06, 0.10, 0.16, 1, 0.08, 0.12, 0.18, 1)
+colors = PackedColorArray(0.04, 0.06, 0.1, 1, 0.06, 0.1, 0.16, 1, 0.08, 0.12, 0.18, 1)
 
 [sub_resource type="GradientTexture2D" id="GradientTexture2D_bg"]
 gradient = SubResource("Gradient_bg")
@@ -55,7 +55,6 @@ corner_radius_top_left = 20
 corner_radius_top_right = 20
 corner_radius_bottom_right = 20
 corner_radius_bottom_left = 20
-shadow_color = Color(0, 0, 0, 0.6)
 shadow_size = 24
 shadow_offset = Vector2(0, 12)
 
@@ -403,9 +402,10 @@ layout_mode = 1
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
-offset_left = 10.0
-offset_top = -35.0
-offset_right = 150.0
+offset_left = 80.0
+offset_top = -64.0
+offset_right = 220.0
+offset_bottom = -29.0
 grow_vertical = 0
 theme_override_colors/font_color = Color(0.6, 0.65, 0.7, 0.7)
 theme_override_font_sizes/font_size = 18
@@ -418,9 +418,10 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -300.0
-offset_top = -35.0
-offset_right = -10.0
+offset_left = -368.0
+offset_top = -64.0
+offset_right = -78.0
+offset_bottom = -29.0
 grow_horizontal = 0
 grow_vertical = 0
 theme_override_colors/default_color = Color(0.6, 0.65, 0.7, 0.7)
@@ -453,7 +454,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 0.75)
 
-[node name="PanelContainer" type="PanelContainer" parent="SettingsPanel"]
+[node name="PanelContainer" type="PanelContainer" parent="SettingsPanel" unique_id=352545002]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -479,25 +480,25 @@ theme_override_font_sizes/font_size = 28
 text = "SETTINGS"
 horizontal_alignment = 1
 
-[node name="Spacer1" type="Control" parent="SettingsPanel/PanelContainer/VBoxContainer"]
+[node name="Spacer1" type="Control" parent="SettingsPanel/PanelContainer/VBoxContainer" unique_id=918174822]
 custom_minimum_size = Vector2(0, 4)
 layout_mode = 2
 
-[node name="AudioSection" type="PanelContainer" parent="SettingsPanel/PanelContainer/VBoxContainer"]
+[node name="AudioSection" type="PanelContainer" parent="SettingsPanel/PanelContainer/VBoxContainer" unique_id=280057956]
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_section")
 
-[node name="AudioVBox" type="VBoxContainer" parent="SettingsPanel/PanelContainer/VBoxContainer/AudioSection"]
+[node name="AudioVBox" type="VBoxContainer" parent="SettingsPanel/PanelContainer/VBoxContainer/AudioSection" unique_id=2135902068]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="AudioLabel" type="Label" parent="SettingsPanel/PanelContainer/VBoxContainer/AudioSection/AudioVBox"]
+[node name="AudioLabel" type="Label" parent="SettingsPanel/PanelContainer/VBoxContainer/AudioSection/AudioVBox" unique_id=1100008944]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 0.5)
 theme_override_font_sizes/font_size = 12
 text = "AUDIO"
 
-[node name="MusicRow" type="HBoxContainer" parent="SettingsPanel/PanelContainer/VBoxContainer/AudioSection/AudioVBox"]
+[node name="MusicRow" type="HBoxContainer" parent="SettingsPanel/PanelContainer/VBoxContainer/AudioSection/AudioVBox" unique_id=1082261965]
 layout_mode = 2
 theme_override_constants/separation = 12
 
@@ -519,7 +520,7 @@ max_value = 1.0
 step = 0.05
 value = 0.7
 
-[node name="SFXRow" type="HBoxContainer" parent="SettingsPanel/PanelContainer/VBoxContainer/AudioSection/AudioVBox"]
+[node name="SFXRow" type="HBoxContainer" parent="SettingsPanel/PanelContainer/VBoxContainer/AudioSection/AudioVBox" unique_id=975322767]
 layout_mode = 2
 theme_override_constants/separation = 12
 
@@ -541,42 +542,42 @@ max_value = 1.0
 step = 0.05
 value = 0.8
 
-[node name="DisplaySection" type="PanelContainer" parent="SettingsPanel/PanelContainer/VBoxContainer"]
+[node name="DisplaySection" type="PanelContainer" parent="SettingsPanel/PanelContainer/VBoxContainer" unique_id=1177084895]
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_section")
 
-[node name="DisplayVBox" type="VBoxContainer" parent="SettingsPanel/PanelContainer/VBoxContainer/DisplaySection"]
+[node name="DisplayVBox" type="VBoxContainer" parent="SettingsPanel/PanelContainer/VBoxContainer/DisplaySection" unique_id=1204036417]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="DisplayLabel" type="Label" parent="SettingsPanel/PanelContainer/VBoxContainer/DisplaySection/DisplayVBox"]
+[node name="DisplayLabel" type="Label" parent="SettingsPanel/PanelContainer/VBoxContainer/DisplaySection/DisplayVBox" unique_id=1418971421]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 0.5)
 theme_override_font_sizes/font_size = 12
 text = "DISPLAY"
 
-[node name="PopupCheck" type="CheckButton" parent="SettingsPanel/PanelContainer/VBoxContainer/DisplaySection/DisplayVBox"]
+[node name="PopupCheck" type="CheckButton" parent="SettingsPanel/PanelContainer/VBoxContainer/DisplaySection/DisplayVBox" unique_id=1688729829]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 0.8)
 theme_override_font_sizes/font_size = 14
 button_pressed = true
 text = "Pickup Popups"
 
-[node name="DamageCheck" type="CheckButton" parent="SettingsPanel/PanelContainer/VBoxContainer/DisplaySection/DisplayVBox"]
+[node name="DamageCheck" type="CheckButton" parent="SettingsPanel/PanelContainer/VBoxContainer/DisplaySection/DisplayVBox" unique_id=1730555644]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 0.8)
 theme_override_font_sizes/font_size = 14
 button_pressed = true
 text = "Damage Numbers"
 
-[node name="HapticCheck" type="CheckButton" parent="SettingsPanel/PanelContainer/VBoxContainer/DisplaySection/DisplayVBox"]
+[node name="HapticCheck" type="CheckButton" parent="SettingsPanel/PanelContainer/VBoxContainer/DisplaySection/DisplayVBox" unique_id=1934406337]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 0.8)
 theme_override_font_sizes/font_size = 14
 button_pressed = true
 text = "Vibration"
 
-[node name="Spacer2" type="Control" parent="SettingsPanel/PanelContainer/VBoxContainer"]
+[node name="Spacer2" type="Control" parent="SettingsPanel/PanelContainer/VBoxContainer" unique_id=1633468594]
 custom_minimum_size = Vector2(0, 4)
 layout_mode = 2
 
@@ -609,7 +610,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 0.75)
 
-[node name="PanelContainer" type="PanelContainer" parent="StatsPanel"]
+[node name="PanelContainer" type="PanelContainer" parent="StatsPanel" unique_id=1830647701]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -635,15 +636,15 @@ theme_override_font_sizes/font_size = 28
 text = "STATISTICS"
 horizontal_alignment = 1
 
-[node name="Spacer1" type="Control" parent="StatsPanel/PanelContainer/VBoxContainer"]
+[node name="Spacer1" type="Control" parent="StatsPanel/PanelContainer/VBoxContainer" unique_id=1624462308]
 custom_minimum_size = Vector2(0, 4)
 layout_mode = 2
 
-[node name="StatsSection" type="PanelContainer" parent="StatsPanel/PanelContainer/VBoxContainer"]
+[node name="StatsSection" type="PanelContainer" parent="StatsPanel/PanelContainer/VBoxContainer" unique_id=346240903]
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_section")
 
-[node name="StatsVBox" type="VBoxContainer" parent="StatsPanel/PanelContainer/VBoxContainer/StatsSection"]
+[node name="StatsVBox" type="VBoxContainer" parent="StatsPanel/PanelContainer/VBoxContainer/StatsSection" unique_id=1120459004]
 layout_mode = 2
 theme_override_constants/separation = 14
 
@@ -683,7 +684,7 @@ theme_override_colors/font_color = Color(1, 1, 1, 0.9)
 theme_override_font_sizes/font_size = 15
 text = "Best: 0m  |  Avg: 0m"
 
-[node name="Separator" type="HSeparator" parent="StatsPanel/PanelContainer/VBoxContainer/StatsSection/StatsVBox"]
+[node name="Separator" type="HSeparator" parent="StatsPanel/PanelContainer/VBoxContainer/StatsSection/StatsVBox" unique_id=1468698655]
 layout_mode = 2
 theme_override_styles/separator = SubResource("StyleBoxFlat_slider_bg")
 
@@ -694,7 +695,7 @@ theme_override_font_sizes/font_size = 14
 text = "Games Played: 0"
 horizontal_alignment = 1
 
-[node name="Spacer2" type="Control" parent="StatsPanel/PanelContainer/VBoxContainer"]
+[node name="Spacer2" type="Control" parent="StatsPanel/PanelContainer/VBoxContainer" unique_id=1766143237]
 custom_minimum_size = Vector2(0, 4)
 layout_mode = 2
 
