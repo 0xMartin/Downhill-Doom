@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1080" height="1920" viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg">
+  <!-- Layer 5: Bottom section with curved top edge -->
+  <defs>
+    <linearGradient id="grad5" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#7898a8;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#648090;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <!-- Bottom section with wave top -->
+  <path d="M0,1620 Q180,1720 360,1650 Q540,1580 720,1650 Q900,1720 1080,1620
+           L1080,1920 L0,1920 L0,1620 Z" fill="url(#grad5)"/>
+  <!-- Bottom highlight bar -->
+  <rect x="0" y="1850" width="1080" height="70" fill="#88a8b8" opacity="0.3"/>
+  <!-- Small decorative dots -->
+  <circle cx="180" cy="1750" r="8" fill="#98b8c8" opacity="0.6"/>
+  <circle cx="380" cy="1800" r="6" fill="#98b8c8" opacity="0.5"/>
+  <circle cx="540" cy="1720" r="10" fill="#98b8c8" opacity="0.6"/>
+  <circle cx="720" cy="1790" r="7" fill="#98b8c8" opacity="0.5"/>
+  <circle cx="900" cy="1760" r="9" fill="#98b8c8" opacity="0.6"/>
+</svg>
