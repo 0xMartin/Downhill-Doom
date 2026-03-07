@@ -27,23 +27,26 @@ var sparkle_tween: Tween  # Track sparkle tween to prevent stacking
 var current_multiplier: int = 1
 
 # Supercharge UI
-var supercharge_panel: PanelContainer
-var supercharge_container: VBoxContainer
-var supercharge_bar: ProgressBar
-var supercharge_button: TextureButton
+@onready var supercharge_panel: PanelContainer = $SuperchargePanel
+@onready var supercharge_container: VBoxContainer = $SuperchargePanel/SuperchargeContainer
+@onready var supercharge_bar: Control = $SuperchargePanel/SuperchargeContainer/SuperchargeBar
+@onready var supercharge_bar_fill: PanelContainer = $SuperchargePanel/SuperchargeContainer/SuperchargeBar/BarBackground/BarFill
+@onready var supercharge_button: TextureButton = $SuperchargePanel/SuperchargeContainer/SuperchargeButton
+@onready var supercharge_count_label: Label = $SuperchargePanel/SuperchargeContainer/SuperchargeBar/SuperchargeCountLabel
+var supercharge_bar_value: float = 0.0
+var supercharge_bar_max: float = 100.0
 var supercharge_glow_tween: Tween
 var supercharge_bar_glow_tween: Tween
 var supercharge_ready: bool = false
-var supercharge_count_label: Label
 
 # Multiplier UI
-var multiplier_panel: Control
-var multiplier_label: Label
+@onready var multiplier_panel: Control = $MultiplierPanel
+@onready var multiplier_label: Label = $MultiplierPanel/MultiplierLabel
 var multiplier_tween: Tween
 
 # Settings button UI (floating)
-var settings_button_panel: Control
-var settings_button: TextureButton
+@onready var settings_button_panel: Control = $SettingsButtonPanel
+@onready var settings_button: TextureButton = $SettingsButtonPanel/SettingsButton
 
 # Combo UI
 var combo_panel: Control
@@ -83,15 +86,6 @@ func _ready() -> void:
 	gm.supercharge_ended.connect(_on_supercharge_ended)
 	gm.game_started.connect(_on_game_started)
 	gm.object_destroyed.connect(_on_object_destroyed)
-	
-	# Create supercharge UI
-	_create_supercharge_ui()
-	
-	# Create multiplier UI
-	_create_multiplier_ui()
-	
-	# Create settings button UI (floating above multiplier)
-	_create_settings_button_ui()
 	
 	# Create combo UI
 	_create_combo_ui()
@@ -539,133 +533,6 @@ func _apply_safe_area_offset() -> void:
 		combo_panel.offset_top = actual_top_offset + top_bar_height + timer_gap + timer_height + combo_gap
 		combo_panel.offset_bottom = combo_panel.offset_top + combo_height
 
-# ========== Multiplier UI ==========
-
-func _create_multiplier_ui() -> void:
-	# Clean coin design using SVG frame
-	var coin_size := 84.0
-	multiplier_panel = Control.new()
-	multiplier_panel.name = "MultiplierPanel"
-	multiplier_panel.set_anchors_preset(Control.PRESET_CENTER_RIGHT)
-	multiplier_panel.anchor_left = 1.0
-	multiplier_panel.anchor_right = 1.0
-	multiplier_panel.anchor_top = 0.5
-	multiplier_panel.anchor_bottom = 0.5
-	multiplier_panel.offset_left = -96
-	multiplier_panel.offset_right = -12
-	multiplier_panel.offset_top = -264
-	multiplier_panel.offset_bottom = -180
-	multiplier_panel.pivot_offset = Vector2(coin_size / 2, coin_size / 2)
-	add_child(multiplier_panel)
-	
-	# Dark circular shadow background
-	var shadow_bg := PanelContainer.new()
-	shadow_bg.name = "ShadowBackground"
-	shadow_bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	var bg_style := StyleBoxFlat.new()
-	bg_style.bg_color = Color(0.12, 0.12, 0.14, 0.92)
-	bg_style.corner_radius_top_left = 42
-	bg_style.corner_radius_top_right = 42
-	bg_style.corner_radius_bottom_left = 42
-	bg_style.corner_radius_bottom_right = 42
-	bg_style.border_width_left = 2
-	bg_style.border_width_right = 2
-	bg_style.border_width_top = 2
-	bg_style.border_width_bottom = 2
-	bg_style.border_color = Color(0.91, 0.27, 0.38, 0.6)
-	bg_style.shadow_color = Color(0, 0, 0, 0.5)
-	bg_style.shadow_size = 6
-	bg_style.shadow_offset = Vector2(0, 3)
-	shadow_bg.add_theme_stylebox_override("panel", bg_style)
-	multiplier_panel.add_child(shadow_bg)
-	
-	# SVG coin frame background
-	var coin_frame := TextureRect.new()
-	coin_frame.name = "CoinFrame"
-	coin_frame.set_anchors_preset(Control.PRESET_FULL_RECT)
-	var frame_texture := load("res://assets/svg/ui_coin_frame.svg") as Texture2D
-	if frame_texture:
-		coin_frame.texture = frame_texture
-		coin_frame.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		coin_frame.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	multiplier_panel.add_child(coin_frame)
-	
-	# Multiplier text label centered on coin
-	multiplier_label = Label.new()
-	multiplier_label.name = "MultiplierLabel"
-	multiplier_label.text = "x1"
-	multiplier_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	multiplier_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	multiplier_label.add_theme_font_size_override("font_size", 32)
-	multiplier_label.add_theme_color_override("font_color", Color(0.2, 0.1, 0.0, 1.0))
-	multiplier_label.add_theme_color_override("font_shadow_color", Color(1.0, 0.85, 0.4, 0.8))
-	multiplier_label.add_theme_color_override("font_outline_color", Color(0.5, 0.3, 0.0, 1.0))
-	multiplier_label.add_theme_constant_override("shadow_offset_x", 0)
-	multiplier_label.add_theme_constant_override("shadow_offset_y", 1)
-	multiplier_label.add_theme_constant_override("outline_size", 4)
-	multiplier_label.set_anchors_preset(Control.PRESET_FULL_RECT)
-	multiplier_panel.add_child(multiplier_label)
-
-# ========== Settings Button UI ==========
-
-func _create_settings_button_ui() -> void:
-	# Settings button same size as coin (84px)
-	var button_size := 84.0
-	settings_button_panel = Control.new()
-	settings_button_panel.name = "SettingsButtonPanel"
-	settings_button_panel.set_anchors_preset(Control.PRESET_CENTER_RIGHT)
-	settings_button_panel.anchor_left = 1.0
-	settings_button_panel.anchor_right = 1.0
-	settings_button_panel.anchor_top = 0.5
-	settings_button_panel.anchor_bottom = 0.5
-	settings_button_panel.offset_left = -96
-	settings_button_panel.offset_right = -12
-	settings_button_panel.offset_top = -264 - 16 - button_size
-	settings_button_panel.offset_bottom = -264 - 16
-	settings_button_panel.pivot_offset = Vector2(button_size / 2, button_size / 2)
-	settings_button_panel.mouse_filter = Control.MOUSE_FILTER_STOP
-	add_child(settings_button_panel)
-	
-	# Dark gray circular background (same style as top bar)
-	var button_bg := PanelContainer.new()
-	button_bg.name = "ButtonBackground"
-	button_bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	var bg_style := StyleBoxFlat.new()
-	bg_style.bg_color = Color(0.12, 0.12, 0.14, 0.92)
-	bg_style.corner_radius_top_left = 42
-	bg_style.corner_radius_top_right = 42
-	bg_style.corner_radius_bottom_left = 42
-	bg_style.corner_radius_bottom_right = 42
-	bg_style.border_width_left = 2
-	bg_style.border_width_right = 2
-	bg_style.border_width_top = 2
-	bg_style.border_width_bottom = 2
-	bg_style.border_color = Color(0.91, 0.27, 0.38, 0.6)
-	bg_style.shadow_color = Color(0, 0, 0, 0.5)
-	bg_style.shadow_size = 6
-	bg_style.shadow_offset = Vector2(0, 3)
-	button_bg.add_theme_stylebox_override("panel", bg_style)
-	settings_button_panel.add_child(button_bg)
-	
-	# Settings icon button (with padding - added to panel not PanelContainer)
-	settings_button = TextureButton.new()
-	settings_button.name = "SettingsButton"
-	settings_button.set_anchors_preset(Control.PRESET_FULL_RECT)
-	settings_button.offset_left = 24
-	settings_button.offset_top = 24
-	settings_button.offset_right = -24
-	settings_button.offset_bottom = -24
-	
-	var icon_texture := load("res://assets/svg/settings.svg") as Texture2D
-	if icon_texture:
-		settings_button.texture_normal = icon_texture
-		settings_button.ignore_texture_size = true
-		settings_button.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
-	
-	settings_button.modulate = Color(0.6, 0.6, 0.65, 0.9)
-	settings_button.pressed.connect(_on_settings_pressed)
-	settings_button_panel.add_child(settings_button)
-
 # ========== Combo UI ==========
 
 func _create_combo_ui() -> void:
@@ -744,122 +611,13 @@ func _show_combo(combo: int) -> void:
 
 # ========== Supercharge UI ==========
 
-func _create_supercharge_ui() -> void:
-	# Clean supercharge panel with StyleBoxFlat
-	supercharge_panel = PanelContainer.new()
-	supercharge_panel.name = "SuperchargePanel"
-	supercharge_panel.anchor_left = 1.0
-	supercharge_panel.anchor_right = 1.0
-	supercharge_panel.anchor_top = 0.5
-	supercharge_panel.anchor_bottom = 0.5
-	supercharge_panel.offset_left = -96
-	supercharge_panel.offset_right = -12
-	supercharge_panel.offset_top = -168
-	supercharge_panel.offset_bottom = 168
-	supercharge_panel.mouse_filter = Control.MOUSE_FILTER_STOP
-	
-	# Dark panel with fully rounded ends (50% width = 42px)
-	var panel_style := StyleBoxFlat.new()
-	panel_style.bg_color = Color(0.08, 0.06, 0.14, 0.75)
-	panel_style.corner_radius_top_left = 42
-	panel_style.corner_radius_top_right = 42
-	panel_style.corner_radius_bottom_left = 42
-	panel_style.corner_radius_bottom_right = 42
-	panel_style.border_width_left = 2
-	panel_style.border_width_right = 2
-	panel_style.border_width_top = 2
-	panel_style.border_width_bottom = 2
-	panel_style.border_color = Color(0.91, 0.27, 0.38, 0.6)
-	panel_style.shadow_color = Color(0, 0, 0, 0.5)
-	panel_style.shadow_size = 8
-	panel_style.shadow_offset = Vector2(0, 4)
-	panel_style.content_margin_left = 12
-	panel_style.content_margin_right = 12
-	panel_style.content_margin_top = 16
-	panel_style.content_margin_bottom = 16
-	supercharge_panel.add_theme_stylebox_override("panel", panel_style)
-	add_child(supercharge_panel)
-	
-	# Main container
-	supercharge_container = VBoxContainer.new()
-	supercharge_container.name = "SuperchargeContainer"
-	supercharge_container.add_theme_constant_override("separation", 14)
-	supercharge_container.alignment = BoxContainer.ALIGNMENT_CENTER
-	supercharge_panel.add_child(supercharge_container)
-	
-	# Progress bar (simple, no extra container)
-	supercharge_bar = ProgressBar.new()
-	supercharge_bar.name = "SuperchargeBar"
-	supercharge_bar.custom_minimum_size = Vector2(52, 200)
-	supercharge_bar.fill_mode = ProgressBar.FILL_BOTTOM_TO_TOP
-	supercharge_bar.show_percentage = false
-	supercharge_bar.max_value = 100.0
-	supercharge_bar.value = 0.0
-	supercharge_bar.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	
-	# Bar background - fully rounded ends (50% width = 26px)
-	var bar_bg_style := StyleBoxFlat.new()
-	bar_bg_style.bg_color = Color(0.05, 0.03, 0.08, 0.9)
-	bar_bg_style.corner_radius_top_left = 26
-	bar_bg_style.corner_radius_top_right = 26
-	bar_bg_style.corner_radius_bottom_left = 26
-	bar_bg_style.corner_radius_bottom_right = 26
-	bar_bg_style.border_width_left = 2
-	bar_bg_style.border_width_right = 2
-	bar_bg_style.border_width_top = 2
-	bar_bg_style.border_width_bottom = 2
-	bar_bg_style.border_color = Color(0.3, 0.2, 0.4, 0.5)
-	supercharge_bar.add_theme_stylebox_override("background", bar_bg_style)
-	
-	# Orange fill - fully rounded (same as background)
-	var fill_style := StyleBoxFlat.new()
-	fill_style.bg_color = Color(1.0, 0.5, 0.15, 1.0)
-	fill_style.corner_radius_top_left = 26
-	fill_style.corner_radius_top_right = 26
-	fill_style.corner_radius_bottom_left = 26
-	fill_style.corner_radius_bottom_right = 26
-	fill_style.border_width_top = 2
-	fill_style.border_color = Color(1.0, 0.8, 0.4, 0.6)
-	supercharge_bar.add_theme_stylebox_override("fill", fill_style)
-	supercharge_container.add_child(supercharge_bar)
-	
-	# Count label - overlaid on bar
-	supercharge_count_label = Label.new()
-	supercharge_count_label.name = "SuperchargeCountLabel"
-	supercharge_count_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	supercharge_count_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	supercharge_count_label.text = "0\n━\n10"
-	supercharge_count_label.add_theme_font_size_override("font_size", 22)
-	supercharge_count_label.add_theme_color_override("font_color", Color.WHITE)
-	supercharge_count_label.add_theme_constant_override("outline_size", 5)
-	supercharge_count_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.95))
-	supercharge_count_label.set_anchors_preset(Control.PRESET_CENTER)
-	supercharge_count_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	supercharge_count_label.grow_vertical = Control.GROW_DIRECTION_BOTH
-	supercharge_bar.add_child(supercharge_count_label)
-	
-	# Fire button
-	supercharge_button = TextureButton.new()
-	supercharge_button.name = "SuperchargeButton"
-	supercharge_button.custom_minimum_size = Vector2(60, 60)
-	supercharge_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	
-	var fire_texture := load("res://assets/svg/ui_fire_button.svg") as Texture2D
-	if fire_texture:
-		supercharge_button.texture_normal = fire_texture
-		supercharge_button.ignore_texture_size = true
-		supercharge_button.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
-	
-	supercharge_button.modulate = Color(0.5, 0.5, 0.5, 0.6)
-	supercharge_button.pressed.connect(_on_supercharge_button_pressed)
-	supercharge_container.add_child(supercharge_button)
-
 func _on_supercharge_changed(current: int, required: int) -> void:
 	if not supercharge_bar:
 		return
 	
-	supercharge_bar.max_value = required
-	supercharge_bar.value = current
+	supercharge_bar_max = required
+	supercharge_bar_value = current
+	_update_supercharge_bar_fill()
 	
 	# Update count label - during supercharge show remaining seconds
 	if supercharge_count_label:
@@ -917,6 +675,42 @@ func _on_supercharge_button_pressed() -> void:
 	if supercharge_button:
 		supercharge_button.release_focus()
 
+func _update_supercharge_bar_fill() -> void:
+	if not supercharge_bar_fill or not supercharge_bar:
+		return
+	
+	# Calculate fill ratio (0 to 1)
+	var ratio := 0.0
+	if supercharge_bar_max > 0:
+		ratio = clampf(supercharge_bar_value / supercharge_bar_max, 0.0, 1.0)
+	
+	# Fill grows from bottom (anchor_top goes from 1.0 to 0.0)
+	# Since BarFill is child of BarBackground, anchors are relative to it
+	var bar_height := supercharge_bar.size.y - 12  # Total height minus top and bottom padding (6px each)
+	var fill_height := bar_height * ratio
+	
+	supercharge_bar_fill.anchor_top = 1.0 - ratio
+	supercharge_bar_fill.offset_top = 6 if ratio >= 1.0 else 0  # Top padding only when full
+	
+	# Dynamically adjust corner radii based on fill height
+	# Max radius is 16 (fits inside background's 26px radius with 6px margin)
+	var max_radius := 16
+	var actual_fill_height := fill_height + (6 if ratio >= 1.0 else 0)
+	var corner_radius := mini(max_radius, int(actual_fill_height / 2.0))
+	
+	# Top corners: only rounded when bar is nearly full (approaching the rounded top of container)
+	var top_radius := 0
+	if ratio > 0.85:
+		top_radius = int((ratio - 0.85) / 0.15 * max_radius)
+	
+	var fill_style := StyleBoxFlat.new()
+	fill_style.bg_color = Color(1.0, 0.5, 0.15, 1.0)
+	fill_style.corner_radius_top_left = top_radius
+	fill_style.corner_radius_top_right = top_radius
+	fill_style.corner_radius_bottom_left = corner_radius
+	fill_style.corner_radius_bottom_right = corner_radius
+	supercharge_bar_fill.add_theme_stylebox_override("panel", fill_style)
+
 func _start_supercharge_glow() -> void:
 	if not supercharge_button:
 		return
@@ -934,12 +728,12 @@ func _start_supercharge_glow() -> void:
 	supercharge_glow_tween.tween_property(supercharge_button, "modulate", Color(2.5, 1.5, 0.5, 1.0), 0.3)
 	supercharge_glow_tween.tween_property(supercharge_button, "modulate", Color(1.5, 1.2, 1.0, 1.0), 0.3)
 	
-	# Also pulse the bar with glowing effect
-	if supercharge_bar:
+	# Also pulse the fill bar with glowing effect
+	if supercharge_bar_fill:
 		supercharge_bar_glow_tween = create_tween()
 		supercharge_bar_glow_tween.set_loops()
-		supercharge_bar_glow_tween.tween_property(supercharge_bar, "modulate", Color(1.8, 1.4, 1.0, 1.0), 0.3)
-		supercharge_bar_glow_tween.tween_property(supercharge_bar, "modulate", Color(1.2, 1.0, 0.9, 1.0), 0.3)
+		supercharge_bar_glow_tween.tween_property(supercharge_bar_fill, "modulate", Color(1.8, 1.4, 1.0, 1.0), 0.3)
+		supercharge_bar_glow_tween.tween_property(supercharge_bar_fill, "modulate", Color(1.2, 1.0, 0.9, 1.0), 0.3)
 	
 	# Pulse the panel border too
 	if supercharge_panel:
@@ -964,8 +758,8 @@ func _stop_supercharge_glow() -> void:
 	if supercharge_button:
 		supercharge_button.modulate = Color(0.5, 0.5, 0.5, 0.6)
 	
-	if supercharge_bar:
-		supercharge_bar.modulate = Color(1.0, 1.0, 1.0, 1.0)
+	if supercharge_bar_fill:
+		supercharge_bar_fill.modulate = Color(1.0, 1.0, 1.0, 1.0)
 	
 	# Reset panel border
 	if supercharge_panel:
@@ -979,7 +773,7 @@ func _stop_supercharge_glow() -> void:
 		panel_style.border_width_right = 2
 		panel_style.border_width_top = 2
 		panel_style.border_width_bottom = 2
-		panel_style.border_color = Color(0.4, 0.3, 0.5, 0.6)
+		panel_style.border_color = Color(0.91, 0.27, 0.38, 0.6)
 		panel_style.shadow_color = Color(0, 0, 0, 0.5)
 		panel_style.shadow_size = 8
 		panel_style.shadow_offset = Vector2(0, 4)
