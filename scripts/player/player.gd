@@ -62,7 +62,10 @@ var dust_particles: GPUParticles3D
 # Slam cone effect (comet/meteor trail)
 var slam_cone: MeshInstance3D
 var slam_cone_mesh: CylinderMesh
+var slam_cone_material: StandardMaterial3D
 var slam_cone_shake_tween: Tween
+var slam_cone_grow_tween: Tween
+var slam_cone_grow_progress: float = 0.0
 
 # Atmospheric particles (snow/dust in the air)
 var atmosphere_particles: GPUParticles3D
@@ -201,12 +204,15 @@ func _physics_process(delta: float) -> void:
 		# Reset states
 		slam_charged = false
 		has_jumped = false
-		# Hide cone and stop shake
+		# Hide cone and stop tweens
 		if slam_cone:
 			slam_cone.visible = false
 		if slam_cone_shake_tween:
 			slam_cone_shake_tween.kill()
 			slam_cone_shake_tween = null
+		if slam_cone_grow_tween:
+			slam_cone_grow_tween.kill()
+			slam_cone_grow_tween = null
 		if slam_flash_tween:
 			slam_flash_tween.kill()
 			slam_flash_tween = null
@@ -425,9 +431,15 @@ func _charge_slam() -> void:
 	
 	slam_charged = true
 	
-	# Show slam cone effect
+	# Show slam cone effect with grow animation
 	if slam_cone:
 		slam_cone.visible = true
+		slam_cone_grow_progress = 0.0
+		# Animate cone growing
+		if slam_cone_grow_tween:
+			slam_cone_grow_tween.kill()
+		slam_cone_grow_tween = create_tween()
+		slam_cone_grow_tween.tween_property(self, "slam_cone_grow_progress", 1.0, 0.2).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
 		_start_cone_shake()
 	
 	# Visual feedback - flash the player model
@@ -484,6 +496,9 @@ func _spawn_landing_shock_wave() -> void:
 	if slam_cone_shake_tween:
 		slam_cone_shake_tween.kill()
 		slam_cone_shake_tween = null
+	if slam_cone_grow_tween:
+		slam_cone_grow_tween.kill()
+		slam_cone_grow_tween = null
 	
 	# Spawn shock wave at player's position (slightly below for ground effect)
 	var shock_position := global_position + Vector3(0, -sphere_radius * 0.5, 0)
@@ -731,15 +746,15 @@ func _setup_slam_cone() -> void:
 	slam_cone_mesh.rings = 1
 	
 	# Transparent glowing material
-	var cone_mat := StandardMaterial3D.new()
-	cone_mat.albedo_color = Color(1.0, 0.5, 0.2, 0.25)  # Orange, semi-transparent
-	cone_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	cone_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	cone_mat.cull_mode = BaseMaterial3D.CULL_DISABLED  # Visible from inside too
-	cone_mat.emission_enabled = true
-	cone_mat.emission = Color(1.0, 0.4, 0.1)  # Warm glow
-	cone_mat.emission_energy_multiplier = 1.5
-	slam_cone_mesh.material = cone_mat
+	slam_cone_material = StandardMaterial3D.new()
+	slam_cone_material.albedo_color = Color(1.0, 0.5, 0.2, 0.25)  # Orange, semi-transparent
+	slam_cone_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	slam_cone_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	slam_cone_material.cull_mode = BaseMaterial3D.CULL_DISABLED  # Visible from inside too
+	slam_cone_material.emission_enabled = true
+	slam_cone_material.emission = Color(1.0, 0.4, 0.1)  # Warm glow
+	slam_cone_material.emission_energy_multiplier = 1.5
+	slam_cone_mesh.material = slam_cone_material
 	
 	slam_cone.mesh = slam_cone_mesh
 	slam_cone.visible = false  # Hidden until slam charged
@@ -767,10 +782,22 @@ func _update_cone_position() -> void:
 	if not slam_cone or not slam_cone_mesh:
 		return
 	
-	# Update cone dimensions based on current player scale
+	# Update cone dimensions based on current player scale and grow progress
 	var current_radius := sphere_radius * supercharge_current_scale
+	var max_height := current_radius * 6.0
+	var min_height := current_radius * 0.5  # Start from small
+	var current_height := lerpf(min_height, max_height, slam_cone_grow_progress)
+	
 	slam_cone_mesh.bottom_radius = current_radius * 1.2  # Match player radius
-	slam_cone_mesh.height = current_radius * 6.0  # Long cone trailing
+	slam_cone_mesh.height = current_height
+	
+	# Update opacity - higher in supercharge mode
+	if slam_cone_material:
+		var base_opacity := 0.25
+		if is_supercharged:
+			base_opacity = 0.45  # More visible in supercharge
+		slam_cone_material.albedo_color.a = base_opacity
+		slam_cone_material.emission_energy_multiplier = 1.5 if not is_supercharged else 2.5
 	
 	var cone_height: float = slam_cone_mesh.height
 	var shake_x := randf_range(-0.1, 0.1)
