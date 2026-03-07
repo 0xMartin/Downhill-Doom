@@ -8,6 +8,10 @@ extends RefCounted
 ## - BUILDING zones: Buildings + Building Enemies (2x density)
 ## - OPEN zones: Transition areas, only rocks
 ## - Rocks spawn everywhere
+##
+## Collision AABB naming convention:
+## - Nodes ending with "_nocol" are excluded from AABB calculation
+## - Example: windmill blades named "blades_nocol" won't affect collision box
 
 const ObjectConfigScript := preload("res://scripts/config/object_config.gd")
 
@@ -948,25 +952,13 @@ func _create_tree(obj_data: RefCounted, rng: RandomNumberGenerator) -> RigidBody
 	detect_area.collision_mask = 2
 	detect_area.monitoring = true
 	
-	var col_shape := CollisionShape3D.new()
-	var box := BoxShape3D.new()
-	
-	# Calculate bounding box from model
+	# Calculate bounding box from model and create collision
 	if model:
 		var aabb := _get_model_aabb(model)
 		if aabb.size != Vector3.ZERO:
-			box.size = aabb.size * 1.1  # Slightly larger for better detection
-			col_shape.position = aabb.get_center()
-		else:
-			# Fallback to config values
-			box.size = Vector3(obj_data.collision_radius * 2, obj_data.collision_height, obj_data.collision_radius * 2)
-			col_shape.position.y = obj_data.collision_height / 2
-	else:
-		box.size = Vector3(obj_data.collision_radius * 2, obj_data.collision_height, obj_data.collision_radius * 2)
-		col_shape.position.y = obj_data.collision_height / 2
+			var col_data := _create_collision_from_aabb(aabb, obj_data.collision_shape, 1.1)
+			detect_area.add_child(col_data.collision_shape)
 	
-	col_shape.shape = box
-	detect_area.add_child(col_shape)
 	tree.add_child(detect_area)
 	
 	return tree
@@ -1000,25 +992,13 @@ func _create_building(obj_data: RefCounted, rng: RandomNumberGenerator) -> Rigid
 	detect_area.collision_mask = 2
 	detect_area.monitoring = true
 	
-	var col_shape := CollisionShape3D.new()
-	var box := BoxShape3D.new()
-	
-	# Calculate bounding box from model
+	# Calculate bounding box from model and create collision
 	if model:
 		var aabb := _get_model_aabb(model)
 		if aabb.size != Vector3.ZERO:
-			box.size = aabb.size * 1.1  # Slightly larger for better detection
-			col_shape.position = aabb.get_center()
-		else:
-			# Fallback to config values
-			box.size = obj_data.collision_size
-			col_shape.position.y = obj_data.collision_size.y / 2
-	else:
-		box.size = obj_data.collision_size
-		col_shape.position.y = obj_data.collision_size.y / 2
+			var col_data := _create_collision_from_aabb(aabb, obj_data.collision_shape, 1.1)
+			detect_area.add_child(col_data.collision_shape)
 	
-	col_shape.shape = box
-	detect_area.add_child(col_shape)
 	building.add_child(detect_area)
 	
 	return building
@@ -1050,38 +1030,22 @@ func _create_large_building(obj_data: RefCounted, rng: RandomNumberGenerator) ->
 	if model:
 		aabb = _get_model_aabb(model)
 	
-	# Physical collision shape (blocks player)
-	var phys_col := CollisionShape3D.new()
-	phys_col.name = "PhysicsCollision"
-	var phys_box := BoxShape3D.new()
 	if aabb.size != Vector3.ZERO:
-		phys_box.size = aabb.size * 0.9  # Slightly smaller than visual
-		phys_col.position = aabb.get_center()
-	else:
-		phys_box.size = obj_data.collision_size
-		phys_col.position.y = obj_data.collision_size.y / 2
-	phys_col.shape = phys_box
-	building.add_child(phys_col)
-	
-	# Detection area for script triggering (slightly larger)
-	var detect_area := Area3D.new()
-	detect_area.name = "DetectArea"
-	detect_area.collision_layer = 0
-	detect_area.collision_mask = 2
-	detect_area.monitoring = true
-	
-	var col_shape := CollisionShape3D.new()
-	var box := BoxShape3D.new()
-	if aabb.size != Vector3.ZERO:
-		box.size = aabb.size * 1.1  # Slightly larger for detection before collision
-		col_shape.position = aabb.get_center()
-	else:
-		box.size = obj_data.collision_size
-		col_shape.position.y = obj_data.collision_size.y / 2
-	
-	col_shape.shape = box
-	detect_area.add_child(col_shape)
-	building.add_child(detect_area)
+		# Physical collision shape (blocks player) - slightly smaller
+		var phys_data := _create_collision_from_aabb(aabb, obj_data.collision_shape, 0.9)
+		phys_data.collision_shape.name = "PhysicsCollision"
+		building.add_child(phys_data.collision_shape)
+		
+		# Detection area for script triggering (slightly larger)
+		var detect_area := Area3D.new()
+		detect_area.name = "DetectArea"
+		detect_area.collision_layer = 0
+		detect_area.collision_mask = 2
+		detect_area.monitoring = true
+		
+		var detect_data := _create_collision_from_aabb(aabb, obj_data.collision_shape, 1.1)
+		detect_area.add_child(detect_data.collision_shape)
+		building.add_child(detect_area)
 	
 	return building
 
@@ -1112,46 +1076,21 @@ func _create_building_enemy(obj_data: RefCounted, rng: RandomNumberGenerator) ->
 	if model:
 		aabb = _get_model_aabb(model)
 	
-	# Physical collision (box based on AABB)
-	var phys_col := CollisionShape3D.new()
-	var phys_box := BoxShape3D.new()
 	if aabb.size != Vector3.ZERO:
-		phys_box.size = aabb.size * 0.7  # Slightly smaller for physical collision
-		phys_col.position = aabb.get_center()
-	elif obj_data.collision_size != Vector3.ZERO:
-		# Use explicit collision_size if specified
-		phys_box.size = obj_data.collision_size * 0.9
-		phys_col.position.y = obj_data.collision_size.y / 2
-	else:
-		# Fallback to collision_radius
-		phys_box.size = Vector3(obj_data.collision_radius * 1.2, obj_data.collision_radius * 1.2, obj_data.collision_radius * 1.2)
-		phys_col.position.y = obj_data.collision_radius * 0.6
-	phys_col.shape = phys_box
-	enemy.add_child(phys_col)
-	
-	# Damage detection area (box based on AABB)
-	var damage_area := Area3D.new()
-	damage_area.name = "DamageArea"
-	damage_area.collision_layer = 0
-	damage_area.collision_mask = 2
-	damage_area.monitoring = true
-	
-	var dmg_col := CollisionShape3D.new()
-	var dmg_box := BoxShape3D.new()
-	if aabb.size != Vector3.ZERO:
-		dmg_box.size = aabb.size * 1.1  # Slightly larger for damage detection
-		dmg_col.position = aabb.get_center()
-	elif obj_data.collision_size != Vector3.ZERO:
-		# Use explicit collision_size if specified
-		dmg_box.size = obj_data.collision_size * 1.1
-		dmg_col.position.y = obj_data.collision_size.y / 2
-	else:
-		# Fallback to collision_radius
-		dmg_box.size = Vector3(obj_data.collision_radius * 2, obj_data.collision_radius * 2, obj_data.collision_radius * 2)
-		dmg_col.position.y = obj_data.collision_radius
-	dmg_col.shape = dmg_box
-	damage_area.add_child(dmg_col)
-	enemy.add_child(damage_area)
+		# Physical collision - slightly smaller
+		var phys_data := _create_collision_from_aabb(aabb, obj_data.collision_shape, 0.7)
+		enemy.add_child(phys_data.collision_shape)
+		
+		# Damage detection area - slightly larger
+		var damage_area := Area3D.new()
+		damage_area.name = "DamageArea"
+		damage_area.collision_layer = 0
+		damage_area.collision_mask = 2
+		damage_area.monitoring = true
+		
+		var dmg_data := _create_collision_from_aabb(aabb, obj_data.collision_shape, 1.1)
+		damage_area.add_child(dmg_data.collision_shape)
+		enemy.add_child(damage_area)
 	
 	return enemy
 
@@ -1164,19 +1103,20 @@ func _create_rock(obj_data: RefCounted, rng: RandomNumberGenerator) -> StaticBod
 	rock.collision_mask = 0
 	
 	# Load model (cached) - uses materials from .blend, disable shadows/reflections
+	var model: Node3D = null
 	var model_scene := _get_cached_scene(obj_data.model_path)
 	if model_scene:
-		var model := model_scene.instantiate()
+		model = model_scene.instantiate()
 		model.name = "Model"
 		_disable_shadows_recursive(model)
 		rock.add_child(model)
 	
-	var col_shape := CollisionShape3D.new()
-	var sphere := SphereShape3D.new()
-	sphere.radius = obj_data.collision_radius
-	col_shape.shape = sphere
-	col_shape.position.y = sphere.radius * 0.75
-	rock.add_child(col_shape)
+	# Calculate AABB and create collision based on collision_shape
+	if model:
+		var aabb := _get_model_aabb(model)
+		if aabb.size != Vector3.ZERO:
+			var col_data := _create_collision_from_aabb(aabb, obj_data.collision_shape, 0.9)
+			rock.add_child(col_data.collision_shape)
 	
 	return rock
 
@@ -1193,16 +1133,6 @@ func _create_friend_npc(obj_data: RefCounted, rng: RandomNumberGenerator) -> Cha
 	npc.set("object_id", obj_data.id)
 	npc.set("object_name", obj_data.display_name)
 	
-	# Terrain collision shape (invisible capsule for walking)
-	var terrain_col := CollisionShape3D.new()
-	terrain_col.name = "TerrainCollision"
-	var capsule := CapsuleShape3D.new()
-	capsule.radius = 0.2
-	capsule.height = obj_data.collision_height
-	terrain_col.shape = capsule
-	terrain_col.position.y = obj_data.collision_height / 2
-	npc.add_child(terrain_col)
-	
 	# Load model (separate from collision, will hop) - cached
 	var model: Node3D = null
 	var model_scene := _get_cached_scene(obj_data.model_path)
@@ -1212,10 +1142,25 @@ func _create_friend_npc(obj_data: RefCounted, rng: RandomNumberGenerator) -> Cha
 		_disable_shadows_recursive(model)
 		npc.add_child(model)
 	
-	# Calculate AABB from model for detection area
+	# Calculate AABB from model
 	var aabb := AABB()
 	if model:
 		aabb = _get_model_aabb(model)
+	
+	# Terrain collision shape (capsule for walking) - derive from AABB
+	var terrain_col := CollisionShape3D.new()
+	terrain_col.name = "TerrainCollision"
+	var capsule := CapsuleShape3D.new()
+	if aabb.size != Vector3.ZERO:
+		capsule.radius = min(aabb.size.x, aabb.size.z) * 0.3
+		capsule.height = aabb.size.y * 0.8
+		terrain_col.position.y = aabb.size.y / 2
+	else:
+		capsule.radius = 0.2
+		capsule.height = 1.0
+		terrain_col.position.y = 0.5
+	terrain_col.shape = capsule
+	npc.add_child(terrain_col)
 	
 	# Detection area for player collision
 	var detect_area := Area3D.new()
@@ -1224,16 +1169,9 @@ func _create_friend_npc(obj_data: RefCounted, rng: RandomNumberGenerator) -> Cha
 	detect_area.collision_mask = 2
 	detect_area.monitoring = true
 	
-	var col_shape := CollisionShape3D.new()
-	var sphere := SphereShape3D.new()
 	if aabb.size != Vector3.ZERO:
-		sphere.radius = max(aabb.size.x, aabb.size.z) * 0.6
-		col_shape.position = aabb.get_center()
-	else:
-		sphere.radius = obj_data.collision_radius
-		col_shape.position.y = obj_data.collision_height / 2
-	col_shape.shape = sphere
-	detect_area.add_child(col_shape)
+		var col_data := _create_collision_from_aabb(aabb, obj_data.collision_shape, 0.9)
+		detect_area.add_child(col_data.collision_shape)
 	npc.add_child(detect_area)
 	
 	return npc
@@ -1259,16 +1197,6 @@ func _create_enemy_npc(obj_data: RefCounted, rng: RandomNumberGenerator) -> Char
 	npc.set("object_id", obj_data.id)
 	npc.set("object_name", obj_data.display_name)
 	
-	# Terrain collision shape (invisible capsule for walking)
-	var terrain_col := CollisionShape3D.new()
-	terrain_col.name = "TerrainCollision"
-	var capsule := CapsuleShape3D.new()
-	capsule.radius = 0.3
-	capsule.height = obj_data.collision_height
-	terrain_col.shape = capsule
-	terrain_col.position.y = obj_data.collision_height / 2
-	npc.add_child(terrain_col)
-	
 	# Load model (separate from collision, will hop when chasing) - cached
 	var model: Node3D = null
 	var model_scene := _get_cached_scene(obj_data.model_path)
@@ -1278,10 +1206,25 @@ func _create_enemy_npc(obj_data: RefCounted, rng: RandomNumberGenerator) -> Char
 		_disable_shadows_recursive(model)
 		npc.add_child(model)
 	
-	# Calculate AABB from model for detection area
+	# Calculate AABB from model
 	var aabb := AABB()
 	if model:
 		aabb = _get_model_aabb(model)
+	
+	# Terrain collision shape (capsule for walking) - derive from AABB
+	var terrain_col := CollisionShape3D.new()
+	terrain_col.name = "TerrainCollision"
+	var capsule := CapsuleShape3D.new()
+	if aabb.size != Vector3.ZERO:
+		capsule.radius = min(aabb.size.x, aabb.size.z) * 0.3
+		capsule.height = aabb.size.y * 0.8
+		terrain_col.position.y = aabb.size.y / 2
+	else:
+		capsule.radius = 0.3
+		capsule.height = 1.5
+		terrain_col.position.y = 0.75
+	terrain_col.shape = capsule
+	npc.add_child(terrain_col)
 	
 	# Detection area for player collision
 	var detect_area := Area3D.new()
@@ -1295,19 +1238,23 @@ func _create_enemy_npc(obj_data: RefCounted, rng: RandomNumberGenerator) -> Char
 	
 	# Catapult needs a custom smaller hitbox (just base, not the arm)
 	if obj_data.id == "npc_catapult":
-		# Catapult base is roughly 2x2x2 meters
 		box.size = Vector3(2.0, 2.0, 2.0)
 		col_shape.position = Vector3(0.0, 1.0, 0.0)
+		col_shape.shape = box
 	elif aabb.size != Vector3.ZERO:
-		# Use exact AABB size for precise collision
-		box.size = aabb.size * 0.9  # Slightly smaller than visual
+		# Use AABB-based collision
+		var col_data := _create_collision_from_aabb(aabb, obj_data.collision_shape, 0.9)
 		# Only use Y center - X/Z stay at origin to avoid forward offset on horse model
-		col_shape.position = Vector3(0.0, aabb.get_center().y, 0.0)
+		col_data.collision_shape.position = Vector3(0.0, aabb.get_center().y, 0.0)
+		detect_area.add_child(col_data.collision_shape)
+		npc.add_child(detect_area)
+		return npc
 	else:
 		# Fallback box
-		box.size = Vector3(obj_data.collision_radius * 2, obj_data.collision_height, obj_data.collision_radius * 2)
-		col_shape.position.y = obj_data.collision_height / 2
-	col_shape.shape = box
+		box.size = Vector3(1.0, 1.5, 1.0)
+		col_shape.position.y = 0.75
+		col_shape.shape = box
+	
 	detect_area.add_child(col_shape)
 	npc.add_child(detect_area)
 	
@@ -1377,6 +1324,10 @@ func _get_model_aabb(node: Node) -> AABB:
 	var combined_aabb := AABB()
 	var found_mesh := false
 	
+	# Skip nodes ending with "_nocol" (excluded from collision calculation)
+	if node.name.ends_with("_nocol"):
+		return combined_aabb
+	
 	if node is MeshInstance3D:
 		var mesh_instance := node as MeshInstance3D
 		if mesh_instance.mesh:
@@ -1413,6 +1364,26 @@ func _disable_shadows_recursive(node: Node) -> void:
 	
 	for child in node.get_children():
 		_disable_shadows_recursive(child)
+
+## Create collision shape from AABB with support for box or sphere
+## collision_shape: ObjectConfig.CollisionShape.BOX or .SPHERE
+## scale_factor: multiplier for collision size (0.9 for physics, 1.1 for detection)
+func _create_collision_from_aabb(aabb: AABB, collision_shape: int, scale_factor: float = 1.0) -> Dictionary:
+	var col_shape := CollisionShape3D.new()
+	
+	if collision_shape == ObjectConfigScript.CollisionShape.SPHERE:
+		var sphere := SphereShape3D.new()
+		# Use max of width/depth for sphere radius
+		sphere.radius = max(aabb.size.x, aabb.size.z) / 2.0 * scale_factor
+		col_shape.shape = sphere
+		col_shape.position = aabb.get_center()
+	else:
+		var box := BoxShape3D.new()
+		box.size = aabb.size * scale_factor
+		col_shape.shape = box
+		col_shape.position = aabb.get_center()
+	
+	return {"collision_shape": col_shape, "aabb": aabb}
 
 ## Clean up spawn positions for removed chunk
 func cleanup_chunk(chunk_index: int) -> void:

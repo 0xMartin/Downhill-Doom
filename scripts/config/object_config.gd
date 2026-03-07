@@ -2,6 +2,10 @@ class_name ObjectConfig
 extends RefCounted
 ## Configuration for all spawnable objects in the game
 ## Each object has unique ID, display name, model path, and spawn parameters
+##
+## Collision shapes are calculated automatically from model AABB.
+## Use "collision_shape": "sphere" for round objects (rocks, spikes).
+## Default is "box" for buildings and rectangular objects.
 
 # ========== OBJECT CATEGORIES ==========
 
@@ -14,6 +18,13 @@ enum Category {
 	NPC_FRIEND,
 	NPC_ENEMY,
 	NPC_AERIAL,
+}
+
+# ========== COLLISION SHAPE TYPES ==========
+
+enum CollisionShape {
+	BOX,     # Default - axis-aligned bounding box
+	SPHERE,  # Sphere based on max(width, depth) / 2
 }
 
 # ========== OBJECT DATA STRUCTURE ==========
@@ -29,9 +40,7 @@ class ObjectData:
 	var coins: int                    # Coins awarded when destroyed (0 for non-destructible)
 	var damage: int                   # Damage dealt to player (0 for non-damaging)
 	var is_destructible: bool         # Can be destroyed by player
-	var collision_radius: float       # For sphere/capsule colliders
-	var collision_height: float       # For capsule colliders (trees)
-	var collision_size: Vector3       # For box colliders (buildings)
+	var collision_shape: int          # CollisionShape enum - box or sphere
 	
 	func _init(data: Dictionary) -> void:
 		id = data.get("id", "unknown")
@@ -44,9 +53,9 @@ class ObjectData:
 		coins = data.get("coins", 0)
 		damage = data.get("damage", 0)
 		is_destructible = data.get("destructible", false)
-		collision_radius = data.get("col_radius", 0.5)
-		collision_height = data.get("col_height", 2.0)
-		collision_size = data.get("col_size", Vector3(1.0, 1.0, 1.0))
+		# Parse collision shape from string or use default
+		var shape_str: String = data.get("collision_shape", "box")
+		collision_shape = CollisionShape.SPHERE if shape_str == "sphere" else CollisionShape.BOX
 
 # ========== OBJECT DEFINITIONS ==========
 
@@ -72,8 +81,6 @@ static func _init_objects() -> void:
 		"spawn_chance": 1.0,
 		"coins": 1,
 		"destructible": true,
-		"col_radius": 0.6,
-		"col_height": 2.5,
 	})
 	_register_object({
 		"id": "tree_2",
@@ -85,8 +92,6 @@ static func _init_objects() -> void:
 		"spawn_chance": 1.0,
 		"coins": 1,
 		"destructible": true,
-		"col_radius": 0.6,
-		"col_height": 2.5,
 	})
 	_register_object({
 		"id": "tree_3",
@@ -98,8 +103,6 @@ static func _init_objects() -> void:
 		"spawn_chance": 1.0,
 		"coins": 1,
 		"destructible": true,
-		"col_radius": 0.6,
-		"col_height": 2.5,
 	})
 	_register_object({
 		"id": "tree_4",
@@ -111,8 +114,6 @@ static func _init_objects() -> void:
 		"spawn_chance": 1.0,
 		"coins": 1,
 		"destructible": true,
-		"col_radius": 0.6,
-		"col_height": 2.5,
 	})
 	_register_object({
 		"id": "tree_5",
@@ -124,8 +125,6 @@ static func _init_objects() -> void:
 		"spawn_chance": 1.0,
 		"coins": 1,
 		"destructible": true,
-		"col_radius": 0.6,
-		"col_height": 2.5,
 	})
 	_register_object({
 		"id": "tree_6",
@@ -137,8 +136,6 @@ static func _init_objects() -> void:
 		"spawn_chance": 1.0,
 		"coins": 1,
 		"destructible": true,
-		"col_radius": 0.6,
-		"col_height": 2.5,
 	})
 	
 	# ===== BUILDINGS (Small - always destructible) =====
@@ -152,7 +149,6 @@ static func _init_objects() -> void:
 		"spawn_chance": 1.0,
 		"coins": 10,
 		"destructible": true,
-		"col_size": Vector3(1.5, 1.5, 1.5),
 	})
 	_register_object({
 		"id": "building_market_stall",
@@ -164,7 +160,6 @@ static func _init_objects() -> void:
 		"spawn_chance": 0.9,
 		"coins": 12,
 		"destructible": true,
-		"col_size": Vector3(2.5, 2.0, 2.0),
 	})
 	_register_object({
 		"id": "building_wooden_cart",
@@ -176,7 +171,6 @@ static func _init_objects() -> void:
 		"spawn_chance": 0.8,
 		"coins": 15,
 		"destructible": true,
-		"col_size": Vector3(2.0, 1.5, 1.5),
 	})
 	_register_object({
 		"id": "building_barrels",
@@ -188,7 +182,6 @@ static func _init_objects() -> void:
 		"spawn_chance": 0.7,
 		"coins": 20,
 		"destructible": true,
-		"col_size": Vector3(1.5, 1.2, 1.5),
 	})
 	_register_object({
 		"id": "building_small_hut",
@@ -200,7 +193,6 @@ static func _init_objects() -> void:
 		"spawn_chance": 0.6,
 		"coins": 40,
 		"destructible": true,
-		"col_size": Vector3(2.0, 2.0, 2.0),
 	})
 	_register_object({
 		"id": "building_excalibur",
@@ -212,7 +204,6 @@ static func _init_objects() -> void:
 		"spawn_chance": 0.01,
 		"coins": 2200,
 		"destructible": true,
-		"col_size": Vector3(0.8, 1.8, 0.8),
 	})
 	
 	# ===== LARGE BUILDINGS (only destructible in supercharge) =====
@@ -226,7 +217,6 @@ static func _init_objects() -> void:
 		"spawn_chance": 1.0,
 		"coins": 300,
 		"destructible": true,
-		"col_size": Vector3(3.5, 4.0, 3.5),
 	})
 	_register_object({
 		"id": "building_chapel",
@@ -238,7 +228,6 @@ static func _init_objects() -> void:
 		"spawn_chance": 0.6,
 		"coins": 500,
 		"destructible": true,
-		"col_size": Vector3(3.0, 5.5, 3.0),
 	})
 	_register_object({
 		"id": "building_windmill",
@@ -250,7 +239,6 @@ static func _init_objects() -> void:
 		"spawn_chance": 0.4,
 		"coins": 700,
 		"destructible": true,
-		"col_size": Vector3(2.0, 7.0, 2.0),
 	})
 	_register_object({
 		"id": "building_tower",
@@ -262,7 +250,6 @@ static func _init_objects() -> void:
 		"spawn_chance": 0.2,
 		"coins": 900,
 		"destructible": true,
-		"col_size": Vector3(2.5, 7.0, 2.5),
 	})
 	_register_object({
 		"id": "building_castle",
@@ -274,7 +261,6 @@ static func _init_objects() -> void:
 		"spawn_chance": 0.1,
 		"coins": 1600,
 		"destructible": true,
-		"col_size": Vector3(5.0, 8.0, 5.0),
 	})
 	
 	# ===== BUILDING ENEMIES =====
@@ -289,7 +275,7 @@ static func _init_objects() -> void:
 		"coins": 700,
 		"damage": 15,
 		"destructible": false,
-		"col_radius": 1.6,  
+		"collision_shape": "sphere",
 	})
 	_register_object({
 		"id": "enemy_spike_wall",
@@ -302,7 +288,6 @@ static func _init_objects() -> void:
 		"coins": 950,
 		"damage": 15,
 		"destructible": false,
-		"col_size": Vector3(3.0, 2.0, 0.8),  
 	})
 	_register_object({
 		"id": "enemy_big_spike_wall",
@@ -315,7 +300,6 @@ static func _init_objects() -> void:
 		"coins": 1500,
 		"damage": 20,
 		"destructible": false,
-		"col_size": Vector3(5.0, 3.0, 1.0),  
 	})
 	
 	# ===== ROCKS (decoration) =====
@@ -328,7 +312,6 @@ static func _init_objects() -> void:
 		"height_var": 0.3,
 		"spawn_chance": 1.0,
 		"destructible": false,
-		"col_radius": 0.4,
 	})
 	_register_object({
 		"id": "rock_2",
@@ -339,7 +322,7 @@ static func _init_objects() -> void:
 		"height_var": 0.3,
 		"spawn_chance": 1.0,
 		"destructible": false,
-		"col_radius": 0.4,
+		"collision_shape": "sphere",
 	})
 	_register_object({
 		"id": "rock_3",
@@ -350,7 +333,6 @@ static func _init_objects() -> void:
 		"height_var": 0.3,
 		"spawn_chance": 1.0,
 		"destructible": false,
-		"col_radius": 0.4,
 	})
 	_register_object({
 		"id": "rock_4",
@@ -361,7 +343,6 @@ static func _init_objects() -> void:
 		"height_var": 0.3,
 		"spawn_chance": 1.0,
 		"destructible": false,
-		"col_radius": 0.4,
 	})
 	_register_object({
 		"id": "rock_5",
@@ -372,7 +353,7 @@ static func _init_objects() -> void:
 		"height_var": 0.3,
 		"spawn_chance": 1.0,
 		"destructible": false,
-		"col_radius": 0.6,
+		"collision_shape": "sphere",
 	})
 	_register_object({
 		"id": "rock_6",
@@ -383,7 +364,6 @@ static func _init_objects() -> void:
 		"height_var": 0.3,
 		"spawn_chance": 1.0,
 		"destructible": false,
-		"col_radius": 0.4,
 	})
 	
 	# ===== FRIEND NPCs =====
@@ -397,8 +377,6 @@ static func _init_objects() -> void:
 		"spawn_chance": 1.0,
 		"coins": 10,
 		"destructible": true,
-		"col_radius": 0.3,
-		"col_height": 0.4,
 	})
 	_register_object({
 		"id": "npc_rabbit",
@@ -410,8 +388,6 @@ static func _init_objects() -> void:
 		"spawn_chance": 0.8,
 		"coins": 15,
 		"destructible": true,
-		"col_radius": 0.25,
-		"col_height": 0.35,
 	})
 	_register_object({
 		"id": "npc_sheep",
@@ -423,8 +399,6 @@ static func _init_objects() -> void:
 		"spawn_chance": 0.6,
 		"coins": 20,
 		"destructible": true,
-		"col_radius": 0.4,
-		"col_height": 0.6,
 	})
 	_register_object({
 		"id": "npc_cow",
@@ -436,8 +410,6 @@ static func _init_objects() -> void:
 		"spawn_chance": 0.4,
 		"coins": 25,
 		"destructible": true,
-		"col_radius": 0.5,
-		"col_height": 0.8,
 	})
 	
 	# ===== ENEMY NPCs =====
@@ -452,8 +424,6 @@ static func _init_objects() -> void:
 		"coins": 80,
 		"damage": 5,
 		"destructible": true,
-		"col_radius": 0.6,
-		"col_height": 1.5,
 	})
 	_register_object({
 		"id": "npc_dark_knight",
@@ -466,8 +436,6 @@ static func _init_objects() -> void:
 		"coins": 100,
 		"damage": 10,
 		"destructible": true,
-		"col_radius": 0.75,
-		"col_height": 1.95,
 	})
 	_register_object({
 		"id": "npc_horse_knight",
@@ -480,8 +448,6 @@ static func _init_objects() -> void:
 		"coins": 220,
 		"damage": 17,
 		"destructible": true,
-		"col_radius": 0.9,
-		"col_height": 2.4,
 	})
 	_register_object({
 		"id": "npc_catapult",
@@ -494,8 +460,6 @@ static func _init_objects() -> void:
 		"coins": 700,
 		"damage": 30, 
 		"destructible": true,
-		"col_radius": 1.2,
-		"col_height": 2.0,
 	})
 	
 	# ===== AERIAL NPC =====
@@ -510,8 +474,6 @@ static func _init_objects() -> void:
 		"coins": 3500,
 		"damage": 40,
 		"destructible": true,
-		"col_radius": 2.0,
-		"col_height": 1.5,
 	})
 
 static func _register_object(data: Dictionary) -> void:
