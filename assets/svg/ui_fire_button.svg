@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60">
+  <defs>
+    <linearGradient id="fireGradient" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" style="stop-color:#FF4500"/>
+      <stop offset="40%" style="stop-color:#FF6B00"/>
+      <stop offset="70%" style="stop-color:#FFA500"/>
+      <stop offset="100%" style="stop-color:#FFD700"/>
+    </linearGradient>
+    <linearGradient id="fireBg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#3D1A00"/>
+      <stop offset="100%" style="stop-color:#1A0A00"/>
+    </linearGradient>
+    <filter id="fireGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <!-- Background circle -->
+  <circle cx="30" cy="30" r="28" fill="url(#fireBg)"/>
+  <!-- Border -->
+  <circle cx="30" cy="30" r="28" fill="none" stroke="#8B4500" stroke-width="2"/>
+  <!-- Flame shape -->
+  <path d="M30 10 
+           C35 18, 42 22, 42 32
+           C42 40, 37 46, 30 48
+           C23 46, 18 40, 18 32
+           C18 22, 25 18, 30 10
+           Z" 
+        fill="url(#fireGradient)" filter="url(#fireGlow)"/>
+  <!-- Inner flame -->
+  <path d="M30 22
+           C33 26, 36 28, 36 34
+           C36 38, 34 42, 30 44
+           C26 42, 24 38, 24 34
+           C24 28, 27 26, 30 22
+           Z"
+        fill="#FFD700" opacity="0.8"/>
+  <!-- Core -->
+  <ellipse cx="30" cy="36" rx="4" ry="6" fill="#FFFFFF" opacity="0.6"/>
+</svg>

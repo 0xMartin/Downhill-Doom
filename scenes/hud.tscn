@@ -44,10 +44,10 @@ corner_radius_bottom_right = 12
 corner_radius_bottom_left = 12
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_settings"]
-content_margin_left = 12.0
-content_margin_top = 12.0
-content_margin_right = 12.0
-content_margin_bottom = 12.0
+content_margin_left = 14.0
+content_margin_top = 14.0
+content_margin_right = 14.0
+content_margin_bottom = 14.0
 bg_color = Color(0.1, 0.08, 0.18, 0.85)
 border_width_left = 2
 border_width_top = 2
@@ -62,10 +62,10 @@ shadow_color = Color(0, 0, 0, 0.3)
 shadow_size = 4
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_settings_hover"]
-content_margin_left = 12.0
-content_margin_top = 12.0
-content_margin_right = 12.0
-content_margin_bottom = 12.0
+content_margin_left = 14.0
+content_margin_top = 14.0
+content_margin_right = 14.0
+content_margin_bottom = 14.0
 bg_color = Color(0.15, 0.12, 0.25, 0.95)
 border_width_left = 2
 border_width_top = 2
@@ -198,7 +198,7 @@ anchor_right = 1.0
 offset_left = 20.0
 offset_top = 20.0
 offset_right = -20.0
-offset_bottom = 84.0
+offset_bottom = 97.0
 grow_horizontal = 2
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
@@ -207,9 +207,9 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/margin_left = 16
-theme_override_constants/margin_top = 8
+theme_override_constants/margin_top = 10
 theme_override_constants/margin_right = 16
-theme_override_constants/margin_bottom = 8
+theme_override_constants/margin_bottom = 10
 
 [node name="HBoxContainer" type="HBoxContainer" parent="TopBar/MarginContainer" unique_id=312236492]
 layout_mode = 2
@@ -222,7 +222,7 @@ theme_override_constants/separation = 8
 
 [node name="CoinIcon" type="TextureRect" parent="TopBar/MarginContainer/HBoxContainer/CoinsContainer" unique_id=128081865]
 modulate = Color(1, 0.85, 0.2, 1)
-custom_minimum_size = Vector2(36, 36)
+custom_minimum_size = Vector2(44, 44)
 layout_mode = 2
 texture = ExtResource("2_coin_icon")
 expand_mode = 1
@@ -254,7 +254,7 @@ theme_override_colors/font_color = Color(1, 0.9, 0.3, 1)
 theme_override_colors/font_shadow_color = Color(0.2, 0.1, 0, 0.6)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 2
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 34
 text = "0"
 
 [node name="Separator1" type="VSeparator" parent="TopBar/MarginContainer/HBoxContainer" unique_id=1805106782]
@@ -268,14 +268,14 @@ theme_override_constants/separation = 8
 
 [node name="HealthIcon" type="TextureRect" parent="TopBar/MarginContainer/HBoxContainer/HealthContainer" unique_id=442324254]
 modulate = Color(1, 0.4, 0.5, 1)
-custom_minimum_size = Vector2(32, 32)
+custom_minimum_size = Vector2(38, 38)
 layout_mode = 2
 texture = ExtResource("4_heart_icon")
 expand_mode = 1
 stretch_mode = 5
 
 [node name="HealthBar" type="ProgressBar" parent="TopBar/MarginContainer/HBoxContainer/HealthContainer" unique_id=855289037]
-custom_minimum_size = Vector2(120, 26)
+custom_minimum_size = Vector2(120, 31)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 1
@@ -296,7 +296,7 @@ theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 1
 theme_override_constants/outline_size = 2
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 29
 text = "100/100"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -312,7 +312,7 @@ theme_override_constants/separation = 8
 
 [node name="DistanceIcon" type="TextureRect" parent="TopBar/MarginContainer/HBoxContainer/DistanceContainer" unique_id=612579531]
 modulate = Color(0.7, 0.85, 1, 1)
-custom_minimum_size = Vector2(32, 32)
+custom_minimum_size = Vector2(38, 38)
 layout_mode = 2
 texture = ExtResource("3_distance_icon")
 expand_mode = 1
@@ -325,34 +325,23 @@ theme_override_colors/font_color = Color(0.85, 0.95, 1, 1)
 theme_override_colors/font_shadow_color = Color(0, 0.1, 0.2, 0.5)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 2
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 34
 text = "0 m"
-
-[node name="SettingsButton" type="Button" parent="TopBar/MarginContainer/HBoxContainer" unique_id=1446207044]
-custom_minimum_size = Vector2(44, 44)
-layout_mode = 2
-size_flags_vertical = 4
-theme_override_styles/normal = SubResource("StyleBoxFlat_settings")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_settings_hover")
-theme_override_styles/hover = SubResource("StyleBoxFlat_settings_hover")
-icon = ExtResource("5_settings_icon")
-icon_alignment = 1
-expand_icon = true
 
 [node name="TimerLabel" type="Label" parent="." unique_id=1304192667]
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -60.0
-offset_top = 101.0
+offset_top = 114.0
 offset_right = 60.0
-offset_bottom = 133.0
+offset_bottom = 146.0
 grow_horizontal = 2
 theme_override_colors/font_color = Color(1, 1, 1, 0.9)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.7)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 2
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 26
 text = "00:00:00"
 horizontal_alignment = 1
 
@@ -557,7 +546,6 @@ theme_override_font_sizes/font_size = 15
 button_pressed = true
 text = "Vibration"
 
-[connection signal="pressed" from="TopBar/MarginContainer/HBoxContainer/SettingsButton" to="." method="_on_settings_pressed"]
 [connection signal="pressed" from="PauseMenu/PanelContainer/VBoxContainer/ResumeButton" to="." method="_on_resume_pressed"]
 [connection signal="pressed" from="PauseMenu/PanelContainer/VBoxContainer/RestartButton" to="." method="_on_restart_pressed"]
 [connection signal="pressed" from="PauseMenu/PanelContainer/VBoxContainer/MenuButton" to="." method="_on_menu_pressed"]

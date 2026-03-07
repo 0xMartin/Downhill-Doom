@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 84 84">
+  <defs>
+    <linearGradient id="coinGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFD700"/>
+      <stop offset="50%" style="stop-color:#FFA500"/>
+      <stop offset="100%" style="stop-color:#CD853F"/>
+    </linearGradient>
+    <linearGradient id="coinShine" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:0.6"/>
+      <stop offset="50%" style="stop-color:#FFFFFF;stop-opacity:0"/>
+    </linearGradient>
+    <filter id="coinShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#000000" flood-opacity="0.5"/>
+    </filter>
+  </defs>
+  <!-- Outer ring -->
+  <circle cx="42" cy="42" r="40" fill="url(#coinGold)" filter="url(#coinShadow)"/>
+  <!-- Inner dark ring -->
+  <circle cx="42" cy="42" r="34" fill="#8B4513" opacity="0.8"/>
+  <!-- Inner gold face -->
+  <circle cx="42" cy="42" r="30" fill="url(#coinGold)"/>
+  <!-- Shine highlight -->
+  <ellipse cx="35" cy="30" rx="18" ry="12" fill="url(#coinShine)"/>
+  <!-- Inner emboss ring -->
+  <circle cx="42" cy="42" r="26" fill="none" stroke="#CD853F" stroke-width="2" opacity="0.6"/>
+</svg>

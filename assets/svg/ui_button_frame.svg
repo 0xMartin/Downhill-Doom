@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="btnGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#4A3B6B"/>
+      <stop offset="100%" style="stop-color:#2D1F4A"/>
+    </linearGradient>
+    <linearGradient id="btnBorder" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#9B7ED9"/>
+      <stop offset="100%" style="stop-color:#6B4FA0"/>
+    </linearGradient>
+    <filter id="btnGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <!-- Outer glow ring -->
+  <circle cx="32" cy="32" r="30" fill="none" stroke="#8B6FC0" stroke-width="3" opacity="0.4" filter="url(#btnGlow)"/>
+  <!-- Main background -->
+  <circle cx="32" cy="32" r="28" fill="url(#btnGradient)"/>
+  <!-- Border ring -->
+  <circle cx="32" cy="32" r="28" fill="none" stroke="url(#btnBorder)" stroke-width="3"/>
+  <!-- Inner highlight -->
+  <circle cx="32" cy="32" r="22" fill="none" stroke="#FFFFFF" stroke-width="1" opacity="0.15"/>
+  <!-- Top shine -->
+  <ellipse cx="32" cy="22" rx="14" ry="6" fill="#FFFFFF" opacity="0.1"/>
+</svg>
