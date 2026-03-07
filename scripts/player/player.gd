@@ -35,6 +35,10 @@ var has_jumped: bool = false  # Track if player initiated a jump (for shock wave
 var slam_charged: bool = false  # Charged slam attack (tap while falling)
 var slam_flash_tween: Tween  # Visual feedback tween
 var spawn_drop_active: bool = false  # Spawn animation: falling from sky with cone
+var slam_slowdown_active: bool = false  # Track if slam landing slowdown is active
+var slam_slowdown_timer: float = 0.0  # Timer for slowdown recovery
+const SLAM_SLOWDOWN_FACTOR: float = 0.4  # 60% speed reduction (keep 40%)
+const SLAM_SLOWDOWN_DURATION: float = 1.2  # Time to fully recover from slowdown
 
 # Supercharge state
 var is_supercharged: bool = false
@@ -201,6 +205,10 @@ func _physics_process(delta: float) -> void:
 	if not was_on_ground and is_on_ground:
 		if slam_charged:
 			_spawn_landing_shock_wave()
+			# Apply 60% slowdown after slam landing
+			linear_velocity *= SLAM_SLOWDOWN_FACTOR
+			slam_slowdown_active = true
+			slam_slowdown_timer = 0.0
 		# Reset states
 		slam_charged = false
 		has_jumped = false
@@ -228,6 +236,14 @@ func _physics_process(delta: float) -> void:
 	
 	# Apply constant forward force only if below max speed
 	var current_forward_speed := -linear_velocity.z  # Negative Z is forward
+	
+	# Update slam slowdown recovery
+	if slam_slowdown_active:
+		slam_slowdown_timer += delta
+		if slam_slowdown_timer >= SLAM_SLOWDOWN_DURATION:
+			slam_slowdown_active = false
+			slam_slowdown_timer = 0.0
+	
 	if current_forward_speed < max_speed:
 		# Apply more force when slow, less when approaching max speed
 		var speed_factor := 1.0 - (current_forward_speed / max_speed)

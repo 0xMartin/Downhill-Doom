@@ -123,9 +123,12 @@ func _start_wander_cycle() -> void:
 	
 	# Wait for random time
 	var wait_time := randf_range(wait_time_min, wait_time_max)
-	await get_tree().create_timer(wait_time).timeout
+	var tree := get_tree()
+	if tree == null:
+		return
+	await tree.create_timer(wait_time).timeout
 	
-	if is_dead:
+	if is_dead or get_tree() == null:
 		return
 	
 	# Pick new random target within radius
@@ -137,14 +140,14 @@ func _start_wander_cycle() -> void:
 	var timeout := 10.0
 	var elapsed := 0.0
 	while is_moving and elapsed < timeout and not is_dead:
-		var tree := get_tree()
-		if tree == null:
+		var loop_tree := get_tree()
+		if loop_tree == null:
 			return
-		await tree.process_frame
+		await loop_tree.process_frame
 		elapsed += get_process_delta_time()
 	
 	# Start next cycle
-	if not is_dead:
+	if not is_dead and get_tree() != null:
 		_start_wander_cycle()
 
 
