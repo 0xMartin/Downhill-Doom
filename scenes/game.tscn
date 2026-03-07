@@ -54,7 +54,7 @@ transform = Transform3D(1, 0, 0, 0, 0.8, 0.6, 0, -0.6, 0.8, 0, 10, 12)
 fov = 55.0
 script = ExtResource("2_camera")
 target_path = NodePath("../Player")
-offset = Vector3(0, 9, 13)
+offset = Vector3(0, 9, 11)
 look_ahead = 11.0
 
 [node name="HUD" parent="." unique_id=877656401 instance=ExtResource("4_hud")]

@@ -3,6 +3,8 @@ class_name PlaneBomb
 ## Bomb dropped by enemy plane - falls with gravity, explodes on ground impact
 ## Creates red shock wave that damages player only
 
+const ShockWaveManager := preload("res://scripts/effects/shock_wave_manager.gd")
+
 const GRAVITY: float = 15.0
 const BOMB_RADIUS: float = 0.3
 const BOMB_COLOR := Color(0.3, 0.3, 0.3)  # Dark gray
@@ -24,17 +26,16 @@ var trail_material: StandardMaterial3D
 var trail_points: Array[Vector3] = []
 var _surface_tool: SurfaceTool  # Reused for trail mesh building
 var _trail_array_mesh: ArrayMesh  # Reused mesh to avoid allocations
-var min_flight_time: float = 0.8  # Minimum time before bomb can explode (prevents mid-air issue)
+var min_flight_time: float = 0.5  # Minimum time before bomb can explode (prevents mid-air issue)
+const PLAYER_HIT_RADIUS: float = 1.5  # Radius for direct player hit detection
 
 # References
-var terrain_generator: Node3D = null
 var player: Node3D = null
 
 
 func _ready() -> void:
 	add_to_group("bombs")
 	
-	terrain_generator = get_tree().get_first_node_in_group("terrain_generator")
 	player = get_tree().get_first_node_in_group("player") as Node3D
 	
 	# Pre-allocate reusable objects
@@ -104,15 +105,29 @@ func _process(delta: float) -> void:
 		trail_points.resize(TRAIL_LENGTH)
 	_update_trail_mesh()
 	
-	# Get terrain height at bomb position (accounting for holes)
-	if terrain_generator and terrain_generator.has_method("get_ground_level_at"):
-		ground_level = terrain_generator.get_ground_level_at(global_position.x, global_position.z)
-	elif terrain_generator and terrain_generator.has_method("get_height_at"):
-		ground_level = terrain_generator.get_height_at(global_position.x, global_position.z)
+	# Check direct player collision (bomb hits player in air)
+	if player and is_instance_valid(player):
+		var dist_to_player := global_position.distance_to(player.global_position)
+		if dist_to_player <= PLAYER_HIT_RADIUS:
+			_on_player_direct_hit()
+			return
 	
-	# Check ground collision (only after minimum flight time to prevent mid-air explosions)
-	if time_alive >= min_flight_time and global_position.y <= ground_level + 0.5:
-		_on_ground_impact()
+	# Check ground collision using raycast (most accurate)
+	if time_alive >= min_flight_time:
+		var space_state := get_world_3d().direct_space_state
+		if space_state:
+			# Raycast from bomb position downward
+			var ray_query := PhysicsRayQueryParameters3D.create(
+				global_position + Vector3(0, BOMB_RADIUS, 0),  # Start from top of bomb
+				global_position + Vector3(0, -BOMB_RADIUS * 2, 0)  # Check below bomb
+			)
+			ray_query.collision_mask = 1  # Terrain layer
+			var result := space_state.intersect_ray(ray_query)
+			if not result.is_empty():
+				# Hit terrain - explode at hit point
+				ground_level = result.position.y
+				_on_ground_impact()
+				return
 
 
 func _update_trail_mesh() -> void:
@@ -159,29 +174,43 @@ func _update_trail_mesh() -> void:
 	trail_mesh_instance.material_override = trail_material
 
 
+func _on_player_direct_hit() -> void:
+	## Bomb hit player directly in the air
+	is_active = false
+	
+	# Deal damage to player directly
+	var gm: Node = get_node_or_null("/root/GameManager")
+	if gm and gm.has_method("take_damage"):
+		gm.take_damage(damage)
+	
+	var audio: Node = get_node_or_null("/root/AudioManager")
+	if audio and audio.has_method("play_hurt_sound"):
+		audio.play_hurt_sound()
+	if audio and audio.has_method("vibrate"):
+		audio.vibrate(100)
+	
+	# Spawn smaller explosion effect at hit position (visual only, damage already dealt)
+	ShockWaveManager.spawn_shock_wave(
+		global_position,
+		ShockWaveManager.Source.ENEMY,
+		3.0  # Smaller visual effect for direct hit
+	)
+	
+	# Cleanup
+	queue_free()
+
+
 func _on_ground_impact() -> void:
 	## Bomb hit the ground - create red shock wave
 	is_active = false
 	
-	# Spawn shock wave (damages player only)
-	if ShockWaveManager:
-		ShockWaveManager.spawn_shock_wave(
-			global_position,
-			ShockWaveManager.Source.ENEMY,
-			shock_wave_radius
-		)
-	
-	# Deal damage if player is in range (use cached reference)
-	if player and is_instance_valid(player):
-		var dist := global_position.distance_to(player.global_position)
-		if dist <= shock_wave_radius:
-			var gm: Node = get_node_or_null("/root/GameManager")
-			if gm and gm.has_method("take_damage"):
-				gm.take_damage(damage)
-			
-			var audio: Node = get_node_or_null("/root/AudioManager")
-			if audio and audio.has_method("play_hurt_sound"):
-				audio.play_hurt_sound()
+	# Spawn shock wave at ground level (damages player if in radius)
+	var impact_pos := Vector3(global_position.x, ground_level, global_position.z)
+	ShockWaveManager.spawn_shock_wave(
+		impact_pos,
+		ShockWaveManager.Source.ENEMY,
+		shock_wave_radius
+	)
 	
 	# Cleanup
 	queue_free()

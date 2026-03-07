@@ -19,11 +19,11 @@ enum Source {
 }
 
 ## Configuration
-const SHOCK_WAVE_RADIUS: float = 8.0  # Maximum radius in meters
-const EXPANSION_DURATION: float = 0.4  # Time to reach max radius
+const SHOCK_WAVE_RADIUS: float = 5.6  # Maximum radius in meters (reduced 30%)
+const EXPANSION_DURATION: float = 0.35  # Time to reach max radius
 const SHOCK_WAVE_DAMAGE: int = 30  # Damage dealt by enemy shock wave
-const SHOCK_WAVE_COLOR_PLAYER := Color(0.7, 0.7, 0.7, 0.4)  # Gray, semi-transparent
-const SHOCK_WAVE_COLOR_ENEMY := Color(0.9, 0.2, 0.2, 0.5)  # Red, semi-transparent
+const SHOCK_WAVE_COLOR_PLAYER := Color(1.0, 0.7, 0.3, 0.7)  # Light orange
+const SHOCK_WAVE_COLOR_ENEMY := Color(0.9, 0.1, 0.1, 0.7)  # Bright red
 
 
 ## Spawn a shock wave at the given position
@@ -68,12 +68,16 @@ static func _create_shock_wave_visual(position: Vector3, source: Source, scene_r
 	# Choose color based on source
 	var wave_color := SHOCK_WAVE_COLOR_PLAYER if source == Source.PLAYER else SHOCK_WAVE_COLOR_ENEMY
 	
-	# Create transparent material
+	# Create transparent material with emission glow
 	var material := StandardMaterial3D.new()
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	material.albedo_color = wave_color
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	material.cull_mode = BaseMaterial3D.CULL_DISABLED  # Visible from inside too
+	# Add emission for glow effect
+	material.emission_enabled = true
+	material.emission = Color(wave_color.r, wave_color.g, wave_color.b)
+	material.emission_energy_multiplier = 2.0
 	mesh_instance.material_override = material
 	
 	# Add to scene FIRST, then set position (must be in tree for global_position)

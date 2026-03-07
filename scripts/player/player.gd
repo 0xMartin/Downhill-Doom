@@ -2,7 +2,6 @@ extends RigidBody3D
 ## Boulder player controller - automatically rolls forward, player controls left/right
 
 signal died
-signal hit_rock(impact_position: Vector3)
 
 # Movement parameters
 @export var forward_force: float = 50.0  # Constant forward push
@@ -11,7 +10,6 @@ signal hit_rock(impact_position: Vector3)
 @export var max_speed: float = 25.0  # Maximum forward speed
 @export var max_lateral_speed: float = 10.0  # Cap sideways speed
 @export var death_height_offset: float = -30.0  # Y offset below terrain that triggers death
-@export var rock_damage: int = 12  # Damage taken from rocks (halved)
 @export var sphere_radius: float = 0.7  # For calculating proper roll rotation
 
 # Jump parameters
@@ -26,7 +24,6 @@ var player_model: Node3D  # Visual model (separate from physics)
 var can_move := false
 var start_y: float = 0.0
 var game_manager: Node
-var hit_cooldown: float = 0.0  # Prevent multiple hits from same rock
 
 var terrain_slope: float = 15.0  # Will be set from terrain generator
 var terrain_generator: Node  # Reference to terrain for height queries
@@ -72,9 +69,6 @@ var slam_cone_grow_progress: float = 0.0
 var atmosphere_particles: GPUParticles3D
 var atmosphere_proc_mat: ParticleProcessMaterial
 
-# Rock impact particle template (pre-created for cloning)
-var _rock_impact_particle_template: GPUParticles3D
-
 # Edge warning effect
 var edge_warning_left: MeshInstance3D
 var edge_warning_right: MeshInstance3D
@@ -111,9 +105,6 @@ func _ready() -> void:
 	
 	# Setup slam cone effect
 	_setup_slam_cone()
-	
-	# Pre-create rock impact particle template
-	_create_rock_impact_template()
 	
 	# Setup edge warning effect
 	_setup_edge_warning()
@@ -178,10 +169,6 @@ func _start_rolling() -> void:
 func _physics_process(delta: float) -> void:
 	if is_dead or not can_move:
 		return
-	
-	# Update hit cooldown
-	if hit_cooldown > 0:
-		hit_cooldown -= delta
 	
 	# Update jump cooldown
 	if jump_cooldown > 0:
@@ -517,15 +504,11 @@ func _spawn_landing_shock_wave() -> void:
 	# Spawn shock wave at player's position (slightly below for ground effect)
 	var shock_position := global_position + Vector3(0, -sphere_radius * 0.5, 0)
 	
-	# Calculate radius multiplier based on state
+	# Calculate radius multiplier based on supercharge state only
 	var radius_mult := 1.0
 	var gm: Node = get_node_or_null("/root/GameManager")
-	
-	# Slam charged = 1.5x radius, supercharged = 2x, both = 3x
-	if slam_charged:
-		radius_mult *= 1.5
 	if gm and gm.is_supercharged:
-		radius_mult *= 2.0
+		radius_mult = 2.0
 	
 	var final_radius := ShockWaveManager.SHOCK_WAVE_RADIUS * radius_mult
 	ShockWaveManager.spawn_shock_wave(shock_position, ShockWaveManager.Source.PLAYER, final_radius)
@@ -603,87 +586,9 @@ func die() -> void:
 		game_manager.end_game()
 
 func _on_body_entered(body: Node) -> void:
-	if is_dead or hit_cooldown > 0:
-		return
-	
-	# Check if we hit a building enemy (spikes, etc)
-	if body.is_in_group("building_enemies"):
-		# If supercharged, destroy the spike instead of taking damage
-		if game_manager and game_manager.is_supercharged:
-			# Spike's DamageArea will handle the destruction
-			return
-		
-		hit_cooldown = 0.5  # Prevent rapid hits
-		var impact_pos := global_position
-		hit_rock.emit(impact_pos)
-		_spawn_rock_impact_particles(impact_pos)
-		if audio_manager:
-			audio_manager.play_hurt_sound()
-		if game_manager:
-			game_manager.take_damage(rock_damage)
-		return
-	
 	# Rocks are decoration only - collision/slowdown but no damage
-	if body.is_in_group("rocks") or (body is StaticBody3D and body.name.begins_with("Rock")):
-		# Just visual/audio feedback, no damage
-		pass
-
-func _spawn_rock_impact_particles(impact_pos: Vector3) -> void:
-	# Check if we're in the scene tree before spawning
-	if not is_inside_tree():
-		return
-	
-	# Clone from pre-created template instead of building from scratch
-	if not _rock_impact_particle_template:
-		return
-	
-	var particles := _rock_impact_particle_template.duplicate() as GPUParticles3D
-	
-	var scene_root := get_tree().current_scene
-	if scene_root:
-		scene_root.add_child(particles)
-		particles.global_position = impact_pos
-		particles.visible = true
-		particles.emitting = true
-		
-		get_tree().create_timer(2.0).timeout.connect(func():
-			if is_instance_valid(particles):
-				particles.queue_free()
-		)
-
-
-func _create_rock_impact_template() -> void:
-	## Pre-create rock impact particle template for faster spawning
-	_rock_impact_particle_template = GPUParticles3D.new()
-	_rock_impact_particle_template.name = "RockImpactTemplate"
-	_rock_impact_particle_template.one_shot = true
-	_rock_impact_particle_template.explosiveness = 0.95
-	_rock_impact_particle_template.amount = 25
-	_rock_impact_particle_template.lifetime = 0.8
-	_rock_impact_particle_template.visible = false  # Hidden template
-	_rock_impact_particle_template.emitting = false
-	
-	var proc_material := ParticleProcessMaterial.new()
-	proc_material.direction = Vector3(0, 1, 0)
-	proc_material.spread = 80.0
-	proc_material.initial_velocity_min = 4.0
-	proc_material.initial_velocity_max = 10.0
-	proc_material.gravity = Vector3(0, -15, 0)
-	proc_material.scale_min = 0.05
-	proc_material.scale_max = 0.12
-	proc_material.color = Color(0.5, 0.45, 0.4)  # Gray rock color
-	_rock_impact_particle_template.process_material = proc_material
-	
-	var mesh := BoxMesh.new()
-	mesh.size = Vector3(1.0, 1.0, 1.0)
-	var mesh_material := StandardMaterial3D.new()
-	mesh_material.albedo_color = Color(0.5, 0.45, 0.4)
-	mesh_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	mesh.material = mesh_material
-	_rock_impact_particle_template.draw_pass_1 = mesh
-	
-	# Add to scene but keep hidden
-	add_child(_rock_impact_particle_template)
+	# Building enemies (spikes) handle their own damage via DamageArea
+	pass
 
 func _setup_unshaded_materials(node: Node) -> void:
 	# Disable shadows and set unshaded mode on all meshes
