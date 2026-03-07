@@ -24,6 +24,7 @@ var heart_icon_texture: Texture2D  # Cached heart icon for damage popups
 var last_coin_count: int = 0
 var sparkle_time: float = 0.0
 var sparkle_tween: Tween  # Track sparkle tween to prevent stacking
+var current_multiplier: int = 1
 
 # Supercharge UI
 var supercharge_panel: PanelContainer
@@ -35,10 +36,32 @@ var supercharge_bar_glow_tween: Tween
 var supercharge_ready: bool = false
 var supercharge_count_label: Label
 
+# Multiplier UI
+var multiplier_panel: Control
+var multiplier_label: Label
+var multiplier_tween: Tween
+
+# Combo UI
+var combo_panel: Control
+var combo_label: Label
+var combo_tween: Tween
+var current_combo: int = 0
+var last_destroyed_id: String = ""
+var skip_combo_popup: int = 0  # Amount to skip from regular popup (for combo bonuses)
+
 # Low health effects
 var low_health_pulse_time: float = 0.0
 var is_low_health: bool = false
 const LOW_HEALTH_THRESHOLD: float = 0.3  # 30% health
+
+## Format large numbers with k/M suffix (13410 -> "13.41k")
+static func format_number(n: int) -> String:
+	if n >= 1_000_000:
+		return "%.2fM" % (n / 1_000_000.0)
+	elif n >= 1_000:
+		return "%.2fk" % (n / 1_000.0)
+	else:
+		return str(n)
 
 func _ready() -> void:
 	gm = get_node("/root/GameManager")
@@ -54,9 +77,17 @@ func _ready() -> void:
 	gm.supercharge_changed.connect(_on_supercharge_changed)
 	gm.supercharge_activated.connect(_on_supercharge_activated)
 	gm.supercharge_ended.connect(_on_supercharge_ended)
+	gm.game_started.connect(_on_game_started)
+	gm.object_destroyed.connect(_on_object_destroyed)
 	
 	# Create supercharge UI
 	_create_supercharge_ui()
+	
+	# Create multiplier UI
+	_create_multiplier_ui()
+	
+	# Create combo UI
+	_create_combo_ui()
 	
 	# Adjust top bar position for mobile safe area (notch, status bar)
 	_apply_safe_area_offset()
@@ -114,6 +145,12 @@ func _input(event: InputEvent) -> void:
 func _on_coins_changed(total: int) -> void:
 	# Show popup for new coins
 	var added := total - last_coin_count
+	
+	# Skip popup for combo bonus coins (they have their own cyan popup)
+	if skip_combo_popup > 0:
+		added -= skip_combo_popup
+		skip_combo_popup = 0
+	
 	if added > 0 and coin_icon_texture:
 		show_pickup_popup(added, coin_icon_texture)
 		# Sparkle burst animation
@@ -132,15 +169,41 @@ func _on_coins_changed(total: int) -> void:
 			sparkle_tween.tween_property(sparkle, "rotation", 0.0, 0.0)
 	last_coin_count = total
 	
-	coins_label.text = str(total)
+	coins_label.text = format_number(total)
 	
 	# Juice animation
 	var tween := create_tween()
 	tween.tween_property(coins_label, "scale", Vector2(1.3, 1.3), 0.1)
 	tween.tween_property(coins_label, "scale", Vector2.ONE, 0.1)
 
-func _on_distance_changed(_dist: float) -> void:
+func _on_distance_changed(dist: float) -> void:
 	distance_label.text = gm.get_formatted_distance()
+	
+	# Update multiplier: 0-999m = 1x, 1000-1999m = 2x, etc.
+	var new_multiplier := int(dist / 1000.0) + 1
+	if new_multiplier != current_multiplier:
+		current_multiplier = new_multiplier
+		gm.coin_multiplier = current_multiplier
+		_update_multiplier_display(true)
+	
+func _update_multiplier_display(animate: bool = false) -> void:
+	if not multiplier_label:
+		return
+	multiplier_label.text = "x" + str(current_multiplier)
+	
+	if animate and multiplier_panel:
+		# Kill existing tween
+		if multiplier_tween:
+			multiplier_tween.kill()
+		
+		# Flash and scale animation for multiplier increase
+		multiplier_tween = create_tween()
+		multiplier_tween.set_parallel(true)
+		multiplier_tween.tween_property(multiplier_panel, "scale", Vector2(1.4, 1.4), 0.15).set_ease(Tween.EASE_OUT)
+		multiplier_tween.tween_property(multiplier_panel, "modulate", Color(1.5, 1.2, 0.5, 1.0), 0.15)
+		multiplier_tween.set_parallel(false)
+		multiplier_tween.tween_property(multiplier_panel, "scale", Vector2.ONE, 0.2).set_ease(Tween.EASE_IN_OUT)
+		multiplier_tween.tween_property(multiplier_panel, "modulate", Color.WHITE, 0.3)
 
 func _on_time_changed(time: float) -> void:
 	timer_label.text = gm.format_time_static(time)
@@ -245,7 +308,7 @@ func show_pickup_popup(amount: int, icon_texture: Texture2D) -> void:
 	
 	# Create +N label - large, bold style with outline
 	var label := Label.new()
-	label.text = "+" + str(amount)
+	label.text = "+" + format_number(amount)
 	label.add_theme_font_size_override("font_size", 58)
 	label.add_theme_color_override("font_color", Color(1, 0.9, 0.3, 1))  # Bright gold
 	label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
@@ -262,6 +325,70 @@ func show_pickup_popup(amount: int, icon_texture: Texture2D) -> void:
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	icon.modulate = Color(1, 0.9, 0.3, 1)  # Bright gold tint
+	popup.add_child(icon)
+	
+	# Position at player area - use design resolution (720x1280 with stretch)
+	# Center horizontally, 67% from top vertically
+	var design_width: float = 720.0
+	var design_height: float = 1280.0
+	var base_x: float = design_width / 2.0
+	var base_y: float = design_height * 0.67
+	
+	# Larger random offset around spawn point for more spread
+	var offset_x := randf_range(-120, 120)
+	var offset_y := randf_range(-80, 80)
+	# Center the popup (estimate ~100px width for "+1" + icon)
+	popup.position = Vector2(base_x - 50 + offset_x, base_y + offset_y)
+	popup.pivot_offset = Vector2(60, 30)  # Center pivot for rotation
+	popup_container.add_child(popup)  # Add to container so it's behind menus
+	
+	# Fall downward and off-screen
+	var angle := randf_range(PI * 0.3, PI * 0.7)  # Downward angles
+	var distance := design_height - base_y + 100  # Enough to exit screen at bottom
+	var duration := 1.0  # Animation duration
+	var target_offset := Vector2(cos(angle), sin(angle)) * distance
+	
+	# Random spin (mild rotation)
+	var spin_amount := randf_range(-0.5, 0.5)
+	
+	# Animate: fall down off-screen, spin, and fade out
+	var tween := create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(popup, "position", popup.position + target_offset, duration).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tween.tween_property(popup, "rotation", spin_amount, duration)
+	tween.tween_property(popup, "modulate:a", 0.0, duration * 0.8).set_delay(duration * 0.2)
+	tween.set_parallel(false)
+	tween.tween_callback(popup.queue_free)
+
+# ========== Floating Combo Bonus Popup ==========
+
+func show_combo_popup(amount: int, icon_texture: Texture2D) -> void:
+	if not audio or not audio.get_show_pickup_popup():
+		return
+	
+	# Create popup container
+	var popup := HBoxContainer.new()
+	popup.add_theme_constant_override("separation", 12)
+	
+	# Create +N label - large, bold style with outline (cyan/turquoise for combo bonus)
+	var label := Label.new()
+	label.text = "+" + format_number(amount)
+	label.add_theme_font_size_override("font_size", 58)
+	label.add_theme_color_override("font_color", Color(0.3, 1.0, 0.9, 1))  # Bright cyan/turquoise
+	label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
+	label.add_theme_color_override("font_outline_color", Color(0, 0.3, 0.3, 1))  # Dark teal outline
+	label.add_theme_constant_override("shadow_offset_x", 3)
+	label.add_theme_constant_override("shadow_offset_y", 3)
+	label.add_theme_constant_override("outline_size", 4)
+	popup.add_child(label)
+	
+	# Create icon - larger
+	var icon := TextureRect.new()
+	icon.texture = icon_texture
+	icon.custom_minimum_size = Vector2(52, 52)
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.modulate = Color(0.3, 1.0, 0.9, 1)  # Cyan tint to match
 	popup.add_child(icon)
 	
 	# Position at player area - use design resolution (720x1280 with stretch)
@@ -393,6 +520,127 @@ func _apply_safe_area_offset() -> void:
 	if timer_label:
 		timer_label.offset_top = actual_top_offset + 64.0 + 26.0
 		timer_label.offset_bottom = timer_label.offset_top + 32.0
+
+# ========== Multiplier UI ==========
+
+func _create_multiplier_ui() -> void:
+	# Coin positioned just above supercharge bar, same width (70px)
+	var coin_size := 70.0
+	multiplier_panel = Control.new()
+	multiplier_panel.name = "MultiplierPanel"
+	multiplier_panel.set_anchors_preset(Control.PRESET_CENTER_RIGHT)
+	multiplier_panel.anchor_left = 1.0
+	multiplier_panel.anchor_right = 1.0
+	multiplier_panel.anchor_top = 0.5
+	multiplier_panel.anchor_bottom = 0.5
+	# Same horizontal position as supercharge panel (offset_left=-80, offset_right=-10)
+	multiplier_panel.offset_left = -80
+	multiplier_panel.offset_right = -10
+	# Position above supercharge panel (-140 top) with 10px gap
+	multiplier_panel.offset_top = -220
+	multiplier_panel.offset_bottom = -150
+	multiplier_panel.pivot_offset = Vector2(coin_size / 2, coin_size / 2)
+	add_child(multiplier_panel)
+	
+	# Circular coin background
+	var frame := TextureRect.new()
+	frame.name = "Frame"
+	frame.texture = load("res://assets/icons/multiplier_coin.svg")
+	frame.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	frame.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	frame.set_anchors_preset(Control.PRESET_FULL_RECT)
+	multiplier_panel.add_child(frame)
+	
+	# Multiplier text label (centered in dark inner circle)
+	multiplier_label = Label.new()
+	multiplier_label.name = "MultiplierLabel"
+	multiplier_label.text = "x1"
+	multiplier_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	multiplier_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	multiplier_label.add_theme_font_size_override("font_size", 26)
+	multiplier_label.add_theme_color_override("font_color", Color(1.0, 0.9, 0.4, 1.0))  # Bright gold-yellow
+	multiplier_label.add_theme_color_override("font_shadow_color", Color(0.6, 0.4, 0.0, 1.0))  # Gold shadow
+	multiplier_label.add_theme_color_override("font_outline_color", Color(0.4, 0.25, 0.0, 1.0))  # Dark gold outline
+	multiplier_label.add_theme_constant_override("shadow_offset_x", 2)
+	multiplier_label.add_theme_constant_override("shadow_offset_y", 2)
+	multiplier_label.add_theme_constant_override("outline_size", 4)
+	multiplier_label.set_anchors_preset(Control.PRESET_FULL_RECT)
+	multiplier_panel.add_child(multiplier_label)
+
+# ========== Combo UI ==========
+
+func _create_combo_ui() -> void:
+	# Combo display - centered horizontally, upper portion of screen
+	combo_panel = Control.new()
+	combo_panel.name = "ComboPanel"
+	combo_panel.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	combo_panel.anchor_left = 0.5
+	combo_panel.anchor_right = 0.5
+	combo_panel.anchor_top = 0.0
+	combo_panel.anchor_bottom = 0.0
+	combo_panel.offset_left = -100
+	combo_panel.offset_right = 100
+	combo_panel.offset_top = 130  # Below top bar area
+	combo_panel.offset_bottom = 180
+	combo_panel.pivot_offset = Vector2(100, 25)  # Center pivot
+	combo_panel.visible = false  # Hidden until combo starts
+	add_child(combo_panel)
+	
+	# Combo label with dramatic styling
+	combo_label = Label.new()
+	combo_label.name = "ComboLabel"
+	combo_label.text = "COMBO x2"
+	combo_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	combo_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	combo_label.add_theme_font_size_override("font_size", 32)
+	combo_label.add_theme_color_override("font_color", Color(1.0, 0.6, 0.1, 1.0))  # Orange-gold
+	combo_label.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.9))
+	combo_label.add_theme_color_override("font_outline_color", Color(0.3, 0.1, 0.0, 1.0))
+	combo_label.add_theme_constant_override("shadow_offset_x", 2)
+	combo_label.add_theme_constant_override("shadow_offset_y", 2)
+	combo_label.add_theme_constant_override("outline_size", 4)
+	combo_label.set_anchors_preset(Control.PRESET_FULL_RECT)
+	combo_panel.add_child(combo_label)
+
+func _on_object_destroyed(object_id: String, _object_name: String, base_coins: int) -> void:
+	# Check if same object type as last destroyed
+	if object_id == last_destroyed_id:
+		current_combo += 1
+	else:
+		current_combo = 1
+		last_destroyed_id = object_id
+	
+	# Apply combo bonus (combo >= 2 gives bonus coins)
+	if current_combo >= 2:
+		var combo_bonus: int = base_coins * (current_combo - 1)  # x2 = +1x base, x3 = +2x base, etc.
+		var multiplied_bonus: int = combo_bonus * gm.coin_multiplier  # Apply same multiplier
+		skip_combo_popup = multiplied_bonus  # Skip gold popup for this amount
+		gm.add_coin(combo_bonus)  # This will be multiplied internally
+		show_combo_popup(multiplied_bonus, coin_icon_texture)  # Show cyan popup for bonus
+		_show_combo(current_combo)
+
+func _show_combo(combo: int) -> void:
+	if not combo_panel or not combo_label:
+		return
+	
+	combo_label.text = "COMBO x%d" % combo
+	combo_panel.visible = true
+	
+	# Kill existing tween
+	if combo_tween:
+		combo_tween.kill()
+	
+	# Animate: pop in, stay, fade out
+	combo_panel.scale = Vector2(0.5, 0.5)
+	combo_panel.modulate = Color(1.5, 1.2, 0.8, 1.0)  # Bright flash
+	
+	combo_tween = create_tween()
+	combo_tween.tween_property(combo_panel, "scale", Vector2(1.2, 1.2), 0.1).set_ease(Tween.EASE_OUT)
+	combo_tween.tween_property(combo_panel, "scale", Vector2.ONE, 0.1).set_ease(Tween.EASE_IN_OUT)
+	combo_tween.tween_property(combo_panel, "modulate", Color.WHITE, 0.2)
+	combo_tween.tween_interval(1.5)  # Stay visible
+	combo_tween.tween_property(combo_panel, "modulate:a", 0.0, 0.3)
+	combo_tween.tween_callback(func(): combo_panel.visible = false; combo_panel.modulate.a = 1.0)
 
 # ========== Supercharge UI ==========
 
@@ -600,6 +848,17 @@ func _on_supercharge_ended() -> void:
 	# Show the count label again when supercharge ends
 	if supercharge_count_label:
 		supercharge_count_label.visible = true
+
+func _on_game_started() -> void:
+	# Reset multiplier display when game starts
+	current_multiplier = 1
+	_update_multiplier_display(false)
+	
+	# Reset combo
+	current_combo = 0
+	last_destroyed_id = ""
+	if combo_panel:
+		combo_panel.visible = false
 
 func _on_supercharge_button_pressed() -> void:
 	if gm and gm.is_supercharge_ready():

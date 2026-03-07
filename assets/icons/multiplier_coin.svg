@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- Outer gold ring -->
+  <circle cx="64" cy="64" r="60" fill="#ffd700" stroke="#996515" stroke-width="4"/>
+  
+  <!-- 3D bevel effect - lighter top -->
+  <circle cx="64" cy="64" r="56" fill="none" stroke="#ffec80" stroke-width="4" stroke-dasharray="180 360" transform="rotate(-90 64 64)"/>
+  
+  <!-- Dark inner circle -->
+  <circle cx="64" cy="64" r="44" fill="#151515"/>
+  
+  <!-- Inner gold border -->
+  <circle cx="64" cy="64" r="44" fill="none" stroke="#b8860b" stroke-width="3"/>
+  
+  <!-- Subtle inner highlight -->
+  <circle cx="64" cy="64" r="40" fill="none" stroke="#ffd700" stroke-width="1" opacity="0.5"/>
+</svg>

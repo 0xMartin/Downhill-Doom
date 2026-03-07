@@ -147,7 +147,7 @@ static func _init_objects() -> void:
 		"height": 1.9,
 		"height_var": 0.1,
 		"spawn_chance": 1.0,
-		"coins": 10,
+		"coins": 5,
 		"destructible": true,
 	})
 	_register_object({
@@ -158,7 +158,7 @@ static func _init_objects() -> void:
 		"height": 2.2,
 		"height_var": 0.1,
 		"spawn_chance": 0.9,
-		"coins": 12,
+		"coins": 6,
 		"destructible": true,
 	})
 	_register_object({
@@ -166,10 +166,10 @@ static func _init_objects() -> void:
 		"name": "Wooden Cart",
 		"category": Category.BUILDING,
 		"model": "res://assets/models/buildings/wooden_cart.blend",
-		"height": 0.9,
+		"height": 0.8,
 		"height_var": 0.1,
 		"spawn_chance": 0.8,
-		"coins": 15,
+		"coins": 8,
 		"destructible": true,
 	})
 	_register_object({
@@ -180,7 +180,7 @@ static func _init_objects() -> void:
 		"height": 1.0,
 		"height_var": 0.15,
 		"spawn_chance": 0.7,
-		"coins": 20,
+		"coins": 10,
 		"destructible": true,
 	})
 	_register_object({
@@ -191,7 +191,7 @@ static func _init_objects() -> void:
 		"height": 2.6,
 		"height_var": 0.1,
 		"spawn_chance": 0.6,
-		"coins": 40,
+		"coins": 20,
 		"destructible": true,
 	})
 	_register_object({
@@ -202,7 +202,7 @@ static func _init_objects() -> void:
 		"height": 1.8,
 		"height_var": 0.05,
 		"spawn_chance": 0.01,
-		"coins": 2200,
+		"coins": 1100,
 		"destructible": true,
 	})
 	
@@ -215,7 +215,7 @@ static func _init_objects() -> void:
 		"height": 4.5,
 		"height_var": 0.1,
 		"spawn_chance": 1.0,
-		"coins": 300,
+		"coins": 150,
 		"destructible": true,
 	})
 	_register_object({
@@ -226,7 +226,7 @@ static func _init_objects() -> void:
 		"height": 5.5,
 		"height_var": 0.1,
 		"spawn_chance": 0.6,
-		"coins": 500,
+		"coins": 250,
 		"destructible": true,
 	})
 	_register_object({
@@ -237,7 +237,7 @@ static func _init_objects() -> void:
 		"height": 7.0,
 		"height_var": 0.1,
 		"spawn_chance": 0.4,
-		"coins": 700,
+		"coins": 350,
 		"destructible": true,
 	})
 	_register_object({
@@ -248,7 +248,7 @@ static func _init_objects() -> void:
 		"height": 7.0,
 		"height_var": 0.1,
 		"spawn_chance": 0.2,
-		"coins": 900,
+		"coins": 450,
 		"destructible": true,
 	})
 	_register_object({
@@ -259,7 +259,7 @@ static func _init_objects() -> void:
 		"height": 8.0,
 		"height_var": 0.1,
 		"spawn_chance": 0.1,
-		"coins": 1600,
+		"coins": 800,
 		"destructible": true,
 	})
 	
@@ -272,7 +272,7 @@ static func _init_objects() -> void:
 		"height": 1.95, 
 		"height_var": 0.1,
 		"spawn_chance": 1.0,
-		"coins": 700,
+		"coins": 350,
 		"damage": 15,
 		"destructible": false,
 		"collision_shape": "sphere",
@@ -285,7 +285,7 @@ static func _init_objects() -> void:
 		"height": 2.0, 
 		"height_var": 0.05,
 		"spawn_chance": 0.0, 
-		"coins": 950,
+		"coins": 475,
 		"damage": 15,
 		"destructible": false,
 	})
@@ -297,7 +297,7 @@ static func _init_objects() -> void:
 		"height": 5.0, 
 		"height_var": 0.1,
 		"spawn_chance": 0.3, 
-		"coins": 1500,
+		"coins": 750,
 		"damage": 20,
 		"destructible": false,
 	})
@@ -372,10 +372,10 @@ static func _init_objects() -> void:
 		"name": "Chicken",
 		"category": Category.NPC_FRIEND,
 		"model": "res://assets/models/npc_friend/chicken.blend",
-		"height": 0.7,
+		"height": 0.75,
 		"height_var": 0.1,
 		"spawn_chance": 1.0,
-		"coins": 10,
+		"coins": 5,
 		"destructible": true,
 	})
 	_register_object({
@@ -386,7 +386,7 @@ static func _init_objects() -> void:
 		"height": 0.8,
 		"height_var": 0.1,
 		"spawn_chance": 0.8,
-		"coins": 15,
+		"coins": 8,
 		"destructible": true,
 	})
 	_register_object({
@@ -394,10 +394,10 @@ static func _init_objects() -> void:
 		"name": "Sheep",
 		"category": Category.NPC_FRIEND,
 		"model": "res://assets/models/npc_friend/sheep.blend",
-		"height": 1.0,
+		"height": 0.9,
 		"height_var": 0.1,
 		"spawn_chance": 0.6,
-		"coins": 20,
+		"coins": 10,
 		"destructible": true,
 	})
 	_register_object({
@@ -405,10 +405,10 @@ static func _init_objects() -> void:
 		"name": "Cow",
 		"category": Category.NPC_FRIEND,
 		"model": "res://assets/models/npc_friend/cow.blend",
-		"height": 1.2,
+		"height": 1.1,
 		"height_var": 0.1,
 		"spawn_chance": 0.4,
-		"coins": 25,
+		"coins": 13,
 		"destructible": true,
 	})
 	
@@ -421,7 +421,7 @@ static func _init_objects() -> void:
 		"height": 1.8,  
 		"height_var": 0.1,
 		"spawn_chance": 0.4, 
-		"coins": 80,
+		"coins": 40,
 		"damage": 5,
 		"destructible": true,
 	})
@@ -433,7 +433,7 @@ static func _init_objects() -> void:
 		"height": 2.25, 
 		"height_var": 0.1,
 		"spawn_chance": 0.22, 
-		"coins": 100,
+		"coins": 50,
 		"damage": 10,
 		"destructible": true,
 	})
@@ -445,7 +445,7 @@ static func _init_objects() -> void:
 		"height": 2.7,  
 		"height_var": 0.1,
 		"spawn_chance": 0.18, 
-		"coins": 220,
+		"coins": 110,
 		"damage": 17,
 		"destructible": true,
 	})
@@ -454,10 +454,10 @@ static func _init_objects() -> void:
 		"name": "Catapult",
 		"category": Category.NPC_ENEMY,
 		"model": "res://assets/models/npc_enemy/catapult.blend",
-		"height": 2.4,
+		"height": 2.1,
 		"height_var": 0.1,
 		"spawn_chance": 0.10,  
-		"coins": 700,
+		"coins": 350,
 		"damage": 30, 
 		"destructible": true,
 	})
@@ -471,7 +471,7 @@ static func _init_objects() -> void:
 		"height": 0.75,
 		"height_var": 0.0,
 		"spawn_chance": 0.10,
-		"coins": 3500,
+		"coins": 1750,
 		"damage": 40,
 		"destructible": true,
 	})

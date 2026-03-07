@@ -35,6 +35,8 @@ var jump_cooldown: float = 0.0  # Time until next jump allowed
 var is_on_ground: bool = true  # Track if player is touching ground
 var was_on_ground: bool = true  # Previous frame ground state
 var has_jumped: bool = false  # Track if player initiated a jump (for shock wave)
+var slam_charged: bool = false  # Charged slam attack (tap while falling)
+var slam_flash_tween: Tween  # Visual feedback tween
 
 # Supercharge state
 var is_supercharged: bool = false
@@ -56,6 +58,9 @@ const ShockWaveManager := preload("res://scripts/effects/shock_wave_manager.gd")
 
 # Dust particles
 var dust_particles: GPUParticles3D
+
+# Slam charge particles
+var slam_particles: GPUParticles3D
 
 # Atmospheric particles (snow/dust in the air)
 var atmosphere_particles: GPUParticles3D
@@ -97,6 +102,9 @@ func _ready() -> void:
 	
 	# Setup dust particles (under ball when on ground)
 	_setup_dust_particles()
+	
+	# Setup slam charge particles
+	_setup_slam_particles()
 	
 	# Pre-create rock impact particle template
 	_create_rock_impact_template()
@@ -184,10 +192,18 @@ func _physics_process(delta: float) -> void:
 	# Update supercharge scale smoothly
 	_update_supercharge_scale(delta)
 	
-	# Check for landing after jump - trigger shock wave
-	if not was_on_ground and is_on_ground and has_jumped:
+	# Check for landing - trigger shock wave only if slam was charged
+	if not was_on_ground and is_on_ground:
+		if slam_charged:
+			_spawn_landing_shock_wave()
+		# Reset states
+		slam_charged = false
 		has_jumped = false
-		_spawn_landing_shock_wave()
+		if slam_flash_tween:
+			slam_flash_tween.kill()
+			slam_flash_tween = null
+		if player_model:
+			_set_model_emission(player_model, Color.BLACK)
 	
 	# Death detection disabled for now - terrain goes downhill infinitely
 	# TODO: Implement proper death detection (e.g., falling off edges)
@@ -370,11 +386,13 @@ func _is_touch_on_supercharge_ui(touch_pos: Vector2) -> bool:
 	return false
 
 func _try_jump() -> void:
-	if jump_cooldown > 0 or not is_on_ground:
+	# If in air and falling, charge slam attack
+	if not is_on_ground and linear_velocity.y < 0:
+		_charge_slam()
 		return
 	
-	# Mark that player initiated a jump (for shock wave on landing)
-	has_jumped = true
+	if jump_cooldown > 0 or not is_on_ground:
+		return
 	
 	# Reset vertical velocity for consistent jumps (cancel any falling)
 	linear_velocity.y = 0.0
@@ -383,24 +401,96 @@ func _try_jump() -> void:
 	apply_central_impulse(Vector3(0, jump_force, 0))
 	jump_cooldown = jump_cooldown_time
 
+## Charge slam attack when tapping while falling
+func _charge_slam() -> void:
+	if slam_charged:
+		return  # Already charged
+	
+	slam_charged = true
+	
+	# Start slam charge particles
+	if slam_particles:
+		slam_particles.emitting = true
+	
+	# Visual feedback - flash the player model
+	if player_model:
+		# Kill existing tween
+		if slam_flash_tween:
+			slam_flash_tween.kill()
+		
+		# Create pulsing glow effect
+		slam_flash_tween = create_tween()
+		slam_flash_tween.set_loops()  # Loop until landing
+		slam_flash_tween.tween_callback(_slam_flash_on)
+		slam_flash_tween.tween_interval(0.1)
+		slam_flash_tween.tween_callback(_slam_flash_off)
+		slam_flash_tween.tween_interval(0.1)
+
+func _slam_flash_on() -> void:
+	if player_model:
+		_set_model_emission(player_model, Color(2.0, 1.5, 0.5))  # Bright yellow-orange
+
+func _slam_flash_off() -> void:
+	if player_model:
+		_set_model_emission(player_model, Color.BLACK)
+
+func _set_model_emission(node: Node, color: Color) -> void:
+	if node is MeshInstance3D:
+		var mesh_node := node as MeshInstance3D
+		var mat: Material = mesh_node.get_surface_override_material(0)
+		if mat == null and mesh_node.mesh:
+			mat = mesh_node.mesh.surface_get_material(0)
+		if mat is StandardMaterial3D:
+			var new_mat := mat.duplicate() as StandardMaterial3D
+			new_mat.emission_enabled = color != Color.BLACK
+			new_mat.emission = color
+			new_mat.emission_energy_multiplier = 2.0 if color != Color.BLACK else 0.0
+			mesh_node.set_surface_override_material(0, new_mat)
+	for child in node.get_children():
+		_set_model_emission(child, color)
+
 
 ## Spawn shock wave effect when landing after a jump
 ## Destroys trees, NPCs, buildings within radius
 func _spawn_landing_shock_wave() -> void:
+	# Stop slam flash effect
+	if slam_flash_tween:
+		slam_flash_tween.kill()
+		slam_flash_tween = null
+	if player_model:
+		_set_model_emission(player_model, Color.BLACK)
+	
+	# Stop slam particles
+	if slam_particles:
+		slam_particles.emitting = false
+	
 	# Spawn shock wave at player's position (slightly below for ground effect)
 	var shock_position := global_position + Vector3(0, -sphere_radius * 0.5, 0)
 	
-	# Double the shock wave radius when supercharged
+	# Calculate radius multiplier based on state
+	var radius_mult := 1.0
 	var gm: Node = get_node_or_null("/root/GameManager")
-	if gm and gm.is_supercharged:
-		ShockWaveManager.spawn_shock_wave(shock_position, ShockWaveManager.Source.PLAYER, ShockWaveManager.SHOCK_WAVE_RADIUS * 2.0)
-	else:
-		ShockWaveManager.spawn_shock_wave(shock_position, ShockWaveManager.Source.PLAYER)
 	
-	# Screen shake for impact (no vibration)
+	# Slam charged = 1.5x radius, supercharged = 2x, both = 3x
+	if slam_charged:
+		radius_mult *= 1.5
+	if gm and gm.is_supercharged:
+		radius_mult *= 2.0
+	
+	var final_radius := ShockWaveManager.SHOCK_WAVE_RADIUS * radius_mult
+	ShockWaveManager.spawn_shock_wave(shock_position, ShockWaveManager.Source.PLAYER, final_radius)
+	
+	# Screen shake intensity based on slam
+	var shake_intensity := 0.8
+	if slam_charged:
+		shake_intensity = 1.5
+	
 	var camera := get_viewport().get_camera_3d()
 	if camera and camera.has_method("shake"):
-		camera.shake(0.8)
+		camera.shake(shake_intensity)
+	
+	# Reset slam state
+	slam_charged = false
 
 
 func die() -> void:
@@ -604,6 +694,53 @@ func _setup_dust_particles() -> void:
 	
 	add_child(dust_particles)
 	dust_particles.position = Vector3(0, -sphere_radius, 0)  # At the bottom of the ball
+
+
+## Setup slam charge particles (energy sparks when charging slam attack)
+func _setup_slam_particles() -> void:
+	slam_particles = GPUParticles3D.new()
+	slam_particles.name = "SlamParticles"
+	slam_particles.amount = 40
+	slam_particles.lifetime = 0.5
+	slam_particles.explosiveness = 0.3
+	slam_particles.randomness = 0.5
+	slam_particles.emitting = false  # Start disabled
+	
+	var proc_mat := ParticleProcessMaterial.new()
+	proc_mat.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
+	proc_mat.emission_sphere_radius = sphere_radius * 1.2
+	proc_mat.direction = Vector3(0, 1, 0)  # Upward bias
+	proc_mat.spread = 180.0  # All directions
+	proc_mat.initial_velocity_min = 3.0
+	proc_mat.initial_velocity_max = 6.0
+	proc_mat.gravity = Vector3(0, 2, 0)  # Slight upward drift
+	proc_mat.scale_min = 0.1
+	proc_mat.scale_max = 0.25
+	
+	# Bright orange-yellow energy color with glow
+	var color_ramp := Gradient.new()
+	color_ramp.set_color(0, Color(1.0, 0.7, 0.2, 1.0))  # Bright orange-yellow
+	color_ramp.set_color(1, Color(1.0, 0.3, 0.1, 0.0))  # Fade to red-orange
+	var color_tex := GradientTexture1D.new()
+	color_tex.gradient = color_ramp
+	proc_mat.color_ramp = color_tex
+	slam_particles.process_material = proc_mat
+	
+	# Small glowing sphere mesh
+	var mesh := SphereMesh.new()
+	mesh.radius = 0.3
+	mesh.height = 0.6
+	var mesh_mat := StandardMaterial3D.new()
+	mesh_mat.albedo_color = Color(1.0, 0.8, 0.3)
+	mesh_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mesh_mat.emission_enabled = true
+	mesh_mat.emission = Color(1.0, 0.6, 0.2)
+	mesh_mat.emission_energy_multiplier = 2.0
+	mesh.material = mesh_mat
+	slam_particles.draw_pass_1 = mesh
+	
+	add_child(slam_particles)
+	slam_particles.position = Vector3.ZERO  # Center on player
 
 
 ## Setup atmospheric particles (snow/dust floating in air around player)

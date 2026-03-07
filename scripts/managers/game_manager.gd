@@ -22,6 +22,7 @@ var best_distance: float = 0.0
 var best_coins: int = 0
 var is_playing := false
 var is_paused := false
+var coin_multiplier: int = 1  # Distance-based multiplier (1x per 1000m)
 
 # Health system
 var max_health: int = 100
@@ -85,6 +86,7 @@ func start_game() -> void:
 	health = max_health
 	is_playing = true
 	is_paused = false
+	coin_multiplier = 1
 	
 	# Reset supercharge
 	supercharge_objects = 0
@@ -129,7 +131,8 @@ func end_game() -> void:
 	player_died.emit()
 
 func add_coin(amount: int = 1) -> void:
-	coins += amount
+	var multiplied_amount := amount * coin_multiplier
+	coins += multiplied_amount
 	coins_changed.emit(coins)
 
 ## Record a destroyed object for statistics
