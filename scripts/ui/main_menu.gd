@@ -23,12 +23,14 @@ const COLOR_GLOW := Color(0.25, 0.65, 0.96, 0.3)
 @onready var settings_panel: Control = $SettingsPanel
 @onready var stats_panel: Control = $StatsPanel
 @onready var main_content: VBoxContainer = $MainContent
-@onready var music_slider: HSlider = $SettingsPanel/PanelContainer/VBoxContainer/AudioSection/AudioVBox/MusicRow/MusicSlider
-@onready var sfx_slider: HSlider = $SettingsPanel/PanelContainer/VBoxContainer/AudioSection/AudioVBox/SFXRow/SFXSlider
-@onready var popup_check: CheckButton = $SettingsPanel/PanelContainer/VBoxContainer/DisplaySection/DisplayVBox/PopupCheck
-@onready var damage_check: CheckButton = $SettingsPanel/PanelContainer/VBoxContainer/DisplaySection/DisplayVBox/DamageCheck
-@onready var haptic_check: CheckButton = $SettingsPanel/PanelContainer/VBoxContainer/DisplaySection/DisplayVBox/HapticCheck
 @onready var player_model_container: Node3D = $PlayerViewport/SubViewport/PlayerModel
+
+# These will be set dynamically during panel rebuild
+var music_slider: HSlider
+var sfx_slider: HSlider
+var popup_check: CheckButton
+var damage_check: CheckButton
+var haptic_check: CheckButton
 
 var audio_manager: Node
 var player_model_instance: Node3D
@@ -70,13 +72,6 @@ var stats := {
 
 func _ready() -> void:
 	audio_manager = get_node("/root/AudioManager")
-	
-	# Initialize audio settings
-	music_slider.value = audio_manager.get_music_volume()
-	sfx_slider.value = audio_manager.get_sfx_volume()
-	popup_check.button_pressed = audio_manager.get_show_pickup_popup()
-	damage_check.button_pressed = audio_manager.get_show_damage_popup()
-	haptic_check.button_pressed = audio_manager.get_haptic_enabled()
 	
 	audio_manager.play_menu_music()
 	_load_stats()
@@ -291,41 +286,211 @@ func _on_button_hover_exit(button: Button) -> void:
 
 
 func _rebuild_settings_panel() -> void:
-	var panel_container: PanelContainer = settings_panel.get_node("PanelContainer")
-	var vbox: VBoxContainer = panel_container.get_node("VBoxContainer")
+	# Clear existing content
+	for child in settings_panel.get_children():
+		if child.name != "Background":
+			child.queue_free()
 	
 	# Update background
 	var bg: ColorRect = settings_panel.get_node("Background")
-	bg.color = Color(0, 0, 0, 0.75)
+	bg.color = Color(0, 0, 0, 0.92)
 	
-	# Style the panel container
-	var panel_style := StyleBoxFlat.new()
-	panel_style.bg_color = COLOR_BG_MEDIUM
-	panel_style.set_corner_radius_all(20)
-	panel_style.set_border_width_all(1)
-	panel_style.border_color = Color(1, 1, 1, 0.08)
-	panel_style.shadow_color = Color(0, 0, 0, 0.6)
-	panel_style.shadow_size = 24
-	panel_style.set_content_margin_all(28)
-	panel_container.add_theme_stylebox_override("panel", panel_style)
+	# Make panel fullscreen like stats
+	var screen_size: Vector2 = get_viewport().get_visible_rect().size
+	var panel_width: float = minf(720.0, screen_size.x * 0.92)
+	var panel_height: float = minf(screen_size.y * 0.88, screen_size.y - 60)
 	
-	# Style title
-	var title: Label = vbox.get_node("Title")
-	title.add_theme_font_size_override("font_size", 28)
+	# Create centered VBox for positioning
+	var center_vbox := VBoxContainer.new()
+	center_vbox.anchors_preset = Control.PRESET_CENTER
+	center_vbox.anchor_left = 0.5
+	center_vbox.anchor_top = 0.5
+	center_vbox.anchor_right = 0.5
+	center_vbox.anchor_bottom = 0.5
+	center_vbox.offset_left = -panel_width / 2
+	center_vbox.offset_right = panel_width / 2
+	center_vbox.offset_top = -panel_height / 2
+	center_vbox.offset_bottom = panel_height / 2
+	center_vbox.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	center_vbox.grow_vertical = Control.GROW_DIRECTION_BOTH
+	settings_panel.add_child(center_vbox)
+	
+	# Create main card container
+	var card := PanelContainer.new()
+	card.custom_minimum_size = Vector2(panel_width, panel_height)
+	
+	var card_style := StyleBoxFlat.new()
+	card_style.bg_color = COLOR_BG_MEDIUM
+	card_style.set_corner_radius_all(24)
+	card_style.set_border_width_all(2)
+	card_style.border_color = COLOR_BORDER
+	card_style.shadow_color = Color(0, 0, 0, 0.5)
+	card_style.shadow_size = 20
+	card_style.set_content_margin_all(24)
+	card.add_theme_stylebox_override("panel", card_style)
+	center_vbox.add_child(card)
+	
+	var inner_vbox := VBoxContainer.new()
+	inner_vbox.add_theme_constant_override("separation", 16)
+	card.add_child(inner_vbox)
+	
+	# Title with glow (same style as stats)
+	var title := Label.new()
+	title.text = "SETTINGS"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 38)
 	title.add_theme_color_override("font_color", COLOR_TEXT_PRIMARY)
+	title.add_theme_color_override("font_outline_color", COLOR_ACCENT_PRIMARY)
+	title.add_theme_constant_override("outline_size", 2)
+	inner_vbox.add_child(title)
 	
-	# Style sliders
+	# Decoration under title
+	var decoration := TextureRect.new()
+	var deco_tex = load("res://assets/icons/title_decoration.svg")
+	if deco_tex:
+		decoration.texture = deco_tex
+		decoration.custom_minimum_size = Vector2(200, 20)
+		decoration.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+		decoration.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		decoration.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		decoration.modulate = COLOR_ACCENT_PRIMARY
+		inner_vbox.add_child(decoration)
+	
+	# Spacer
+	var spacer1 := Control.new()
+	spacer1.custom_minimum_size = Vector2(0, 8)
+	inner_vbox.add_child(spacer1)
+	
+	# Audio Section
+	var audio_card := _create_settings_section("AUDIO")
+	inner_vbox.add_child(audio_card)
+	
+	var audio_content := audio_card.get_child(0)
+	
+	# Music row
+	var music_row := HBoxContainer.new()
+	music_row.add_theme_constant_override("separation", 20)
+	audio_content.add_child(music_row)
+	
+	var music_label := Label.new()
+	music_label.text = "Music"
+	music_label.custom_minimum_size = Vector2(140, 0)
+	music_label.add_theme_font_size_override("font_size", 22)
+	music_label.add_theme_color_override("font_color", COLOR_TEXT_SECONDARY)
+	music_row.add_child(music_label)
+	
+	music_slider = HSlider.new()
+	music_slider.custom_minimum_size = Vector2(280, 30)
+	music_slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	music_slider.max_value = 1.0
+	music_slider.step = 0.05
+	music_slider.value = 0.7
 	_style_modern_slider(music_slider)
+	music_slider.value_changed.connect(_on_music_slider_value_changed)
+	music_row.add_child(music_slider)
+	
+	# SFX row
+	var sfx_row := HBoxContainer.new()
+	sfx_row.add_theme_constant_override("separation", 20)
+	audio_content.add_child(sfx_row)
+	
+	var sfx_label := Label.new()
+	sfx_label.text = "Sound Effects"
+	sfx_label.custom_minimum_size = Vector2(140, 0)
+	sfx_label.add_theme_font_size_override("font_size", 22)
+	sfx_label.add_theme_color_override("font_color", COLOR_TEXT_SECONDARY)
+	sfx_row.add_child(sfx_label)
+	
+	sfx_slider = HSlider.new()
+	sfx_slider.custom_minimum_size = Vector2(280, 30)
+	sfx_slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sfx_slider.max_value = 1.0
+	sfx_slider.step = 0.05
+	sfx_slider.value = 0.8
 	_style_modern_slider(sfx_slider)
+	sfx_slider.value_changed.connect(_on_sfx_slider_value_changed)
+	sfx_row.add_child(sfx_slider)
 	
-	# Style checkboxes
-	for check in [popup_check, damage_check, haptic_check]:
-		check.add_theme_color_override("font_color", Color(1, 1, 1, 0.8))
-		check.add_theme_font_size_override("font_size", 14)
+	# Display Section
+	var display_card := _create_settings_section("DISPLAY")
+	inner_vbox.add_child(display_card)
 	
-	# Style back button
-	var back_btn: Button = vbox.get_node("BackButton")
+	var display_content := display_card.get_child(0)
+	
+	# Popup check
+	popup_check = CheckButton.new()
+	popup_check.text = "Show Pickup Popups"
+	popup_check.button_pressed = true
+	popup_check.add_theme_font_size_override("font_size", 22)
+	popup_check.add_theme_color_override("font_color", COLOR_TEXT_SECONDARY)
+	popup_check.toggled.connect(_on_popup_check_toggled)
+	display_content.add_child(popup_check)
+	
+	# Damage check
+	damage_check = CheckButton.new()
+	damage_check.text = "Show Damage Numbers"
+	damage_check.button_pressed = true
+	damage_check.add_theme_font_size_override("font_size", 22)
+	damage_check.add_theme_color_override("font_color", COLOR_TEXT_SECONDARY)
+	damage_check.toggled.connect(_on_damage_check_toggled)
+	display_content.add_child(damage_check)
+	
+	# Haptic check
+	haptic_check = CheckButton.new()
+	haptic_check.text = "Haptic Feedback"
+	haptic_check.button_pressed = true
+	haptic_check.add_theme_font_size_override("font_size", 22)
+	haptic_check.add_theme_color_override("font_color", COLOR_TEXT_SECONDARY)
+	haptic_check.toggled.connect(_on_haptic_check_toggled)
+	display_content.add_child(haptic_check)
+	
+	# Spacer before back button
+	var spacer2 := Control.new()
+	spacer2.custom_minimum_size = Vector2(0, 16)
+	spacer2.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	inner_vbox.add_child(spacer2)
+	
+	# Back Button
+	var back_btn := Button.new()
+	back_btn.text = "BACK"
+	back_btn.custom_minimum_size = Vector2(200, 56)
+	back_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	back_btn.add_theme_font_size_override("font_size", 22)
 	_style_secondary_button(back_btn)
+	back_btn.pressed.connect(_on_settings_back_pressed)
+	inner_vbox.add_child(back_btn)
+	
+	# Load saved settings from audio manager
+	if audio_manager:
+		music_slider.value = audio_manager.get_music_volume()
+		sfx_slider.value = audio_manager.get_sfx_volume()
+		popup_check.button_pressed = audio_manager.get_show_pickup_popup()
+		damage_check.button_pressed = audio_manager.get_show_damage_popup()
+		haptic_check.button_pressed = audio_manager.get_haptic_enabled()
+
+
+func _create_settings_section(title_text: String) -> PanelContainer:
+	var section := PanelContainer.new()
+	
+	var style := StyleBoxFlat.new()
+	style.bg_color = COLOR_BG_DARK
+	style.set_corner_radius_all(16)
+	style.set_border_width_all(1)
+	style.border_color = COLOR_BORDER
+	style.set_content_margin_all(20)
+	section.add_theme_stylebox_override("panel", style)
+	
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 16)
+	section.add_child(vbox)
+	
+	var header := Label.new()
+	header.text = title_text
+	header.add_theme_font_size_override("font_size", 18)
+	header.add_theme_color_override("font_color", COLOR_ACCENT_PRIMARY)
+	vbox.add_child(header)
+	
+	return section
 
 
 func _style_modern_slider(slider: HSlider) -> void:
