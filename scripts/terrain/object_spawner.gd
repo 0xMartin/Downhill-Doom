@@ -1163,7 +1163,7 @@ func _create_rock(obj_data: RefCounted, rng: RandomNumberGenerator) -> StaticBod
 	rock.collision_layer = 1
 	rock.collision_mask = 0
 	
-	# Load model (cached)
+	# Load model (cached) - uses materials from .blend, disable shadows/reflections
 	var model_scene := _get_cached_scene(obj_data.model_path)
 	if model_scene:
 		var model := model_scene.instantiate()
