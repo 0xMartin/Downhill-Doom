@@ -74,8 +74,8 @@ func get_object(model_path: String, category: int) -> Node3D:
 	# Pop as Variant to avoid typed assignment error on freed instances
 	var obj = _pools[key].pop_back()
 	
-	# Validate object is still valid
-	if not is_instance_valid(obj):
+	# Validate object is still valid and not queued for deletion
+	if not is_instance_valid(obj) or obj.is_queued_for_deletion():
 		# Try to get another one
 		return get_object(model_path, category)
 	
@@ -92,7 +92,7 @@ func get_object(model_path: String, category: int) -> Node3D:
 
 ## Return an object to the pool for reuse
 func return_object(obj: Node3D, model_path: String, category: int) -> void:
-	if not is_instance_valid(obj):
+	if not is_instance_valid(obj) or obj.is_queued_for_deletion():
 		return
 	
 	var key := _get_pool_key(model_path, category)

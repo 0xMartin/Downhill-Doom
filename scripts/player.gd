@@ -444,7 +444,7 @@ func _create_supercharge_particles() -> void:
 	
 	supercharge_particles = GPUParticles3D.new()
 	supercharge_particles.name = "SuperchargeParticles"
-	supercharge_particles.amount = 30
+	supercharge_particles.amount = 21
 	supercharge_particles.lifetime = 0.8
 	supercharge_particles.explosiveness = 0.1
 	supercharge_particles.randomness = 0.5

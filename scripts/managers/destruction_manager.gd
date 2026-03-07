@@ -531,5 +531,8 @@ func fling_object(
 			break
 		await tree.process_frame
 	
-	if is_instance_valid(target):
-		target.queue_free()
+	# Only queue_free if still in game world (not returned to pool)
+	if is_instance_valid(target) and target.is_inside_tree():
+		var parent := target.get_parent()
+		if parent and not parent.name.begins_with("Pooled"):
+			target.queue_free()

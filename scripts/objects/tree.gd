@@ -82,10 +82,12 @@ func fall(player_velocity: Vector3) -> void:
 		gm.add_coin(coin_value)
 		gm.record_destroyed_object(object_id, object_name, coin_value)
 	
-	# Remove after delay
+	# Remove after delay (only if still in game world, not returned to pool)
 	await tween.finished
 	await get_tree().create_timer(2.0).timeout
-	queue_free()
+	# Check if we're still in the game world (not returned to pool)
+	if is_inside_tree() and get_parent() and not get_parent().name.begins_with("Pooled"):
+		queue_free()
 
 
 ## Called by ObjectPool when this object is retrieved from pool
