@@ -80,59 +80,114 @@ shadow_color = Color(0.91, 0.27, 0.38, 0.3)
 shadow_size = 6
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pause_panel"]
-bg_color = Color(0.08, 0.06, 0.14, 0.98)
-border_width_left = 3
-border_width_top = 3
-border_width_right = 3
-border_width_bottom = 3
-border_color = Color(0.5, 0.4, 0.9, 0.7)
-corner_radius_top_left = 24
-corner_radius_top_right = 24
-corner_radius_bottom_right = 24
-corner_radius_bottom_left = 24
-shadow_color = Color(0, 0, 0, 0.5)
-shadow_size = 16
-shadow_offset = Vector2(0, 8)
+content_margin_left = 32.0
+content_margin_top = 28.0
+content_margin_right = 32.0
+content_margin_bottom = 28.0
+bg_color = Color(0.06, 0.05, 0.1, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.08)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+shadow_color = Color(0, 0, 0, 0.6)
+shadow_size = 24
+shadow_offset = Vector2(0, 12)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button"]
-bg_color = Color(0.12, 0.1, 0.22, 0.95)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.5, 0.4, 0.9, 0.6)
-corner_radius_top_left = 14
-corner_radius_top_right = 14
-corner_radius_bottom_right = 14
-corner_radius_bottom_left = 14
+content_margin_left = 24.0
+content_margin_top = 14.0
+content_margin_right = 24.0
+content_margin_bottom = 14.0
+bg_color = Color(1, 1, 1, 0.06)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_pressed"]
+content_margin_left = 24.0
+content_margin_top = 14.0
+content_margin_right = 24.0
+content_margin_bottom = 14.0
+bg_color = Color(0.91, 0.27, 0.38, 0.3)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.91, 0.27, 0.38, 0.6)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_hover"]
+content_margin_left = 24.0
+content_margin_top = 14.0
+content_margin_right = 24.0
+content_margin_bottom = 14.0
+bg_color = Color(1, 1, 1, 0.1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.15)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_slider_bg"]
+content_margin_top = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 1, 1, 0.08)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_slider_fill"]
+content_margin_top = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(0.91, 0.27, 0.38, 0.9)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_slider_grabber"]
+bg_color = Color(1, 1, 1, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
 shadow_color = Color(0, 0, 0, 0.3)
 shadow_size = 4
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_pressed"]
-bg_color = Color(0.25, 0.2, 0.45, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.7, 0.6, 1, 1)
-corner_radius_top_left = 14
-corner_radius_top_right = 14
-corner_radius_bottom_right = 14
-corner_radius_bottom_left = 14
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_hover"]
-bg_color = Color(0.18, 0.15, 0.35, 0.98)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.6, 0.5, 1, 0.9)
-corner_radius_top_left = 14
-corner_radius_top_right = 14
-corner_radius_bottom_right = 14
-corner_radius_bottom_left = 14
-shadow_color = Color(0.5, 0.4, 0.9, 0.3)
-shadow_size = 6
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_section"]
+content_margin_left = 16.0
+content_margin_top = 16.0
+content_margin_right = 16.0
+content_margin_bottom = 16.0
+bg_color = Color(1, 1, 1, 0.03)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.05)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
 
 [node name="HUD" type="CanvasLayer" unique_id=304451578]
 script = ExtResource("1_hud")
@@ -337,7 +392,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.02, 0.02, 0.06, 0.85)
+color = Color(0, 0, 0, 0.75)
 
 [node name="PanelContainer" type="PanelContainer" parent="PauseMenu" unique_id=2042012326]
 layout_mode = 1
@@ -346,123 +401,159 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -180.0
-offset_top = -260.0
-offset_right = 180.0
-offset_bottom = 260.0
+offset_left = -170.0
+offset_top = -280.0
+offset_right = 170.0
+offset_bottom = 280.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_pause_panel")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="PauseMenu/PanelContainer" unique_id=1767489396]
 layout_mode = 2
-theme_override_constants/separation = 18
+theme_override_constants/separation = 12
 
-[node name="TitleMargin" type="MarginContainer" parent="PauseMenu/PanelContainer/VBoxContainer" unique_id=312083044]
+[node name="Title" type="Label" parent="PauseMenu/PanelContainer/VBoxContainer" unique_id=2054909385]
 layout_mode = 2
-theme_override_constants/margin_top = 10
-theme_override_constants/margin_bottom = 10
-
-[node name="Title" type="Label" parent="PauseMenu/PanelContainer/VBoxContainer/TitleMargin" unique_id=2054909385]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.9, 0.85, 1, 1)
-theme_override_colors/font_shadow_color = Color(0.3, 0.2, 0.5, 0.5)
-theme_override_constants/shadow_offset_y = 3
-theme_override_font_sizes/font_size = 52
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 32
 text = "PAUSED"
 horizontal_alignment = 1
 
+[node name="Spacer1" type="Control" parent="PauseMenu/PanelContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 4)
+layout_mode = 2
+
 [node name="ResumeButton" type="Button" parent="PauseMenu/PanelContainer/VBoxContainer" unique_id=1589495864]
-custom_minimum_size = Vector2(240, 56)
+custom_minimum_size = Vector2(240, 48)
 layout_mode = 2
 size_flags_horizontal = 4
-theme_override_colors/font_color = Color(0.9, 0.85, 1, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 0.9)
 theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 26
+theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("StyleBoxFlat_button")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_button_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
-text = "▶  Resume"
+text = "Resume"
 
 [node name="RestartButton" type="Button" parent="PauseMenu/PanelContainer/VBoxContainer" unique_id=1679294168]
-custom_minimum_size = Vector2(240, 56)
+custom_minimum_size = Vector2(240, 48)
 layout_mode = 2
 size_flags_horizontal = 4
-theme_override_colors/font_color = Color(0.9, 0.85, 1, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 0.9)
 theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 26
+theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("StyleBoxFlat_button")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_button_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
-text = "↺  Restart"
+text = "Restart"
 
 [node name="MenuButton" type="Button" parent="PauseMenu/PanelContainer/VBoxContainer" unique_id=900883753]
-custom_minimum_size = Vector2(240, 56)
+custom_minimum_size = Vector2(240, 48)
 layout_mode = 2
 size_flags_horizontal = 4
-theme_override_colors/font_color = Color(0.9, 0.85, 1, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 0.9)
 theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 26
+theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("StyleBoxFlat_button")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_button_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
 text = "Main Menu"
 
-[node name="Spacer" type="Control" parent="PauseMenu/PanelContainer/VBoxContainer" unique_id=780206511]
-custom_minimum_size = Vector2(0, 5)
+[node name="Spacer2" type="Control" parent="PauseMenu/PanelContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 8)
 layout_mode = 2
 
-[node name="MusicLabel" type="Label" parent="PauseMenu/PanelContainer/VBoxContainer" unique_id=868770555]
+[node name="AudioSection" type="PanelContainer" parent="PauseMenu/PanelContainer/VBoxContainer"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.65, 0.9, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_styles/panel = SubResource("StyleBoxFlat_section")
+
+[node name="AudioVBox" type="VBoxContainer" parent="PauseMenu/PanelContainer/VBoxContainer/AudioSection"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="AudioLabel" type="Label" parent="PauseMenu/PanelContainer/VBoxContainer/AudioSection/AudioVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 0.5)
+theme_override_font_sizes/font_size = 12
+text = "AUDIO"
+
+[node name="MusicRow" type="HBoxContainer" parent="PauseMenu/PanelContainer/VBoxContainer/AudioSection/AudioVBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="MusicLabel" type="Label" parent="PauseMenu/PanelContainer/VBoxContainer/AudioSection/AudioVBox/MusicRow" unique_id=868770555]
+custom_minimum_size = Vector2(70, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 0.8)
+theme_override_font_sizes/font_size = 14
 text = "Music"
-horizontal_alignment = 1
 
-[node name="MusicSlider" type="HSlider" parent="PauseMenu/PanelContainer/VBoxContainer" unique_id=286828278]
-custom_minimum_size = Vector2(200, 24)
+[node name="MusicSlider" type="HSlider" parent="PauseMenu/PanelContainer/VBoxContainer/AudioSection/AudioVBox/MusicRow" unique_id=286828278]
+custom_minimum_size = Vector2(140, 20)
 layout_mode = 2
-size_flags_horizontal = 4
+size_flags_horizontal = 3
+theme_override_styles/slider = SubResource("StyleBoxFlat_slider_bg")
+theme_override_styles/grabber_area = SubResource("StyleBoxFlat_slider_fill")
+theme_override_styles/grabber_area_highlight = SubResource("StyleBoxFlat_slider_fill")
 max_value = 1.0
 step = 0.05
 value = 0.7
 
-[node name="SFXLabel" type="Label" parent="PauseMenu/PanelContainer/VBoxContainer" unique_id=65503028]
+[node name="SFXRow" type="HBoxContainer" parent="PauseMenu/PanelContainer/VBoxContainer/AudioSection/AudioVBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.65, 0.9, 1)
-theme_override_font_sizes/font_size = 18
-text = "Sound Effects"
-horizontal_alignment = 1
+theme_override_constants/separation = 12
 
-[node name="SFXSlider" type="HSlider" parent="PauseMenu/PanelContainer/VBoxContainer" unique_id=1384883902]
-custom_minimum_size = Vector2(200, 24)
+[node name="SFXLabel" type="Label" parent="PauseMenu/PanelContainer/VBoxContainer/AudioSection/AudioVBox/SFXRow" unique_id=65503028]
+custom_minimum_size = Vector2(70, 0)
 layout_mode = 2
-size_flags_horizontal = 4
+theme_override_colors/font_color = Color(1, 1, 1, 0.8)
+theme_override_font_sizes/font_size = 14
+text = "Effects"
+
+[node name="SFXSlider" type="HSlider" parent="PauseMenu/PanelContainer/VBoxContainer/AudioSection/AudioVBox/SFXRow" unique_id=1384883902]
+custom_minimum_size = Vector2(140, 20)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/slider = SubResource("StyleBoxFlat_slider_bg")
+theme_override_styles/grabber_area = SubResource("StyleBoxFlat_slider_fill")
+theme_override_styles/grabber_area_highlight = SubResource("StyleBoxFlat_slider_fill")
 max_value = 1.0
 step = 0.05
 value = 0.8
 
-[node name="PopupCheck" type="CheckButton" parent="PauseMenu/PanelContainer/VBoxContainer" unique_id=121308334]
+[node name="DisplaySection" type="PanelContainer" parent="PauseMenu/PanelContainer/VBoxContainer"]
 layout_mode = 2
-size_flags_horizontal = 4
-theme_override_colors/font_color = Color(0.7, 0.65, 0.9, 1)
-theme_override_font_sizes/font_size = 18
-button_pressed = true
-text = "Show Pickups"
+theme_override_styles/panel = SubResource("StyleBoxFlat_section")
 
-[node name="DamageCheck" type="CheckButton" parent="PauseMenu/PanelContainer/VBoxContainer" unique_id=871497496]
+[node name="DisplayVBox" type="VBoxContainer" parent="PauseMenu/PanelContainer/VBoxContainer/DisplaySection"]
 layout_mode = 2
-size_flags_horizontal = 4
-theme_override_colors/font_color = Color(0.7, 0.65, 0.9, 1)
-theme_override_font_sizes/font_size = 18
-button_pressed = true
-text = "Show Damage"
+theme_override_constants/separation = 6
 
-[node name="HapticCheck" type="CheckButton" parent="PauseMenu/PanelContainer/VBoxContainer" unique_id=507690234]
+[node name="DisplayLabel" type="Label" parent="PauseMenu/PanelContainer/VBoxContainer/DisplaySection/DisplayVBox"]
 layout_mode = 2
-size_flags_horizontal = 4
-theme_override_colors/font_color = Color(0.7, 0.65, 0.9, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(1, 1, 1, 0.5)
+theme_override_font_sizes/font_size = 12
+text = "DISPLAY"
+
+[node name="PopupCheck" type="CheckButton" parent="PauseMenu/PanelContainer/VBoxContainer/DisplaySection/DisplayVBox" unique_id=121308334]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 0.8)
+theme_override_font_sizes/font_size = 14
+button_pressed = true
+text = "Pickup Popups"
+
+[node name="DamageCheck" type="CheckButton" parent="PauseMenu/PanelContainer/VBoxContainer/DisplaySection/DisplayVBox" unique_id=871497496]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 0.8)
+theme_override_font_sizes/font_size = 14
+button_pressed = true
+text = "Damage Numbers"
+
+[node name="HapticCheck" type="CheckButton" parent="PauseMenu/PanelContainer/VBoxContainer/DisplaySection/DisplayVBox" unique_id=507690234]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 0.8)
+theme_override_font_sizes/font_size = 14
 button_pressed = true
 text = "Vibration"
 
@@ -470,8 +561,8 @@ text = "Vibration"
 [connection signal="pressed" from="PauseMenu/PanelContainer/VBoxContainer/ResumeButton" to="." method="_on_resume_pressed"]
 [connection signal="pressed" from="PauseMenu/PanelContainer/VBoxContainer/RestartButton" to="." method="_on_restart_pressed"]
 [connection signal="pressed" from="PauseMenu/PanelContainer/VBoxContainer/MenuButton" to="." method="_on_menu_pressed"]
-[connection signal="value_changed" from="PauseMenu/PanelContainer/VBoxContainer/MusicSlider" to="." method="_on_music_slider_changed"]
-[connection signal="value_changed" from="PauseMenu/PanelContainer/VBoxContainer/SFXSlider" to="." method="_on_sfx_slider_changed"]
-[connection signal="toggled" from="PauseMenu/PanelContainer/VBoxContainer/PopupCheck" to="." method="_on_popup_check_toggled"]
-[connection signal="toggled" from="PauseMenu/PanelContainer/VBoxContainer/DamageCheck" to="." method="_on_damage_check_toggled"]
-[connection signal="toggled" from="PauseMenu/PanelContainer/VBoxContainer/HapticCheck" to="." method="_on_haptic_check_toggled"]
+[connection signal="value_changed" from="PauseMenu/PanelContainer/VBoxContainer/AudioSection/AudioVBox/MusicRow/MusicSlider" to="." method="_on_music_slider_changed"]
+[connection signal="value_changed" from="PauseMenu/PanelContainer/VBoxContainer/AudioSection/AudioVBox/SFXRow/SFXSlider" to="." method="_on_sfx_slider_changed"]
+[connection signal="toggled" from="PauseMenu/PanelContainer/VBoxContainer/DisplaySection/DisplayVBox/PopupCheck" to="." method="_on_popup_check_toggled"]
+[connection signal="toggled" from="PauseMenu/PanelContainer/VBoxContainer/DisplaySection/DisplayVBox/DamageCheck" to="." method="_on_damage_check_toggled"]
+[connection signal="toggled" from="PauseMenu/PanelContainer/VBoxContainer/DisplaySection/DisplayVBox/HapticCheck" to="." method="_on_haptic_check_toggled"]

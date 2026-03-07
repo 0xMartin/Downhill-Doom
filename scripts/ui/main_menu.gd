@@ -23,11 +23,11 @@ const COLOR_GLOW := Color(0.25, 0.65, 0.96, 0.3)
 @onready var settings_panel: Control = $SettingsPanel
 @onready var stats_panel: Control = $StatsPanel
 @onready var main_content: VBoxContainer = $MainContent
-@onready var music_slider: HSlider = $SettingsPanel/VBoxContainer/MusicSlider
-@onready var sfx_slider: HSlider = $SettingsPanel/VBoxContainer/SFXSlider
-@onready var popup_check: CheckButton = $SettingsPanel/VBoxContainer/PopupCheck
-@onready var damage_check: CheckButton = $SettingsPanel/VBoxContainer/DamageCheck
-@onready var haptic_check: CheckButton = $SettingsPanel/VBoxContainer/HapticCheck
+@onready var music_slider: HSlider = $SettingsPanel/PanelContainer/VBoxContainer/AudioSection/AudioVBox/MusicRow/MusicSlider
+@onready var sfx_slider: HSlider = $SettingsPanel/PanelContainer/VBoxContainer/AudioSection/AudioVBox/SFXRow/SFXSlider
+@onready var popup_check: CheckButton = $SettingsPanel/PanelContainer/VBoxContainer/DisplaySection/DisplayVBox/PopupCheck
+@onready var damage_check: CheckButton = $SettingsPanel/PanelContainer/VBoxContainer/DisplaySection/DisplayVBox/DamageCheck
+@onready var haptic_check: CheckButton = $SettingsPanel/PanelContainer/VBoxContainer/DisplaySection/DisplayVBox/HapticCheck
 @onready var player_model_container: Node3D = $PlayerViewport/SubViewport/PlayerModel
 
 var audio_manager: Node
@@ -291,56 +291,28 @@ func _on_button_hover_exit(button: Button) -> void:
 
 
 func _rebuild_settings_panel() -> void:
-	var vbox: VBoxContainer = settings_panel.get_node("VBoxContainer")
+	var panel_container: PanelContainer = settings_panel.get_node("PanelContainer")
+	var vbox: VBoxContainer = panel_container.get_node("VBoxContainer")
 	
 	# Update background
 	var bg: ColorRect = settings_panel.get_node("Background")
-	bg.color = Color(0, 0, 0, 0.92)
+	bg.color = Color(0, 0, 0, 0.75)
 	
-	# Style the VBox as a card
-	var panel := PanelContainer.new()
-	panel.anchors_preset = Control.PRESET_CENTER
-	panel.anchor_left = 0.5
-	panel.anchor_top = 0.5
-	panel.anchor_right = 0.5
-	panel.anchor_bottom = 0.5
-	panel.offset_left = -220
-	panel.offset_top = -280
-	panel.offset_right = 220
-	panel.offset_bottom = 280
-	panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	panel.grow_vertical = Control.GROW_DIRECTION_BOTH
-	
+	# Style the panel container
 	var panel_style := StyleBoxFlat.new()
 	panel_style.bg_color = COLOR_BG_MEDIUM
-	panel_style.set_corner_radius_all(24)
-	panel_style.set_border_width_all(2)
-	panel_style.border_color = COLOR_BORDER
-	panel_style.shadow_color = Color(0, 0, 0, 0.5)
-	panel_style.shadow_size = 20
-	panel.add_theme_stylebox_override("panel", panel_style)
-	
-	# Move vbox content to panel
-	vbox.get_parent().remove_child(vbox)
-	vbox.offset_left = 0
-	vbox.offset_right = 0
-	vbox.offset_top = 0
-	vbox.offset_bottom = 0
-	vbox.anchors_preset = Control.PRESET_FULL_RECT
-	panel.add_child(vbox)
-	settings_panel.add_child(panel)
+	panel_style.set_corner_radius_all(20)
+	panel_style.set_border_width_all(1)
+	panel_style.border_color = Color(1, 1, 1, 0.08)
+	panel_style.shadow_color = Color(0, 0, 0, 0.6)
+	panel_style.shadow_size = 24
+	panel_style.set_content_margin_all(28)
+	panel_container.add_theme_stylebox_override("panel", panel_style)
 	
 	# Style title
 	var title: Label = vbox.get_node("Title")
-	title.add_theme_font_size_override("font_size", 38)
+	title.add_theme_font_size_override("font_size", 28)
 	title.add_theme_color_override("font_color", COLOR_TEXT_PRIMARY)
-	title.add_theme_color_override("font_outline_color", COLOR_ACCENT_PRIMARY)
-	title.add_theme_constant_override("outline_size", 2)
-	
-	# Style labels
-	for label_name in ["MusicLabel", "SFXLabel"]:
-		var lbl: Label = vbox.get_node(label_name)
-		lbl.add_theme_color_override("font_color", COLOR_TEXT_SECONDARY)
 	
 	# Style sliders
 	_style_modern_slider(music_slider)
@@ -348,8 +320,8 @@ func _rebuild_settings_panel() -> void:
 	
 	# Style checkboxes
 	for check in [popup_check, damage_check, haptic_check]:
-		check.add_theme_color_override("font_color", COLOR_TEXT_SECONDARY)
-		check.add_theme_font_size_override("font_size", 16)
+		check.add_theme_color_override("font_color", Color(1, 1, 1, 0.8))
+		check.add_theme_font_size_override("font_size", 14)
 	
 	# Style back button
 	var back_btn: Button = vbox.get_node("BackButton")
@@ -420,13 +392,13 @@ func _style_secondary_button(button: Button) -> void:
 
 
 func _rebuild_stats_panel() -> void:
-	var vbox: VBoxContainer = stats_panel.get_node("VBoxContainer")
+	var vbox: VBoxContainer = stats_panel.get_node("PanelContainer/VBoxContainer")
 	for child in vbox.get_children():
 		child.queue_free()
 	
 	# Update background
 	var bg: ColorRect = stats_panel.get_node("Background")
-	bg.color = Color(0, 0, 0, 0.92)
+	bg.color = Color(0, 0, 0, 0.75)
 	
 	# Make panel larger
 	var screen_size: Vector2 = get_viewport().get_visible_rect().size

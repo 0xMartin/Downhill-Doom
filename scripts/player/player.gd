@@ -19,7 +19,7 @@ signal hit_rock(impact_position: Vector3)
 @export var jump_cooldown_time: float = 0.3  # Minimum time between jumps
 
 # Tilt control - SIMPLE direct mapping
-var tilt_multiplier: float = 3.0  # How much accel.x affects steering (higher = more sensitive)
+var tilt_multiplier: float = 3.45  # How much accel.x affects steering (higher = more sensitive)
 
 var is_dead := false
 var player_model: Node3D  # Visual model (separate from physics)
@@ -37,6 +37,7 @@ var was_on_ground: bool = true  # Previous frame ground state
 var has_jumped: bool = false  # Track if player initiated a jump (for shock wave)
 var slam_charged: bool = false  # Charged slam attack (tap while falling)
 var slam_flash_tween: Tween  # Visual feedback tween
+var spawn_drop_active: bool = false  # Spawn animation: falling from sky with cone
 
 # Supercharge state
 var is_supercharged: bool = false
@@ -150,6 +151,18 @@ func _ready() -> void:
 		_start_rolling()
 
 func _start_rolling() -> void:
+	# Spawn from higher position with drop animation
+	global_position.y += 12.0  # Drop from higher
+	spawn_drop_active = true
+	slam_charged = true  # Will trigger shockwave on landing
+	has_jumped = true
+	
+	# Show cone effect immediately
+	if slam_cone:
+		slam_cone.visible = true
+		slam_cone_grow_progress = 1.0  # Full size immediately
+		_start_cone_shake()
+	
 	freeze = false
 	can_move = true
 	
@@ -204,6 +217,7 @@ func _physics_process(delta: float) -> void:
 		# Reset states
 		slam_charged = false
 		has_jumped = false
+		spawn_drop_active = false
 		# Hide cone and stop tweens
 		if slam_cone:
 			slam_cone.visible = false
@@ -324,7 +338,7 @@ func _update_ground_state() -> void:
 	var current_radius := sphere_radius * supercharge_current_scale
 	
 	# Increase ground tolerance when supercharged - larger ball has more terrain irregularity issues
-	var base_tolerance := 0.8
+	var base_tolerance := 1.1
 	var ground_tolerance: float
 	if is_supercharged:
 		# Much larger tolerance for 2x scale ball - terrain bumps cause hovering
