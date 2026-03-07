@@ -219,6 +219,17 @@ static func _init_objects() -> void:
 		"destructible": true,
 	})
 	_register_object({
+		"id": "building_house_2",
+		"name": "House 2",
+		"category": Category.BUILDING_LARGE,
+		"model": "res://assets/models/buildings/house_2.blend",
+		"height": 4.5,
+		"height_var": 0.1,
+		"spawn_chance": 1.0,
+		"coins": 150,
+		"destructible": true,
+	})
+	_register_object({
 		"id": "building_chapel",
 		"name": "Small Chapel",
 		"category": Category.BUILDING_LARGE,
