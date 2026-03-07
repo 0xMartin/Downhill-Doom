@@ -13,8 +13,10 @@
 
 
 
-* Velepsovani hrace (max zivoty, delka overcharge, velikost shock wave, počet potřebny na dobiti overcharge, sila skoku)
-* Shop pro boosty do hry (double hp, double coins, no enemy npc, no enemy building)
+Co za coiny:
+* Shop pro boosty do hry (double hp, double coins, no enemy npc, no enemy building, no holes, half supercharge grow, double supercharge time) .. bude mozne aktivovat pouze dva na hru
+* Skiny - kazdy bude mi i nejake vlastnosti (jako +extra hp, +extra speed, +extra superchrage time ...)
+* 
 
 * Lepsi sound fx a soundtrack
 * Bug animace rozbijeni: barel

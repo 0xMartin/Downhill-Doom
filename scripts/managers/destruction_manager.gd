@@ -461,6 +461,16 @@ func fling_object(
 	if not is_instance_valid(target):
 		return
 	
+	# Reparent to root to prevent chunk cleanup from removing the object mid-fling
+	var old_global_pos := target.global_position
+	var old_global_rot := target.global_rotation
+	var current_parent := target.get_parent()
+	if current_parent and current_parent != get_tree().root:
+		current_parent.remove_child(target)
+		get_tree().root.add_child(target)
+		target.global_position = old_global_pos
+		target.global_rotation = old_global_rot
+	
 	var rng := RandomNumberGenerator.new()
 	rng.randomize()
 	
