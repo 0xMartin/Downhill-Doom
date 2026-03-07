@@ -591,10 +591,15 @@ func _on_supercharge_activated() -> void:
 	# Dim the button during supercharge
 	if supercharge_button:
 		supercharge_button.modulate = Color(0.5, 0.5, 0.5, 0.6)
+	
+	# Hide the count label during supercharge (numbers and line)
+	if supercharge_count_label:
+		supercharge_count_label.visible = false
 
 func _on_supercharge_ended() -> void:
-	# Button stays dimmed until recharged
-	pass
+	# Show the count label again when supercharge ends
+	if supercharge_count_label:
+		supercharge_count_label.visible = true
 
 func _on_supercharge_button_pressed() -> void:
 	if gm and gm.is_supercharge_ready():

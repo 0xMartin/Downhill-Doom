@@ -274,7 +274,7 @@ func _spawn_rocks_async(chunk: Node3D, chunk_index: int, get_height_func: Callab
 		
 		var variation: float = obj_data.height_variation
 		var target_h: float = obj_data.target_height * rng.randf_range(1.0 - variation, 1.0 + variation)
-		_scale_to_target_height(obj, target_h)
+		_scale_to_target_height(obj, target_h, obj_data.model_path)
 		
 		chunk.add_child.call_deferred(obj)
 		_register_spawn_position(x, local_z, chunk_index)
@@ -450,7 +450,7 @@ func _create_spike_wall_chain(chunk: Node3D, chunk_index: int, base_z: float, rn
 		# Scale to target height
 		var variation: float = spike_wall_data.height_variation
 		var target_h: float = spike_wall_data.target_height * rng.randf_range(1.0 - variation, 1.0 + variation)
-		_scale_to_target_height(wall, target_h)
+		_scale_to_target_height(wall, target_h, spike_wall_data.model_path)
 		
 		# Apply additional 20% size reduction
 		wall.scale *= wall_scale_factor
@@ -507,7 +507,7 @@ func _spawn_rocks(chunk: Node3D, chunk_index: int, get_height_func: Callable) ->
 		
 		var variation: float = obj_data.height_variation
 		var target_h: float = obj_data.target_height * rng.randf_range(1.0 - variation, 1.0 + variation)
-		_scale_to_target_height(obj, target_h)
+		_scale_to_target_height(obj, target_h, obj_data.model_path)
 		
 		chunk.add_child.call_deferred(obj)
 		_register_spawn_position(x, local_z, chunk_index)
@@ -567,7 +567,7 @@ func _spawn_npc_clusters(chunk: Node3D, chunk_index: int, get_height_func: Calla
 		# Scale to target height
 		var variation: float = obj_data.height_variation
 		var target_h: float = obj_data.target_height * rng.randf_range(1.0 - variation, 1.0 + variation)
-		_scale_to_target_height(obj, target_h)
+		_scale_to_target_height(obj, target_h, obj_data.model_path)
 		
 		chunk.add_child.call_deferred(obj)
 		_register_spawn_position(x, local_z, chunk_index)
@@ -643,7 +643,7 @@ func _spawn_enemy_npc_clusters(chunk: Node3D, chunk_index: int, get_height_func:
 		# Scale to target height
 		var variation: float = obj_data.height_variation
 		var target_h: float = obj_data.target_height * rng.randf_range(1.0 - variation, 1.0 + variation)
-		_scale_to_target_height(obj, target_h)
+		_scale_to_target_height(obj, target_h, obj_data.model_path)
 		
 		chunk.add_child.call_deferred(obj)
 		_register_spawn_position(x, local_z, chunk_index)
@@ -705,7 +705,7 @@ func _try_spawn_plane(chunk: Node3D, chunk_index: int, get_height_func: Callable
 			_disable_shadows_recursive(model)
 			
 			# Scale to target height
-			_scale_to_target_height(model, obj_data.target_height)
+			_scale_to_target_height(model, obj_data.target_height, obj_data.model_path)
 			
 			# Make plane 75% smaller (25% of original size)
 			# model.scale *= 0.25
@@ -840,7 +840,7 @@ func _try_spawn_at_position(chunk: Node3D, chunk_index: int, get_height_func: Ca
 	# Scale to target height
 	var variation: float = obj_data.height_variation
 	var target_h: float = obj_data.target_height * rng.randf_range(1.0 - variation, 1.0 + variation)
-	_scale_to_target_height(obj, target_h)
+	_scale_to_target_height(obj, target_h, obj_data.model_path)
 	
 	chunk.add_child.call_deferred(obj)
 	_register_spawn_position(x, local_z, chunk_index)
@@ -1142,36 +1142,32 @@ func _create_friend_npc(obj_data: RefCounted, rng: RandomNumberGenerator) -> Cha
 		_disable_shadows_recursive(model)
 		npc.add_child(model)
 	
-	# Calculate AABB from model
-	var aabb := AABB()
-	if model:
-		aabb = _get_model_aabb(model)
+	# Use target_height for collision sizing (not unscaled AABB!)
+	var h: float = obj_data.target_height
 	
-	# Terrain collision shape (capsule for walking) - derive from AABB
+	# Terrain collision shape (capsule for walking) - based on target height
 	var terrain_col := CollisionShape3D.new()
 	terrain_col.name = "TerrainCollision"
 	var capsule := CapsuleShape3D.new()
-	if aabb.size != Vector3.ZERO:
-		capsule.radius = min(aabb.size.x, aabb.size.z) * 0.3
-		capsule.height = aabb.size.y * 0.8
-		terrain_col.position.y = aabb.size.y / 2
-	else:
-		capsule.radius = 0.2
-		capsule.height = 1.0
-		terrain_col.position.y = 0.5
+	capsule.radius = h * 0.15  # Reasonable width relative to height
+	capsule.height = h * 0.7
+	terrain_col.position.y = capsule.height / 2
 	terrain_col.shape = capsule
 	npc.add_child(terrain_col)
 	
-	# Detection area for player collision
+	# Detection area for player collision - sphere at center of NPC
 	var detect_area := Area3D.new()
 	detect_area.name = "DetectArea"
 	detect_area.collision_layer = 0
 	detect_area.collision_mask = 2
 	detect_area.monitoring = true
 	
-	if aabb.size != Vector3.ZERO:
-		var col_data := _create_collision_from_aabb(aabb, obj_data.collision_shape, 0.9)
-		detect_area.add_child(col_data.collision_shape)
+	var col_shape := CollisionShape3D.new()
+	var sphere := SphereShape3D.new()
+	sphere.radius = h * 0.6  # Larger hitbox for easier collection
+	col_shape.shape = sphere
+	col_shape.position.y = h / 2
+	detect_area.add_child(col_shape)
 	npc.add_child(detect_area)
 	
 	return npc
@@ -1206,27 +1202,20 @@ func _create_enemy_npc(obj_data: RefCounted, rng: RandomNumberGenerator) -> Char
 		_disable_shadows_recursive(model)
 		npc.add_child(model)
 	
-	# Calculate AABB from model
-	var aabb := AABB()
-	if model:
-		aabb = _get_model_aabb(model)
+	# Use target_height for collision sizing (not unscaled AABB!)
+	var h: float = obj_data.target_height
 	
-	# Terrain collision shape (capsule for walking) - derive from AABB
+	# Terrain collision shape (capsule for walking) - based on target height
 	var terrain_col := CollisionShape3D.new()
 	terrain_col.name = "TerrainCollision"
 	var capsule := CapsuleShape3D.new()
-	if aabb.size != Vector3.ZERO:
-		capsule.radius = min(aabb.size.x, aabb.size.z) * 0.3
-		capsule.height = aabb.size.y * 0.8
-		terrain_col.position.y = aabb.size.y / 2
-	else:
-		capsule.radius = 0.3
-		capsule.height = 1.5
-		terrain_col.position.y = 0.75
+	capsule.radius = h * 0.15
+	capsule.height = h * 0.7
+	terrain_col.position.y = capsule.height / 2
 	terrain_col.shape = capsule
 	npc.add_child(terrain_col)
 	
-	# Detection area for player collision
+	# Detection area for player collision - box based on target height
 	var detect_area := Area3D.new()
 	detect_area.name = "DetectArea"
 	detect_area.collision_layer = 0
@@ -1240,21 +1229,11 @@ func _create_enemy_npc(obj_data: RefCounted, rng: RandomNumberGenerator) -> Char
 	if obj_data.id == "npc_catapult":
 		box.size = Vector3(2.0, 2.0, 2.0)
 		col_shape.position = Vector3(0.0, 1.0, 0.0)
-		col_shape.shape = box
-	elif aabb.size != Vector3.ZERO:
-		# Use AABB-based collision
-		var col_data := _create_collision_from_aabb(aabb, obj_data.collision_shape, 0.9)
-		# Only use Y center - X/Z stay at origin to avoid forward offset on horse model
-		col_data.collision_shape.position = Vector3(0.0, aabb.get_center().y, 0.0)
-		detect_area.add_child(col_data.collision_shape)
-		npc.add_child(detect_area)
-		return npc
 	else:
-		# Fallback box
-		box.size = Vector3(1.0, 1.5, 1.0)
-		col_shape.position.y = 0.75
-		col_shape.shape = box
-	
+		# Box sized relative to target height
+		box.size = Vector3(h * 0.5, h * 0.9, h * 0.5)
+		col_shape.position.y = h / 2
+	col_shape.shape = box
 	detect_area.add_child(col_shape)
 	npc.add_child(detect_area)
 	
@@ -1288,7 +1267,9 @@ func _register_spawn_position(x: float, z: float, chunk_index: int) -> void:
 		spawned_positions[chunk_index] = []
 	spawned_positions[chunk_index].append(Vector2(x, z))
 
-func _scale_to_target_height(node: Node3D, target_height: float) -> void:
+## Scale object to target height. For NPCs, also calculates model Y offset.
+## Uses cached AABB for consistent sizing.
+func _scale_to_target_height(node: Node3D, target_height: float, model_path: String = "") -> void:
 	# For CharacterBody3D (NPCs), specifically find the Model child
 	var model: Node3D = null
 	if node is CharacterBody3D:
@@ -1303,7 +1284,13 @@ func _scale_to_target_height(node: Node3D, target_height: float) -> void:
 		node.scale = Vector3.ONE * 0.5
 		return
 	
-	var aabb := _get_model_aabb(model)
+	# Always use cached AABB for consistency (avoids issues with model state)
+	var aabb: AABB
+	if model_path != "":
+		aabb = _get_cached_aabb(model_path)  # This properly caches and returns
+	else:
+		aabb = _get_model_aabb(model)
+	
 	if aabb.size.y <= 0.001:
 		node.scale = Vector3.ONE * 0.5
 		return
@@ -1311,16 +1298,44 @@ func _scale_to_target_height(node: Node3D, target_height: float) -> void:
 	var current_height := aabb.size.y
 	var scale_factor := target_height / current_height
 	
+	# Sanity check - prevent extremely large or small objects
+	scale_factor = clampf(scale_factor, 0.1, 5.0)
+	
 	# For CharacterBody3D (NPCs), scale only the Model child, not the physics body
 	if node is CharacterBody3D:
 		model.scale = Vector3(scale_factor, scale_factor, scale_factor)
 		# Also set the target_height property for dynamic hop calculation
 		if node.has_method("set"):
 			node.set("model_height", target_height)
+		# Set model Y offset so feet are at y=0 (calculated from original AABB * scale)
+		model.position.y = -aabb.position.y * scale_factor
 	else:
 		node.scale = Vector3(scale_factor, scale_factor, scale_factor)
 
-func _get_model_aabb(node: Node) -> AABB:
+## Transform an AABB by a Transform3D (transforms all 8 corners and creates new enclosing AABB)
+func _transform_aabb(t: Transform3D, aabb: AABB) -> AABB:
+	# Get all 8 corners of the AABB
+	var p := aabb.position
+	var s := aabb.size
+	var corners := [
+		t * p,
+		t * (p + Vector3(s.x, 0, 0)),
+		t * (p + Vector3(0, s.y, 0)),
+		t * (p + Vector3(0, 0, s.z)),
+		t * (p + Vector3(s.x, s.y, 0)),
+		t * (p + Vector3(s.x, 0, s.z)),
+		t * (p + Vector3(0, s.y, s.z)),
+		t * (p + s),
+	]
+	# Build new AABB from transformed corners
+	var result := AABB(corners[0], Vector3.ZERO)
+	for i in range(1, 8):
+		result = result.expand(corners[i])
+	return result
+
+## Calculate AABB from all meshes in model hierarchy, respecting parent transforms
+## Nodes ending in "_nocol" are excluded from calculation
+func _get_model_aabb(node: Node, parent_transform: Transform3D = Transform3D.IDENTITY) -> AABB:
 	var combined_aabb := AABB()
 	var found_mesh := false
 	
@@ -1328,11 +1343,17 @@ func _get_model_aabb(node: Node) -> AABB:
 	if node.name.ends_with("_nocol"):
 		return combined_aabb
 	
+	# Calculate cumulative transform for this node
+	var current_transform := parent_transform
+	if node is Node3D:
+		current_transform = parent_transform * (node as Node3D).transform
+	
 	if node is MeshInstance3D:
 		var mesh_instance := node as MeshInstance3D
 		if mesh_instance.mesh:
 			var mesh_aabb := mesh_instance.mesh.get_aabb()
-			var transformed := mesh_instance.transform * mesh_aabb
+			# Transform AABB by cumulative transform (includes all parent transforms)
+			var transformed := _transform_aabb(current_transform, mesh_aabb)
 			if not found_mesh:
 				combined_aabb = transformed
 				found_mesh = true
@@ -1340,7 +1361,7 @@ func _get_model_aabb(node: Node) -> AABB:
 				combined_aabb = combined_aabb.merge(transformed)
 	
 	for child in node.get_children():
-		var child_aabb := _get_model_aabb(child)
+		var child_aabb := _get_model_aabb(child, current_transform)
 		if child_aabb.size != Vector3.ZERO:
 			if not found_mesh:
 				combined_aabb = child_aabb
