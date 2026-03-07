@@ -187,14 +187,10 @@ func _damage_player(player_node: Node) -> void:
 	if audio_manager:
 		audio_manager.play_hurt_sound()
 	
-	# Deal damage through GameManager
+	# Deal damage through GameManager (handles vibration)
 	var gm := get_node_or_null("/root/GameManager")
 	if gm:
 		gm.take_damage(damage)
-	
-	# Haptic feedback
-	if audio_manager and audio_manager.has_method("vibrate"):
-		audio_manager.vibrate(100)
 
 
 func die(killer: Node = null) -> void:

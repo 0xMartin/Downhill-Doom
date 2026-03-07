@@ -530,6 +530,11 @@ func _spawn_landing_shock_wave() -> void:
 	var final_radius := ShockWaveManager.SHOCK_WAVE_RADIUS * radius_mult
 	ShockWaveManager.spawn_shock_wave(shock_position, ShockWaveManager.Source.PLAYER, final_radius)
 	
+	# Haptic feedback for landing impact
+	if audio_manager:
+		var vibration_duration := 50 if not slam_charged else 100
+		audio_manager.vibrate(vibration_duration)
+	
 	# Screen shake intensity based on slam
 	var shake_intensity := 0.8
 	if slam_charged:
