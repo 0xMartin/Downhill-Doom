@@ -10,8 +10,8 @@ const DEBRIS_VELOCITY_MAX: float = 15.0
 const DEBRIS_UP_VELOCITY_MIN: float = 1.0
 const DEBRIS_UP_VELOCITY_MAX: float = 4.0
 const DEBRIS_ROTATION_SPEED: float = 12.0
-const DEBRIS_LIFETIME: float = 1.8
-const DEBRIS_FADE_START: float = 0.6
+const DEBRIS_LIFETIME: float = 3.6
+const DEBRIS_FADE_START: float = 1.2
 
 ## Pre-cached tools to avoid first-frame stutter
 var _mdt_cache: MeshDataTool = null

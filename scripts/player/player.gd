@@ -238,9 +238,9 @@ func _physics_process(delta: float) -> void:
 	# Inverted and reduced to 60% intensity compared to tilt
 	var keyboard_input: float = 0.0
 	if Input.is_action_pressed("move_left") or Input.is_action_pressed("ui_left"):
-		keyboard_input = -0.7
+		keyboard_input = -0.85
 	if Input.is_action_pressed("move_right") or Input.is_action_pressed("ui_right"):
-		keyboard_input = 0.7
+		keyboard_input = 0.85
 	
 	# Tilt controls for mobile - SIMPLE AND DIRECT
 	# accel.x: negative when tilted left, positive when tilted right
