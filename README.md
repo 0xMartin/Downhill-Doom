@@ -15,8 +15,9 @@
 
 Co za coiny:
 * Shop pro boosty do hry (double hp, double coins, no enemy npc, no enemy building, no holes, half supercharge grow, double supercharge time) .. bude mozne aktivovat pouze dva na hru
-* Skiny - kazdy bude mi i nejake vlastnosti (jako +extra hp, +extra speed, +extra superchrage time ...)
-* 
+* Ruzne skiny - bude mit i ruzne boosty
 
-* Lepsi sound fx a soundtrack
-* Bug animace rozbijeni: barel
+Multiplayer mode:
+* 1v1 - zadne boosty, skill bude rozhodujici pouze (na začatku se losuje mode: vyhrava ten kdo ma delši vzdalenost uraženou, vice coinu, vice zabiti) .. nekde nahore tam bude horizontalni bar rikajici zda vyhravas nebo vyhrava souper
+* za hry se budou ziskavat coiny a za ty si budes moct koupit skiny - pouze kosmeticky desing
+* Seznam přátel, vyzvat na souboj
