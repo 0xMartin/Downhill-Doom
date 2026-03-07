@@ -7,11 +7,11 @@ extends CanvasLayer
 # Layer configuration
 const LAYER_COUNT := 5
 const LAYER_PATHS := [
-	"res://assets/icons/transition_layer_1.svg",
-	"res://assets/icons/transition_layer_2.svg",
-	"res://assets/icons/transition_layer_3.svg",
-	"res://assets/icons/transition_layer_4.svg",
-	"res://assets/icons/transition_layer_5.svg",
+	"res://assets/svg/transition_layer_1.svg",
+	"res://assets/svg/transition_layer_2.svg",
+	"res://assets/svg/transition_layer_3.svg",
+	"res://assets/svg/transition_layer_4.svg",
+	"res://assets/svg/transition_layer_5.svg",
 ]
 
 # Timing - each stripe arrives noticeably after the previous one

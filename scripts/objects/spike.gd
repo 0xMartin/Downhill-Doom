@@ -140,6 +140,14 @@ func _pool_reset() -> void:
 	# Re-add to groups (removed when pooled)
 	add_to_group("building_enemies")
 	add_to_group("spikes")
+	# Reconnect signal (critical for collision to work after pooling)
+	_connect_damage_area()
+	# Re-enable damage area monitoring
+	var damage_area := get_node_or_null("DamageArea") as Area3D
+	if damage_area:
+		damage_area.monitoring = true
 	# Reset state
 	is_destroyed = false
 	can_damage = true
+	collision_layer = 1
+	collision_mask = 1

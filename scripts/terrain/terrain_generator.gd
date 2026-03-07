@@ -218,7 +218,8 @@ func _generate_chunk_async(chunk_index: int) -> void:
 	chunk.position = Vector3(0, chunk_y, chunk_z)
 	
 	# 1. Pre-calculate holes (fast)
-	hole_manager.precalculate_holes(chunk_index)
+	if hole_manager:
+		hole_manager.precalculate_holes(chunk_index)
 	
 	# Yield to next frame before heavy mesh generation
 	await get_tree().process_frame
@@ -245,7 +246,8 @@ func _generate_chunk_async(chunk_index: int) -> void:
 	_create_barriers(chunk)
 	
 	# 4. Spawn hole effects (medium)
-	hole_manager.spawn_hole_effects(chunk, chunk_index, get_decoration_height)
+	if hole_manager:
+		hole_manager.spawn_hole_effects(chunk, chunk_index, get_decoration_height)
 	
 	# Yield before object spawning
 	await get_tree().process_frame
@@ -282,7 +284,8 @@ func _cleanup_chunk(chunk_index: int) -> void:
 	chunk.queue_free()
 	
 	chunks.erase(chunk_index)
-	hole_manager.cleanup_chunk(chunk_index)
+	if hole_manager:
+		hole_manager.cleanup_chunk(chunk_index)
 
 
 ## Return spawned objects to pool for reuse

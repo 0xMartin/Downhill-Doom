@@ -1251,12 +1251,15 @@ func _create_enemy_npc(obj_data: RefCounted, rng: RandomNumberGenerator) -> Char
 	
 	# Catapult needs a custom smaller hitbox (just base, not the arm)
 	if obj_data.id == "npc_catapult":
-		box.size = Vector3(2.0, 2.0, 2.0)
-		col_shape.position = Vector3(0.0, 1.0, 0.0)
+		box.size = Vector3(2.5, 2.5, 2.5)
+		col_shape.position = Vector3(0.0, 1.25, 0.0)
 	else:
-		# Box sized relative to target height
-		box.size = Vector3(h * 0.5, h * 0.9, h * 0.5)
-		col_shape.position.y = h / 2
+		# Box sized relative to target height - LARGER for reliable detection
+		# Width/depth at least 1.5m (larger than player radius)
+		var box_width := maxf(h * 0.7, 1.5)
+		var box_height := maxf(h * 1.0, 1.5)
+		box.size = Vector3(box_width, box_height, box_width)
+		col_shape.position.y = box_height / 2
 	col_shape.shape = box
 	detect_area.add_child(col_shape)
 	npc.add_child(detect_area)

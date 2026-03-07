@@ -53,15 +53,21 @@ func _ready() -> void:
 		# Rotate model 180 degrees - models are exported facing backwards
 		model.rotation.y = PI
 	
-	# Connect detection area
-	if get_tree():
-		await get_tree().process_frame
-	var detect_area := get_node_or_null("DetectArea") as Area3D
-	if detect_area:
-		detect_area.body_entered.connect(_on_detect_area_body_entered)
+	# Connect detection area signal (also reconnect in case of pooling)
+	_connect_detect_area()
 	
 	# Find player reference
 	player = get_tree().get_first_node_in_group("player") as Node3D
+
+
+func _connect_detect_area() -> void:
+	## Connect signal to detect area if not already connected
+	var detect_area := get_node_or_null("DetectArea") as Area3D
+	if detect_area:
+		# Disconnect first in case already connected (prevents duplicate signals)
+		if detect_area.body_entered.is_connected(_on_detect_area_body_entered):
+			return
+		detect_area.body_entered.connect(_on_detect_area_body_entered)
 
 
 func _configure_enemy_type() -> void:
@@ -221,6 +227,8 @@ func _pool_reset() -> void:
 	# Re-add to groups (removed when pooled)
 	add_to_group("npcs")
 	add_to_group("enemy_npcs")
+	# Reconnect signal (critical for collision to work after pooling)
+	_connect_detect_area()
 	# Reset state
 	is_dead = false
 	is_chasing = false

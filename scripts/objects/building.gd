@@ -14,10 +14,16 @@ func _ready() -> void:
 	freeze = true
 	add_to_group("buildings")
 	
-	# Find and connect to DetectArea child (created by object_spawner)
-	await get_tree().process_frame  # Wait for children to be ready
+	# Connect detection area signal
+	_connect_detect_area()
+
+
+func _connect_detect_area() -> void:
+	## Connect signal to detect area if not already connected
 	var detect_area := get_node_or_null("DetectArea") as Area3D
 	if detect_area:
+		if detect_area.body_entered.is_connected(_on_detect_area_body_entered):
+			return
 		detect_area.body_entered.connect(_on_detect_area_body_entered)
 
 func _on_detect_area_body_entered(body: Node) -> void:
@@ -61,6 +67,8 @@ func destroy(player_velocity: Vector3) -> void:
 func _pool_reset() -> void:
 	# Re-add to groups (removed when pooled)
 	add_to_group("buildings")
+	# Reconnect signal (critical for collision to work after pooling)
+	_connect_detect_area()
 	# Reset state
 	is_destroyed = false
 	freeze = true

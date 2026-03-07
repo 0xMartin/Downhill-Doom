@@ -162,19 +162,19 @@ func _rebuild_main_menu() -> void:
 	main_content.add_child(button_grid)
 	
 	# Create main buttons
-	play_button = _create_modern_button("PLAY", "res://assets/icons/play.svg", COLOR_ACCENT_SECONDARY)
+	play_button = _create_modern_button("PLAY", "res://assets/svg/play.svg", COLOR_ACCENT_SECONDARY)
 	play_button.pressed.connect(_on_play_button_pressed)
 	button_grid.add_child(play_button)
 	
-	stats_button = _create_modern_button("STATS", "res://assets/icons/stats.svg", COLOR_ACCENT_PRIMARY)
+	stats_button = _create_modern_button("STATS", "res://assets/svg/stats.svg", COLOR_ACCENT_PRIMARY)
 	stats_button.pressed.connect(_on_stats_button_pressed)
 	button_grid.add_child(stats_button)
 	
-	settings_button = _create_modern_button("SETTINGS", "res://assets/icons/settings.svg", COLOR_ACCENT_PRIMARY)
+	settings_button = _create_modern_button("SETTINGS", "res://assets/svg/settings.svg", COLOR_ACCENT_PRIMARY)
 	settings_button.pressed.connect(_on_settings_button_pressed)
 	button_grid.add_child(settings_button)
 	
-	quit_button = _create_modern_button("QUIT", "res://assets/icons/quit.svg", Color(0.8, 0.3, 0.3, 1.0))
+	quit_button = _create_modern_button("QUIT", "res://assets/svg/quit.svg", Color(0.8, 0.3, 0.3, 1.0))
 	quit_button.pressed.connect(_on_quit_button_pressed)
 	button_grid.add_child(quit_button)
 
@@ -346,7 +346,7 @@ func _rebuild_settings_panel() -> void:
 	
 	# Decoration under title
 	var decoration := TextureRect.new()
-	var deco_tex = load("res://assets/icons/settings_decoration.svg")
+	var deco_tex = load("res://assets/svg/settings_decoration.svg")
 	if deco_tex:
 		decoration.texture = deco_tex
 		decoration.custom_minimum_size = Vector2(180, 16)
@@ -617,7 +617,7 @@ func _rebuild_stats_panel() -> void:
 	
 	# Decoration under title (same as settings)
 	var decoration := TextureRect.new()
-	var deco_tex = load("res://assets/icons/settings_decoration.svg")
+	var deco_tex = load("res://assets/svg/settings_decoration.svg")
 	if deco_tex:
 		decoration.texture = deco_tex
 		decoration.custom_minimum_size = Vector2(180, 16)
@@ -748,8 +748,8 @@ func _create_nav_button(text: String) -> Button:
 
 
 func _populate_global_stats(container: VBoxContainer) -> void:
-	var coin_icon: Texture2D = load("res://assets/icons/coin.svg")
-	var distance_icon: Texture2D = load("res://assets/icons/distance.svg")
+	var coin_icon: Texture2D = load("res://assets/svg/coin.svg")
+	var distance_icon: Texture2D = load("res://assets/svg/distance.svg")
 	var games_count: int = stats.get("games_played", 0)
 	
 	# Games played
@@ -910,7 +910,7 @@ func _create_object_card(obj_data: RefCounted, kill_count: int) -> PanelContaine
 	
 	var coin_icon := TextureRect.new()
 	coin_icon.custom_minimum_size = Vector2(20, 20)
-	coin_icon.texture = load("res://assets/icons/coin.svg")
+	coin_icon.texture = load("res://assets/svg/coin.svg")
 	coin_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	coin_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	coin_icon.modulate = COLOR_ACCENT_GOLD if kill_count > 0 else COLOR_TEXT_MUTED
@@ -1137,7 +1137,7 @@ func _setup_balance_display() -> void:
 	bg_panel.add_child(inner_hbox)
 	
 	var coin_icon := TextureRect.new()
-	var coin_texture: Texture2D = load("res://assets/icons/coin.svg")
+	var coin_texture: Texture2D = load("res://assets/svg/coin.svg")
 	if coin_texture:
 		coin_icon.texture = coin_texture
 	coin_icon.custom_minimum_size = Vector2(32, 32)

@@ -58,10 +58,8 @@ func _ready() -> void:
 		if animation_player:
 			_setup_animation()
 	
-	# Connect detection area
-	var detect_area := get_node_or_null("DetectArea") as Area3D
-	if detect_area:
-		detect_area.body_entered.connect(_on_detect_area_body_entered)
+	# Connect detection area signal
+	_connect_detect_area()
 	
 	# Find player reference
 	player = get_tree().get_first_node_in_group("player") as Node3D
@@ -69,6 +67,16 @@ func _ready() -> void:
 	# Set random spawn rotation facing forward (+Z direction, toward approaching player)
 	# Random angle between -PI/2 and +PI/2 (180 degree arc facing forward)
 	rotation.y = randf_range(-PI / 2.0, PI / 2.0)
+
+
+func _connect_detect_area() -> void:
+	## Connect signal to detect area if not already connected
+	var detect_area := get_node_or_null("DetectArea") as Area3D
+	if detect_area:
+		# Disconnect first in case already connected (prevents duplicate signals)
+		if detect_area.body_entered.is_connected(_on_detect_area_body_entered):
+			return
+		detect_area.body_entered.connect(_on_detect_area_body_entered)
 
 
 func _find_animation_player(node: Node) -> AnimationPlayer:
@@ -340,6 +348,8 @@ func _pool_reset() -> void:
 	add_to_group("npcs")
 	add_to_group("enemy_npcs")
 	add_to_group("catapults")
+	# Reconnect signal (critical for collision to work after pooling)
+	_connect_detect_area()
 	# Reset state
 	is_dead = false
 	is_active = false

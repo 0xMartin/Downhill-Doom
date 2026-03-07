@@ -408,18 +408,8 @@ func _die(player_velocity: Vector3 = Vector3.FORWARD * 20.0) -> void:
 		if is_instance_valid(self):
 			queue_free()
 	else:
-		# Fallback: spawn explosion and remove
-		_spawn_explosion()
+		# Fallback: just remove
 		queue_free()
-
-
-func _spawn_explosion() -> void:
-	## Spawn explosion particles at plane position
-	var explosion_scene := load("res://scenes/explosion_effect.tscn") as PackedScene
-	if explosion_scene:
-		var explosion: Node3D = explosion_scene.instantiate() as Node3D
-		get_tree().root.add_child(explosion)
-		explosion.global_position = global_position
 
 
 ## Initialize plane at spawn position

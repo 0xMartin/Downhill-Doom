@@ -48,15 +48,20 @@ func _ready() -> void:
 		# Rotate model 180 degrees - models are exported facing backwards
 		model.rotation.y = PI
 	
-	# Connect detection area
-	if get_tree():
-		await get_tree().process_frame
-	var detect_area := get_node_or_null("DetectArea") as Area3D
-	if detect_area:
-		detect_area.body_entered.connect(_on_detect_area_body_entered)
+	# Connect detection area signal
+	_connect_detect_area()
 	
 	# Start wandering behavior
 	_start_wander_cycle()
+
+
+func _connect_detect_area() -> void:
+	## Connect signal to detect area if not already connected
+	var detect_area := get_node_or_null("DetectArea") as Area3D
+	if detect_area:
+		if detect_area.body_entered.is_connected(_on_detect_area_body_entered):
+			return
+		detect_area.body_entered.connect(_on_detect_area_body_entered)
 
 
 func _process(delta: float) -> void:
@@ -197,7 +202,26 @@ func _pool_reset() -> void:
 	# Re-add to groups (removed when pooled)
 	add_to_group("npcs")
 	add_to_group("friend_npcs")
+	# Reconnect signal (critical for collision to work after pooling)
+	_connect_detect_area()
 	# Reset state
 	is_dead = false
 	is_moving = false
 	hop_phase = 0.0
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_ENTER_TREE:
+		# Update spawn position when entering tree (after being positioned)
+		# Use call_deferred to ensure position is set
+		call_deferred("_update_spawn_position")
+
+
+func _update_spawn_position() -> void:
+	## Called when entering tree to update spawn position for wandering
+	if not is_dead:
+		spawn_position = global_position
+		target_position = global_position
+		# Start wandering if not already
+		if not is_moving:
+			_start_wander_cycle()

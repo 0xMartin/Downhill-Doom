@@ -66,8 +66,8 @@ static func format_number(n: int) -> String:
 func _ready() -> void:
 	gm = get_node("/root/GameManager")
 	audio = get_node("/root/AudioManager")
-	coin_icon_texture = load("res://assets/icons/coin.svg")
-	heart_icon_texture = load("res://assets/icons/heart.svg")  # Cache heart icon
+	coin_icon_texture = load("res://assets/svg/coin.svg")
+	heart_icon_texture = load("res://assets/svg/heart.svg")  # Cache heart icon
 	gm.coins_changed.connect(_on_coins_changed)
 	gm.distance_changed.connect(_on_distance_changed)
 	gm.game_paused.connect(_on_game_paused)
@@ -545,7 +545,7 @@ func _create_multiplier_ui() -> void:
 	# Circular coin background
 	var frame := TextureRect.new()
 	frame.name = "Frame"
-	frame.texture = load("res://assets/icons/multiplier_coin.svg")
+	frame.texture = load("res://assets/svg/multiplier_coin.svg")
 	frame.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	frame.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	frame.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -694,7 +694,7 @@ func _create_supercharge_ui() -> void:
 	# Add background texture from SVG
 	var bar_bg := TextureRect.new()
 	bar_bg.name = "BarBackground"
-	var bg_texture: Texture2D = load("res://assets/icons/super_charge_bar_bg.svg")
+	var bg_texture: Texture2D = load("res://assets/svg/super_charge_bar_bg.svg")
 	if bg_texture:
 		bar_bg.texture = bg_texture
 	bar_bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
@@ -793,10 +793,10 @@ func _create_supercharge_ui() -> void:
 	supercharge_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	
 	# Load flame icon (custom SVG)
-	var icon_texture := load("res://assets/icons/super_charge_flame.svg") as Texture2D
+	var icon_texture := load("res://assets/svg/super_charge_flame.svg") as Texture2D
 	if not icon_texture:
 		# Fallback to original icon
-		icon_texture = load("res://assets/icons/super_charge.svg") as Texture2D
+		icon_texture = load("res://assets/svg/super_charge.svg") as Texture2D
 	if icon_texture:
 		supercharge_button.texture_normal = icon_texture
 		supercharge_button.ignore_texture_size = true
