@@ -568,6 +568,11 @@ func _create_multiplier_ui() -> void:
 	bg_style.corner_radius_top_right = 42
 	bg_style.corner_radius_bottom_left = 42
 	bg_style.corner_radius_bottom_right = 42
+	bg_style.border_width_left = 2
+	bg_style.border_width_right = 2
+	bg_style.border_width_top = 2
+	bg_style.border_width_bottom = 2
+	bg_style.border_color = Color(0.91, 0.27, 0.38, 0.6)
 	bg_style.shadow_color = Color(0, 0, 0, 0.5)
 	bg_style.shadow_size = 6
 	bg_style.shadow_offset = Vector2(0, 3)
@@ -635,7 +640,7 @@ func _create_settings_button_ui() -> void:
 	bg_style.border_width_right = 2
 	bg_style.border_width_top = 2
 	bg_style.border_width_bottom = 2
-	bg_style.border_color = Color(0.25, 0.25, 0.28, 0.7)
+	bg_style.border_color = Color(0.91, 0.27, 0.38, 0.6)
 	bg_style.shadow_color = Color(0, 0, 0, 0.5)
 	bg_style.shadow_size = 6
 	bg_style.shadow_offset = Vector2(0, 3)
@@ -764,7 +769,7 @@ func _create_supercharge_ui() -> void:
 	panel_style.border_width_right = 2
 	panel_style.border_width_top = 2
 	panel_style.border_width_bottom = 2
-	panel_style.border_color = Color(0.4, 0.3, 0.5, 0.6)
+	panel_style.border_color = Color(0.91, 0.27, 0.38, 0.6)
 	panel_style.shadow_color = Color(0, 0, 0, 0.5)
 	panel_style.shadow_size = 8
 	panel_style.shadow_offset = Vector2(0, 4)
