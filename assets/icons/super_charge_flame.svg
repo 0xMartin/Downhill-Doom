@@ -1,47 +1,32 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <defs>
-    <linearGradient id="flameGrad" x1="0%" y1="100%" x2="0%" y2="0%">
+    <linearGradient id="powerGrad" x1="0%" y1="100%" x2="0%" y2="0%">
       <stop offset="0%" style="stop-color:#ff2200;stop-opacity:1" />
-      <stop offset="40%" style="stop-color:#ff6600;stop-opacity:1" />
-      <stop offset="70%" style="stop-color:#ffaa00;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#ffee88;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#ff6600;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ffcc00;stop-opacity:1" />
     </linearGradient>
-    <linearGradient id="innerFlame" x1="0%" y1="100%" x2="0%" y2="0%">
+    <linearGradient id="powerGrad2" x1="0%" y1="100%" x2="0%" y2="0%">
       <stop offset="0%" style="stop-color:#ff4400;stop-opacity:1" />
-      <stop offset="60%" style="stop-color:#ffcc00;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#ffffcc;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ffee66;stop-opacity:1" />
     </linearGradient>
     <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feGaussianBlur stdDeviation="2.5" result="blur"/>
       <feComposite in="SourceGraphic" in2="blur" operator="over"/>
     </filter>
+    <filter id="softGlow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+    </filter>
   </defs>
-  <!-- Outer glow circle -->
-  <circle cx="32" cy="32" r="28" fill="#ff3300" fill-opacity="0.15"/>
-  <!-- Main flame shape -->
-  <path d="M32 8 
-           C38 16 46 22 46 34 
-           C46 42 44 48 40 52 
-           C38 54 36 55 34 55 
-           C36 50 35 46 32 44 
-           C29 46 28 50 30 55 
-           C28 55 26 54 24 52 
-           C20 48 18 42 18 34 
-           C18 22 26 16 32 8Z" 
-        fill="url(#flameGrad)" filter="url(#glow)"/>
-  <!-- Inner flame -->
-  <path d="M32 18 
-           C36 24 40 28 40 36 
-           C40 42 38 46 35 48 
-           C36 44 35 40 32 38 
-           C29 40 28 44 29 48 
-           C26 46 24 42 24 36 
-           C24 28 28 24 32 18Z" 
-        fill="url(#innerFlame)"/>
-  <!-- Bright core -->
-  <ellipse cx="32" cy="40" rx="4" ry="6" fill="#ffffee" fill-opacity="0.9"/>
-  <!-- Sparkles -->
-  <circle cx="24" cy="20" r="1.5" fill="#ffff88" fill-opacity="0.8"/>
-  <circle cx="40" cy="16" r="1" fill="#ffff88" fill-opacity="0.6"/>
-  <circle cx="42" cy="28" r="1.2" fill="#ffcc44" fill-opacity="0.7"/>
+  <!-- Outer glow -->
+  <g filter="url(#softGlow)" opacity="0.6">
+    <polygon points="32,10 12,34 22,34 32,20 42,34 52,34" fill="#ff6600"/>
+    <polygon points="32,28 12,52 22,52 32,38 42,52 52,52" fill="#ff4400"/>
+  </g>
+  <!-- Top chevron (brightest) -->
+  <polygon points="32,8 10,34 21,34 32,18 43,34 54,34" 
+           fill="url(#powerGrad2)" filter="url(#glow)"/>
+  <!-- Bottom chevron -->
+  <polygon points="32,26 10,52 21,52 32,36 43,52 54,52" 
+           fill="url(#powerGrad)" filter="url(#glow)"/>
+  
 </svg>

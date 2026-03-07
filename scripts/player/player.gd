@@ -59,8 +59,10 @@ const ShockWaveManager := preload("res://scripts/effects/shock_wave_manager.gd")
 # Dust particles
 var dust_particles: GPUParticles3D
 
-# Slam charge particles
-var slam_particles: GPUParticles3D
+# Slam cone effect (comet/meteor trail)
+var slam_cone: MeshInstance3D
+var slam_cone_mesh: CylinderMesh
+var slam_cone_shake_tween: Tween
 
 # Atmospheric particles (snow/dust in the air)
 var atmosphere_particles: GPUParticles3D
@@ -103,8 +105,8 @@ func _ready() -> void:
 	# Setup dust particles (under ball when on ground)
 	_setup_dust_particles()
 	
-	# Setup slam charge particles
-	_setup_slam_particles()
+	# Setup slam cone effect
+	_setup_slam_cone()
 	
 	# Pre-create rock impact particle template
 	_create_rock_impact_template()
@@ -199,6 +201,12 @@ func _physics_process(delta: float) -> void:
 		# Reset states
 		slam_charged = false
 		has_jumped = false
+		# Hide cone and stop shake
+		if slam_cone:
+			slam_cone.visible = false
+		if slam_cone_shake_tween:
+			slam_cone_shake_tween.kill()
+			slam_cone_shake_tween = null
 		if slam_flash_tween:
 			slam_flash_tween.kill()
 			slam_flash_tween = null
@@ -281,6 +289,10 @@ func _physics_process(delta: float) -> void:
 		# Apply rotation to visual model
 		player_model.rotate_x(forward_angular * delta)
 		player_model.rotate_z(side_angular * delta)
+	
+	# Update slam cone position (it's top_level so needs manual update)
+	if slam_cone and slam_cone.visible:
+		_update_cone_position()
 	
 	# Update particle effects
 	_update_particles(current_forward_speed)
@@ -400,17 +412,23 @@ func _try_jump() -> void:
 	# Apply upward impulse
 	apply_central_impulse(Vector3(0, jump_force, 0))
 	jump_cooldown = jump_cooldown_time
+	has_jumped = true  # Mark that player initiated jump (for slam activation)
 
 ## Charge slam attack when tapping while falling
 func _charge_slam() -> void:
 	if slam_charged:
 		return  # Already charged
 	
+	# Only allow slam if player jumped themselves (not knocked into air)
+	if not has_jumped:
+		return
+	
 	slam_charged = true
 	
-	# Start slam charge particles
-	if slam_particles:
-		slam_particles.emitting = true
+	# Show slam cone effect
+	if slam_cone:
+		slam_cone.visible = true
+		_start_cone_shake()
 	
 	# Visual feedback - flash the player model
 	if player_model:
@@ -460,9 +478,12 @@ func _spawn_landing_shock_wave() -> void:
 	if player_model:
 		_set_model_emission(player_model, Color.BLACK)
 	
-	# Stop slam particles
-	if slam_particles:
-		slam_particles.emitting = false
+	# Hide slam cone
+	if slam_cone:
+		slam_cone.visible = false
+	if slam_cone_shake_tween:
+		slam_cone_shake_tween.kill()
+		slam_cone_shake_tween = null
 	
 	# Spawn shock wave at player's position (slightly below for ground effect)
 	var shock_position := global_position + Vector3(0, -sphere_radius * 0.5, 0)
@@ -696,51 +717,86 @@ func _setup_dust_particles() -> void:
 	dust_particles.position = Vector3(0, -sphere_radius, 0)  # At the bottom of the ball
 
 
-## Setup slam charge particles (energy sparks when charging slam attack)
-func _setup_slam_particles() -> void:
-	slam_particles = GPUParticles3D.new()
-	slam_particles.name = "SlamParticles"
-	slam_particles.amount = 40
-	slam_particles.lifetime = 0.5
-	slam_particles.explosiveness = 0.3
-	slam_particles.randomness = 0.5
-	slam_particles.emitting = false  # Start disabled
+## Setup slam cone effect (comet/meteor trail when charging slam)
+func _setup_slam_cone() -> void:
+	slam_cone = MeshInstance3D.new()
+	slam_cone.name = "SlamCone"
 	
-	var proc_mat := ParticleProcessMaterial.new()
-	proc_mat.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
-	proc_mat.emission_sphere_radius = sphere_radius * 1.2
-	proc_mat.direction = Vector3(0, 1, 0)  # Upward bias
-	proc_mat.spread = 180.0  # All directions
-	proc_mat.initial_velocity_min = 3.0
-	proc_mat.initial_velocity_max = 6.0
-	proc_mat.gravity = Vector3(0, 2, 0)  # Slight upward drift
-	proc_mat.scale_min = 0.1
-	proc_mat.scale_max = 0.25
+	# Create cone mesh (cylinder with top radius = 0)
+	slam_cone_mesh = CylinderMesh.new()
+	slam_cone_mesh.top_radius = 0.0
+	slam_cone_mesh.bottom_radius = sphere_radius * 1.2  # Match player radius
+	slam_cone_mesh.height = sphere_radius * 6.0  # Long cone trailing
+	slam_cone_mesh.radial_segments = 16
+	slam_cone_mesh.rings = 1
 	
-	# Bright orange-yellow energy color with glow
-	var color_ramp := Gradient.new()
-	color_ramp.set_color(0, Color(1.0, 0.7, 0.2, 1.0))  # Bright orange-yellow
-	color_ramp.set_color(1, Color(1.0, 0.3, 0.1, 0.0))  # Fade to red-orange
-	var color_tex := GradientTexture1D.new()
-	color_tex.gradient = color_ramp
-	proc_mat.color_ramp = color_tex
-	slam_particles.process_material = proc_mat
+	# Transparent glowing material
+	var cone_mat := StandardMaterial3D.new()
+	cone_mat.albedo_color = Color(1.0, 0.5, 0.2, 0.25)  # Orange, semi-transparent
+	cone_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	cone_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	cone_mat.cull_mode = BaseMaterial3D.CULL_DISABLED  # Visible from inside too
+	cone_mat.emission_enabled = true
+	cone_mat.emission = Color(1.0, 0.4, 0.1)  # Warm glow
+	cone_mat.emission_energy_multiplier = 1.5
+	slam_cone_mesh.material = cone_mat
 	
-	# Small glowing sphere mesh
-	var mesh := SphereMesh.new()
-	mesh.radius = 0.3
-	mesh.height = 0.6
-	var mesh_mat := StandardMaterial3D.new()
-	mesh_mat.albedo_color = Color(1.0, 0.8, 0.3)
-	mesh_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	mesh_mat.emission_enabled = true
-	mesh_mat.emission = Color(1.0, 0.6, 0.2)
-	mesh_mat.emission_energy_multiplier = 2.0
-	mesh.material = mesh_mat
-	slam_particles.draw_pass_1 = mesh
+	slam_cone.mesh = slam_cone_mesh
+	slam_cone.visible = false  # Hidden until slam charged
 	
-	add_child(slam_particles)
-	slam_particles.position = Vector3.ZERO  # Center on player
+	add_child(slam_cone)
+	slam_cone.top_level = true  # Don't inherit rotation from player
+	slam_cone.global_position = global_position + Vector3(0, slam_cone_mesh.height * 0.5, 0)
+
+func _start_cone_shake() -> void:
+	if slam_cone_shake_tween:
+		slam_cone_shake_tween.kill()
+	
+	slam_cone_shake_tween = create_tween()
+	slam_cone_shake_tween.set_loops()
+	
+	# Shake by randomly offsetting position slightly
+	slam_cone_shake_tween.tween_callback(_shake_cone_step)
+	slam_cone_shake_tween.tween_interval(0.03)
+
+func _shake_cone_step() -> void:
+	if slam_cone and slam_cone.visible:
+		_update_cone_position()
+
+func _update_cone_position() -> void:
+	if not slam_cone or not slam_cone_mesh:
+		return
+	
+	# Update cone dimensions based on current player scale
+	var current_radius := sphere_radius * supercharge_current_scale
+	slam_cone_mesh.bottom_radius = current_radius * 1.2  # Match player radius
+	slam_cone_mesh.height = current_radius * 6.0  # Long cone trailing
+	
+	var cone_height: float = slam_cone_mesh.height
+	var shake_x := randf_range(-0.1, 0.1)
+	var shake_z := randf_range(-0.1, 0.1)
+	var shake := Vector3(shake_x, 0, shake_z)
+	
+	# Get velocity direction
+	var vel := linear_velocity
+	if vel.length_squared() > 0.1:
+		# Cone trails opposite to velocity, but biased upward for visibility
+		var trail_dir := -vel.normalized()
+		# Bias tip direction towards up so cone is more visible from camera
+		var up_bias := Vector3.UP * 0.6
+		var tip_dir := (trail_dir + up_bias).normalized()
+		
+		# Create rotation: align local +Y with tip_dir
+		var default_up := Vector3.UP
+		var rotation_quat := Quaternion(default_up, tip_dir)
+		slam_cone.global_transform.basis = Basis(rotation_quat)
+		
+		# Position: base at player center, tip extends along tip_dir
+		slam_cone.global_position = global_position + tip_dir * cone_height * 0.5 + shake
+	else:
+		# No velocity, cone points up (default)
+		slam_cone.global_transform.basis = Basis.IDENTITY
+		slam_cone.global_position = global_position + Vector3(0, cone_height * 0.5, 0) + shake
 
 
 ## Setup atmospheric particles (snow/dust floating in air around player)
