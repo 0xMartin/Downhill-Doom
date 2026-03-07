@@ -80,10 +80,10 @@ shadow_color = Color(0.91, 0.27, 0.38, 0.3)
 shadow_size = 6
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pause_panel"]
-content_margin_left = 32.0
-content_margin_top = 28.0
-content_margin_right = 32.0
-content_margin_bottom = 28.0
+content_margin_left = 24.0
+content_margin_top = 20.0
+content_margin_right = 24.0
+content_margin_bottom = 20.0
 bg_color = Color(0.06, 0.05, 0.1, 0.95)
 border_width_left = 1
 border_width_top = 1
@@ -174,10 +174,10 @@ shadow_color = Color(0, 0, 0, 0.3)
 shadow_size = 4
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_section"]
-content_margin_left = 16.0
-content_margin_top = 16.0
-content_margin_right = 16.0
-content_margin_bottom = 16.0
+content_margin_left = 12.0
+content_margin_top = 10.0
+content_margin_right = 12.0
+content_margin_bottom = 10.0
 bg_color = Color(1, 1, 1, 0.03)
 border_width_left = 1
 border_width_top = 1
@@ -401,67 +401,67 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -200.0
-offset_top = -300.0
-offset_right = 200.0
-offset_bottom = 300.0
+offset_left = -190.0
+offset_top = -245.0
+offset_right = 190.0
+offset_bottom = 245.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_pause_panel")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="PauseMenu/PanelContainer" unique_id=1767489396]
 layout_mode = 2
-theme_override_constants/separation = 14
+theme_override_constants/separation = 8
 
 [node name="Title" type="Label" parent="PauseMenu/PanelContainer/VBoxContainer" unique_id=2054909385]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 38
+theme_override_font_sizes/font_size = 32
 text = "PAUSED"
 horizontal_alignment = 1
 
 [node name="Spacer1" type="Control" parent="PauseMenu/PanelContainer/VBoxContainer"]
-custom_minimum_size = Vector2(0, 6)
+custom_minimum_size = Vector2(0, 2)
 layout_mode = 2
 
 [node name="ResumeButton" type="Button" parent="PauseMenu/PanelContainer/VBoxContainer" unique_id=1589495864]
-custom_minimum_size = Vector2(280, 54)
+custom_minimum_size = Vector2(260, 46)
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_colors/font_color = Color(1, 1, 1, 0.9)
 theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = SubResource("StyleBoxFlat_button")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_button_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
 text = "Resume"
 
 [node name="RestartButton" type="Button" parent="PauseMenu/PanelContainer/VBoxContainer" unique_id=1679294168]
-custom_minimum_size = Vector2(280, 54)
+custom_minimum_size = Vector2(260, 46)
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_colors/font_color = Color(1, 1, 1, 0.9)
 theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = SubResource("StyleBoxFlat_button")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_button_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
 text = "Restart"
 
 [node name="MenuButton" type="Button" parent="PauseMenu/PanelContainer/VBoxContainer" unique_id=900883753]
-custom_minimum_size = Vector2(280, 54)
+custom_minimum_size = Vector2(260, 46)
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_colors/font_color = Color(1, 1, 1, 0.9)
 theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = SubResource("StyleBoxFlat_button")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_button_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
 text = "Main Menu"
 
 [node name="Spacer2" type="Control" parent="PauseMenu/PanelContainer/VBoxContainer"]
-custom_minimum_size = Vector2(0, 10)
+custom_minimum_size = Vector2(0, 4)
 layout_mode = 2
 
 [node name="AudioSection" type="PanelContainer" parent="PauseMenu/PanelContainer/VBoxContainer"]
@@ -470,27 +470,27 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_section")
 
 [node name="AudioVBox" type="VBoxContainer" parent="PauseMenu/PanelContainer/VBoxContainer/AudioSection"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 6
 
 [node name="AudioLabel" type="Label" parent="PauseMenu/PanelContainer/VBoxContainer/AudioSection/AudioVBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 0.5)
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 12
 text = "AUDIO"
 
 [node name="MusicRow" type="HBoxContainer" parent="PauseMenu/PanelContainer/VBoxContainer/AudioSection/AudioVBox"]
 layout_mode = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 12
 
 [node name="MusicLabel" type="Label" parent="PauseMenu/PanelContainer/VBoxContainer/AudioSection/AudioVBox/MusicRow" unique_id=868770555]
-custom_minimum_size = Vector2(90, 0)
+custom_minimum_size = Vector2(80, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 0.8)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 16
 text = "Music"
 
 [node name="MusicSlider" type="HSlider" parent="PauseMenu/PanelContainer/VBoxContainer/AudioSection/AudioVBox/MusicRow" unique_id=286828278]
-custom_minimum_size = Vector2(180, 24)
+custom_minimum_size = Vector2(160, 20)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_styles/slider = SubResource("StyleBoxFlat_slider_bg")
@@ -502,17 +502,17 @@ value = 0.7
 
 [node name="SFXRow" type="HBoxContainer" parent="PauseMenu/PanelContainer/VBoxContainer/AudioSection/AudioVBox"]
 layout_mode = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 12
 
 [node name="SFXLabel" type="Label" parent="PauseMenu/PanelContainer/VBoxContainer/AudioSection/AudioVBox/SFXRow" unique_id=65503028]
-custom_minimum_size = Vector2(90, 0)
+custom_minimum_size = Vector2(80, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 0.8)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 16
 text = "Effects"
 
 [node name="SFXSlider" type="HSlider" parent="PauseMenu/PanelContainer/VBoxContainer/AudioSection/AudioVBox/SFXRow" unique_id=1384883902]
-custom_minimum_size = Vector2(180, 24)
+custom_minimum_size = Vector2(160, 20)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_styles/slider = SubResource("StyleBoxFlat_slider_bg")
@@ -528,32 +528,32 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_section")
 
 [node name="DisplayVBox" type="VBoxContainer" parent="PauseMenu/PanelContainer/VBoxContainer/DisplaySection"]
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 4
 
 [node name="DisplayLabel" type="Label" parent="PauseMenu/PanelContainer/VBoxContainer/DisplaySection/DisplayVBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 0.5)
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 12
 text = "DISPLAY"
 
 [node name="PopupCheck" type="CheckButton" parent="PauseMenu/PanelContainer/VBoxContainer/DisplaySection/DisplayVBox" unique_id=121308334]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 0.8)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 15
 button_pressed = true
 text = "Pickup Popups"
 
 [node name="DamageCheck" type="CheckButton" parent="PauseMenu/PanelContainer/VBoxContainer/DisplaySection/DisplayVBox" unique_id=871497496]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 0.8)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 15
 button_pressed = true
 text = "Damage Numbers"
 
 [node name="HapticCheck" type="CheckButton" parent="PauseMenu/PanelContainer/VBoxContainer/DisplaySection/DisplayVBox" unique_id=507690234]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 0.8)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 15
 button_pressed = true
 text = "Vibration"
 

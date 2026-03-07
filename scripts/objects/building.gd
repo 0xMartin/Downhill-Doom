@@ -56,3 +56,12 @@ func destroy(player_velocity: Vector3) -> void:
 		# Fallback: just remove the object
 		queue_free()
 
+
+## Called by ObjectPool when this object is retrieved from pool
+func _pool_reset() -> void:
+	# Re-add to groups (removed when pooled)
+	add_to_group("buildings")
+	# Reset state
+	is_destroyed = false
+	freeze = true
+

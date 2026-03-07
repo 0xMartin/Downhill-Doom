@@ -80,3 +80,12 @@ func fall(player_velocity: Vector3) -> void:
 	await tween.finished
 	await get_tree().create_timer(2.0).timeout
 	queue_free()
+
+
+## Called by ObjectPool when this object is retrieved from pool
+func _pool_reset() -> void:
+	# Re-add to groups (removed when pooled)
+	add_to_group("trees")
+	# Reset state
+	is_fallen = false
+	freeze = true

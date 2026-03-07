@@ -133,3 +133,13 @@ func _destroy_by_supercharge() -> void:
 	else:
 		# Fallback: just remove the object
 		queue_free()
+
+
+## Called by ObjectPool when this object is retrieved from pool
+func _pool_reset() -> void:
+	# Re-add to groups (removed when pooled)
+	add_to_group("building_enemies")
+	add_to_group("spikes")
+	# Reset state
+	is_destroyed = false
+	can_damage = true

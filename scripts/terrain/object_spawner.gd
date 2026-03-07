@@ -69,6 +69,10 @@ var height_offset_building: float = 0.25  # Buildings need to sit on surface
 var height_offset_npc: float = 0.15  # NPCs should be on surface
 var height_offset_spike: float = 0.2  # Spikes need clearance
 
+# Player spawn safe zone - no objects spawn in this circle where player lands
+var player_spawn_position: Vector3 = Vector3(0.0, 0.0, -25.0)  # From game.tscn
+var player_spawn_safe_radius: float = 15.0  # Radius where no objects spawn
+
 # ========== INTERNAL STATE ==========
 
 var hole_manager: RefCounted  # HoleManager
@@ -260,6 +264,9 @@ func _spawn_rocks_async(chunk: Node3D, chunk_index: int, get_height_func: Callab
 		if _is_near_hole(x, local_z, chunk_index):
 			continue
 		
+		if _is_near_player_spawn(x, local_z, chunk_index):
+			continue
+		
 		if not _is_position_available(x, local_z, chunk_index, 1.5):
 			continue
 		
@@ -310,6 +317,10 @@ func _spawn_zone_objects_async(chunk: Node3D, chunk_index: int, get_height_func:
 		
 		# Skip if in hole area
 		if _is_near_hole(x, local_z, chunk_index):
+			continue
+		
+		# Skip if near player spawn zone
+		if _is_near_player_spawn(x, local_z, chunk_index):
 			continue
 		
 		# Get zone data at this specific position
@@ -493,6 +504,9 @@ func _spawn_rocks(chunk: Node3D, chunk_index: int, get_height_func: Callable) ->
 		if _is_near_hole(x, local_z, chunk_index):
 			continue
 		
+		if _is_near_player_spawn(x, local_z, chunk_index):
+			continue
+		
 		if not _is_position_available(x, local_z, chunk_index, 1.5):
 			continue
 		
@@ -526,8 +540,11 @@ func _spawn_npc_clusters(chunk: Node3D, chunk_index: int, get_height_func: Calla
 	var cluster_x := rng.randf_range(-terrain_width / 2 + margin, terrain_width / 2 - margin)
 	var cluster_z := rng.randf_range(-chunk_size.y + margin, -margin)
 	
-	# Skip if near hole
+	# Skip if near hole or player spawn
 	if _is_near_hole(cluster_x, cluster_z, chunk_index):
+		return
+	
+	if _is_near_player_spawn(cluster_x, cluster_z, chunk_index):
 		return
 	
 	# Spawn 4-10 animals in the cluster (was 2-5)
@@ -587,8 +604,11 @@ func _spawn_enemy_npc_clusters(chunk: Node3D, chunk_index: int, get_height_func:
 	var cluster_x := rng.randf_range(-terrain_width / 2 + margin, terrain_width / 2 - margin)
 	var cluster_z := rng.randf_range(-chunk_size.y + margin, -margin)
 	
-	# Skip if near hole
+	# Skip if near hole or player spawn
 	if _is_near_hole(cluster_x, cluster_z, chunk_index):
+		return
+	
+	if _is_near_player_spawn(cluster_x, cluster_z, chunk_index):
 		return
 	
 	# Spawn 3-8 enemy NPCs in the cluster (max 2 catapults)
@@ -750,6 +770,10 @@ func _spawn_zone_objects(chunk: Node3D, chunk_index: int, get_height_func: Calla
 		
 		# Skip if in hole area
 		if _is_near_hole(x, local_z, chunk_index):
+			continue
+		
+		# Skip if near player spawn zone
+		if _is_near_player_spawn(x, local_z, chunk_index):
 			continue
 		
 		# Get zone data at this specific position
@@ -1245,6 +1269,16 @@ func _is_near_hole(x: float, z: float, chunk_index: int) -> bool:
 	if hole_manager:
 		return hole_manager.get_distance_to_nearest_hole(x, z, chunk_index) < 5.0
 	return false
+
+## Check if position is within player spawn safe zone (no objects should spawn here)
+func _is_near_player_spawn(x: float, local_z: float, chunk_index: int) -> bool:
+	# Convert local chunk Z to world Z
+	var world_z := -chunk_index * chunk_size.y + local_z
+	# Calculate horizontal distance from player spawn (ignore Y)
+	var dx := x - player_spawn_position.x
+	var dz := world_z - player_spawn_position.z
+	var dist := sqrt(dx * dx + dz * dz)
+	return dist < player_spawn_safe_radius
 
 func _is_position_available(x: float, z: float, chunk_index: int, min_dist: float = -1.0) -> bool:
 	if min_dist < 0:

@@ -161,6 +161,12 @@ func _prepare_for_pool(obj: Node3D) -> void:
 	obj.set_process(false)
 	obj.set_physics_process(false)
 	
+	# Remove from ALL groups to prevent finding via get_nodes_in_group()
+	# (e.g., shock wave searching for "trees" would find pooled invisible trees)
+	var groups := obj.get_groups()
+	for group in groups:
+		obj.remove_from_group(group)
+	
 	# Disable collision shapes to prevent phantom collisions
 	for child in obj.get_children():
 		if child is CollisionShape3D:

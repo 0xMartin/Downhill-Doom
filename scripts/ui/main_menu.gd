@@ -346,14 +346,14 @@ func _rebuild_settings_panel() -> void:
 	
 	# Decoration under title
 	var decoration := TextureRect.new()
-	var deco_tex = load("res://assets/icons/title_decoration.svg")
+	var deco_tex = load("res://assets/icons/settings_decoration.svg")
 	if deco_tex:
 		decoration.texture = deco_tex
-		decoration.custom_minimum_size = Vector2(200, 20)
+		decoration.custom_minimum_size = Vector2(180, 16)
 		decoration.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 		decoration.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		decoration.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-		decoration.modulate = COLOR_ACCENT_PRIMARY
+		decoration.modulate = COLOR_ACCENT_PRIMARY.lightened(0.3)
 		inner_vbox.add_child(decoration)
 	
 	# Spacer
@@ -557,18 +557,34 @@ func _style_secondary_button(button: Button) -> void:
 
 
 func _rebuild_stats_panel() -> void:
-	var vbox: VBoxContainer = stats_panel.get_node("PanelContainer/VBoxContainer")
-	for child in vbox.get_children():
-		child.queue_free()
+	# Clear existing content (except Background)
+	for child in stats_panel.get_children():
+		if child.name != "Background":
+			child.queue_free()
 	
 	# Update background
 	var bg: ColorRect = stats_panel.get_node("Background")
-	bg.color = Color(0, 0, 0, 0.75)
+	bg.color = Color(0, 0, 0, 0.92)
 	
-	# Make panel larger
+	# Make panel fullscreen like settings
 	var screen_size: Vector2 = get_viewport().get_visible_rect().size
 	var panel_width: float = minf(720.0, screen_size.x * 0.92)
 	var panel_height: float = minf(screen_size.y * 0.88, screen_size.y - 60)
+	
+	# Create centered VBox for positioning
+	var center_vbox := VBoxContainer.new()
+	center_vbox.anchors_preset = Control.PRESET_CENTER
+	center_vbox.anchor_left = 0.5
+	center_vbox.anchor_top = 0.5
+	center_vbox.anchor_right = 0.5
+	center_vbox.anchor_bottom = 0.5
+	center_vbox.offset_left = -panel_width / 2
+	center_vbox.offset_right = panel_width / 2
+	center_vbox.offset_top = -panel_height / 2
+	center_vbox.offset_bottom = panel_height / 2
+	center_vbox.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	center_vbox.grow_vertical = Control.GROW_DIRECTION_BOTH
+	stats_panel.add_child(center_vbox)
 	
 	# Create main card container
 	var card := PanelContainer.new()
@@ -581,21 +597,15 @@ func _rebuild_stats_panel() -> void:
 	card_style.border_color = COLOR_BORDER
 	card_style.shadow_color = Color(0, 0, 0, 0.5)
 	card_style.shadow_size = 20
-	card_style.set_content_margin_all(20)
+	card_style.set_content_margin_all(24)
 	card.add_theme_stylebox_override("panel", card_style)
-	
-	vbox.offset_left = -panel_width / 2
-	vbox.offset_right = panel_width / 2
-	vbox.offset_top = -panel_height / 2
-	vbox.offset_bottom = panel_height / 2
-	vbox.add_theme_constant_override("separation", 12)
+	center_vbox.add_child(card)
 	
 	var inner_vbox := VBoxContainer.new()
 	inner_vbox.add_theme_constant_override("separation", 12)
 	card.add_child(inner_vbox)
-	vbox.add_child(card)
 	
-	# Title with glow
+	# Title with glow (same style as settings)
 	var title := Label.new()
 	title.text = "STATISTICS"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -604,6 +614,23 @@ func _rebuild_stats_panel() -> void:
 	title.add_theme_color_override("font_outline_color", COLOR_ACCENT_PRIMARY)
 	title.add_theme_constant_override("outline_size", 2)
 	inner_vbox.add_child(title)
+	
+	# Decoration under title (same as settings)
+	var decoration := TextureRect.new()
+	var deco_tex = load("res://assets/icons/settings_decoration.svg")
+	if deco_tex:
+		decoration.texture = deco_tex
+		decoration.custom_minimum_size = Vector2(180, 16)
+		decoration.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+		decoration.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		decoration.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		decoration.modulate = COLOR_ACCENT_PRIMARY.lightened(0.3)
+		inner_vbox.add_child(decoration)
+	
+	# Spacer
+	var spacer1 := Control.new()
+	spacer1.custom_minimum_size = Vector2(0, 8)
+	inner_vbox.add_child(spacer1)
 	
 	# Global Stats Card
 	var global_card := _create_stats_card()

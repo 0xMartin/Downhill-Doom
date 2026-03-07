@@ -332,3 +332,17 @@ func die(killer: Node = null) -> void:
 		dm.fling_object(self, killer, model, 22.0, 32.0, 0.5)
 	else:
 		queue_free()
+
+
+## Called by ObjectPool when this object is retrieved from pool
+func _pool_reset() -> void:
+	# Re-add to groups (removed when pooled)
+	add_to_group("npcs")
+	add_to_group("enemy_npcs")
+	add_to_group("catapults")
+	# Reset state
+	is_dead = false
+	is_active = false
+	player = null
+	animation_time = 0.0
+	has_fired_this_cycle = false

@@ -190,3 +190,14 @@ func die(player: Node = null) -> void:
 		dm.fling_object(self, player, model)
 	else:
 		queue_free()
+
+
+## Called by ObjectPool when this object is retrieved from pool
+func _pool_reset() -> void:
+	# Re-add to groups (removed when pooled)
+	add_to_group("npcs")
+	add_to_group("friend_npcs")
+	# Reset state
+	is_dead = false
+	is_moving = false
+	hop_phase = 0.0
