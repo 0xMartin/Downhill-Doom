@@ -204,16 +204,17 @@ func _check_player_collision() -> void:
 
 
 func _on_hit_player(player_node: Node) -> void:
-	## Spell hit the player - deal damage and apply blindness
+	## Spell hit the player - deal damage and apply blindness (only if not supercharged)
 	var gm := get_node_or_null("/root/GameManager")
 	var audio := get_node_or_null("/root/AudioManager")
 	
-	if audio and audio.has_method("play_hurt_sound"):
-		audio.play_hurt_sound()
-	
 	if gm:
-		gm.take_damage(damage)
-		gm.apply_blindness(blindness_duration, blindness_fog_begin, blindness_fog_end)
+		# Only apply damage and blindness if not in supercharge mode
+		if not gm.is_supercharged:
+			if audio and audio.has_method("play_hurt_sound"):
+				audio.play_hurt_sound()
+			gm.take_damage(damage)
+			gm.apply_blindness(blindness_duration, blindness_fog_begin, blindness_fog_end)
 	
 	# Create impact effect
 	_create_impact_effect()

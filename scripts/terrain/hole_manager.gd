@@ -4,6 +4,8 @@ extends RefCounted
 
 signal player_died
 
+const DistanceConfigScript := preload("res://scripts/config/distance_config.gd")
+
 # Hole configuration
 var hole_enabled: bool = true
 var hole_min_spacing: float = 50.0
@@ -50,6 +52,12 @@ func precalculate_holes(chunk_index: int) -> void:
 		return
 	
 	if chunk_index < hole_safe_chunks:
+		chunk_holes[chunk_index] = []
+		return
+	
+	# Check if holes are unlocked at current distance (2000m+)
+	var current_distance := chunk_index * chunk_size.y
+	if not DistanceConfigScript.can_spawn_holes(current_distance):
 		chunk_holes[chunk_index] = []
 		return
 	

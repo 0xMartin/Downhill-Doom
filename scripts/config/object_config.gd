@@ -490,9 +490,9 @@ static func _init_objects() -> void:
 		"model": "res://assets/models/npc_enemy/wizard.blend",
 		"height": 2.9,
 		"height_var": 0.1,
-		"spawn_chance": 0.75,
+		"spawn_chance": 0.1,
 		"coins": 800,
-		"damage": 22,
+		"damage": 20,
 		"destructible": true,
 	})
 	

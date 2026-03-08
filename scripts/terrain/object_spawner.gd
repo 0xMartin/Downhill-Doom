@@ -14,6 +14,7 @@ extends RefCounted
 ## - Example: windmill blades named "blades_nocol" won't affect collision box
 
 const ObjectConfigScript := preload("res://scripts/config/object_config.gd")
+const DistanceConfigScript := preload("res://scripts/config/distance_config.gd")
 
 # Preloaded scripts for objects
 const TreeScript := preload("res://scripts/objects/tree.gd")
@@ -142,6 +143,39 @@ func _get_cached_aabb(model_path: String) -> AABB:
 func set_hole_manager(manager: RefCounted) -> void:
 	hole_manager = manager
 
+## Calculate player's travel distance (in meters) from chunk_index
+func _get_distance_from_chunk(chunk_index: int) -> float:
+	return chunk_index * chunk_size.y
+
+## Select a random object from category, filtered by distance
+func _select_object_for_distance(category: int, rng: RandomNumberGenerator, distance: float) -> RefCounted:
+	var objects: Array = ObjectConfigScript.get_objects_by_category(category)
+	if objects.is_empty():
+		return null
+	
+	# Filter by distance
+	var available: Array = []
+	var total_weight: float = 0.0
+	
+	for obj in objects:
+		if DistanceConfigScript.can_spawn_at_distance(obj.id, distance):
+			available.append(obj)
+			total_weight += obj.spawn_chance
+	
+	if available.is_empty():
+		return null
+	
+	# Random selection based on weight
+	var roll := rng.randf() * total_weight
+	var cumulative: float = 0.0
+	
+	for obj in available:
+		cumulative += obj.spawn_chance
+		if roll <= cumulative:
+			return obj
+	
+	return available[-1]
+
 ## Get object pool singleton (lazy initialization)
 func _get_pool() -> Node:
 	if not _object_pool:
@@ -250,11 +284,13 @@ func _spawn_rocks_async(chunk: Node3D, chunk_index: int, get_height_func: Callab
 	var batch_size := 5  # Spawn 5 rocks before yielding
 	var spawned := 0
 	
+	var current_distance := _get_distance_from_chunk(chunk_index)
+	
 	for i in range(object_count):
 		if not _is_chunk_valid(chunk):
 			return
 			
-		var obj_data: RefCounted = ObjectConfigScript.select_random_object(ObjectConfigScript.Category.ROCK, rng)
+		var obj_data: RefCounted = _select_object_for_distance(ObjectConfigScript.Category.ROCK, rng, current_distance)
 		if not obj_data:
 			continue
 		
@@ -399,6 +435,11 @@ func _get_spike_wall_actual_width(spike_wall_data: RefCounted) -> float:
 
 ## Create a single spike wall chain (3-10 connected walls)
 func _create_spike_wall_chain(chunk: Node3D, chunk_index: int, base_z: float, rng: RandomNumberGenerator, get_height_func: Callable) -> void:
+	# Check if spike walls are unlocked at current distance
+	var current_distance := _get_distance_from_chunk(chunk_index)
+	if not DistanceConfigScript.can_spawn_at_distance("enemy_spike_wall", current_distance):
+		return
+	
 	var spike_wall_data: RefCounted = ObjectConfigScript.get_spike_wall()
 	if not spike_wall_data:
 		return
@@ -493,8 +534,10 @@ func _spawn_rocks(chunk: Node3D, chunk_index: int, get_height_func: Callable) ->
 	var object_count := int(area * rock_density / 100.0)
 	object_count = max(object_count, 1)
 	
+	var current_distance := _get_distance_from_chunk(chunk_index)
+	
 	for i in range(object_count):
-		var obj_data: RefCounted = ObjectConfigScript.select_random_object(ObjectConfigScript.Category.ROCK, rng)
+		var obj_data: RefCounted = _select_object_for_distance(ObjectConfigScript.Category.ROCK, rng, current_distance)
 		if not obj_data:
 			continue
 		
@@ -551,9 +594,10 @@ func _spawn_npc_clusters(chunk: Node3D, chunk_index: int, get_height_func: Calla
 	# Spawn 4-10 animals in the cluster (was 2-5)
 	var animal_count := rng.randi_range(4, 10)
 	var cluster_radius := 6.0
+	var current_distance := _get_distance_from_chunk(chunk_index)
 	
 	for i in range(animal_count):
-		var obj_data: RefCounted = ObjectConfigScript.select_random_object(ObjectConfigScript.Category.NPC_FRIEND, rng)
+		var obj_data: RefCounted = _select_object_for_distance(ObjectConfigScript.Category.NPC_FRIEND, rng, current_distance)
 		if not obj_data:
 			continue
 		
@@ -617,9 +661,10 @@ func _spawn_enemy_npc_clusters(chunk: Node3D, chunk_index: int, get_height_func:
 	var cluster_radius := 6.0
 	var catapult_count := 0
 	const MAX_CATAPULTS := 2
+	var current_distance := _get_distance_from_chunk(chunk_index)
 	
 	for i in range(enemy_count):
-		var obj_data: RefCounted = ObjectConfigScript.select_random_object(ObjectConfigScript.Category.NPC_ENEMY, rng)
+		var obj_data: RefCounted = _select_object_for_distance(ObjectConfigScript.Category.NPC_ENEMY, rng, current_distance)
 		if not obj_data:
 			continue
 		
@@ -628,7 +673,7 @@ func _spawn_enemy_npc_clusters(chunk: Node3D, chunk_index: int, get_height_func:
 			if catapult_count >= MAX_CATAPULTS:
 				# Re-roll for non-catapult enemy
 				for _reroll in range(5):
-					obj_data = ObjectConfigScript.select_random_object(ObjectConfigScript.Category.NPC_ENEMY, rng)
+					obj_data = _select_object_for_distance(ObjectConfigScript.Category.NPC_ENEMY, rng, current_distance)
 					if obj_data and obj_data.id != "npc_catapult":
 						break
 				if not obj_data or obj_data.id == "npc_catapult":
@@ -673,6 +718,11 @@ func _spawn_enemy_npc_clusters(chunk: Node3D, chunk_index: int, get_height_func:
 ## Try to spawn an enemy plane (aerial NPC)
 ## Planes have global cooldown and spawn at the end of the chunk, flying toward player
 func _try_spawn_plane(chunk: Node3D, chunk_index: int, get_height_func: Callable) -> void:
+	# Check if aerial NPCs are unlocked at current distance
+	var current_distance := _get_distance_from_chunk(chunk_index)
+	if not DistanceConfigScript.can_spawn_aerial(current_distance):
+		return
+	
 	# Use fully random seed for unique results every game
 	var rng := RandomNumberGenerator.new()
 	rng.randomize()
@@ -819,8 +869,9 @@ func _spawn_zone_objects(chunk: Node3D, chunk_index: int, get_height_func: Calla
 ## Try to spawn a single object at a specific position
 func _try_spawn_at_position(chunk: Node3D, chunk_index: int, get_height_func: Callable,
 							x: float, local_z: float, category: int, rng: RandomNumberGenerator) -> bool:
-	# Select random object from category
-	var obj_data: RefCounted = ObjectConfigScript.select_random_object(category, rng)
+	# Select random object from category, filtered by current distance
+	var current_distance := _get_distance_from_chunk(chunk_index)
+	var obj_data: RefCounted = _select_object_for_distance(category, rng, current_distance)
 	if not obj_data:
 		return false
 	

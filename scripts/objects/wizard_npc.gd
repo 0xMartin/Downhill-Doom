@@ -15,7 +15,7 @@ const SHOOTING_RANGE: float = 33.0  # 50% of detection range
 const MOVE_SPEED: float = 6.0  # Same as dark_knight
 
 # Spell settings
-const SPELL_COOLDOWN: float = 1.6  # 20% faster
+const SPELL_COOLDOWN: float = 2.0
 const SPELL_LIFETIME: float = 5.0
 const SPELL_SPEED: float = 23.4  # 30% faster (18 * 1.3)
 const BLINDNESS_DURATION: float = 5.0
@@ -284,14 +284,15 @@ func _on_detect_area_body_entered(body: Node) -> void:
 
 
 func _damage_player_with_blindness(player_node: Node) -> void:
-	## Deal damage to player and apply blindness before dying
-	if audio_manager:
-		audio_manager.play_hurt_sound()
-	
+	## Deal damage to player and apply blindness before dying (only if not supercharged)
 	# Deal damage and apply blindness through GameManager
 	if game_manager:
-		game_manager.take_damage(damage)
-		game_manager.apply_blindness(BLINDNESS_DURATION, BLINDNESS_FOG_BEGIN, BLINDNESS_FOG_END)
+		# Only apply damage and blindness if not in supercharge mode
+		if not game_manager.is_supercharged:
+			if audio_manager:
+				audio_manager.play_hurt_sound()
+			game_manager.take_damage(damage)
+			game_manager.apply_blindness(BLINDNESS_DURATION, BLINDNESS_FOG_BEGIN, BLINDNESS_FOG_END)
 
 
 func die(killer: Node = null) -> void:
