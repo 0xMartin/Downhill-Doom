@@ -6,6 +6,10 @@ extends RefCounted
 ## Each milestone defines the minimum distance (in meters) required
 ## for objects/features to start spawning
 
+# ========== DEBUG ==========
+## Set to true to unlock ALL objects and features from the start (for testing)
+const DEBUG_UNLOCK_ALL: bool = false
+
 # ========== FEATURE UNLOCK DISTANCES ==========
 
 ## Distance at which terrain holes start appearing
@@ -117,16 +121,22 @@ static func get_min_distance(object_id: String) -> float:
 
 ## Check if an object can spawn at the given distance
 static func can_spawn_at_distance(object_id: String, current_distance: float) -> bool:
+	if DEBUG_UNLOCK_ALL:
+		return true
 	_ensure_initialized()
 	var min_dist: float = _min_distances.get(object_id, 0.0)
 	return current_distance >= min_dist
 
 ## Check if terrain holes should be generated at the given distance
 static func can_spawn_holes(current_distance: float) -> bool:
+	if DEBUG_UNLOCK_ALL:
+		return true
 	return current_distance >= HOLES_START_DISTANCE
 
 ## Check if aerial NPCs can spawn at the given distance
 static func can_spawn_aerial(current_distance: float) -> bool:
+	if DEBUG_UNLOCK_ALL:
+		return true
 	return current_distance >= AERIAL_START_DISTANCE
 
 ## Get all unlocked object IDs at a given distance
