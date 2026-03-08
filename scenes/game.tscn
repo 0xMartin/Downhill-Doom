@@ -28,6 +28,10 @@ fog_sky_affect = 0.85
 fog_depth_curve = 2.4367573
 fog_depth_begin = 49.0
 fog_depth_end = 150.0
+adjustment_enabled = true
+adjustment_brightness = 0.95
+adjustment_contrast = 1.2
+adjustment_saturation = 0.9
 
 [node name="Game" type="Node3D" unique_id=1842668777]
 
@@ -52,6 +56,7 @@ mass = 10.0
 [node name="Camera3D" type="Camera3D" parent="." unique_id=568877580]
 transform = Transform3D(1, 0, 0, 0, 0.8, 0.6, 0, -0.6, 0.8, 0, 10, 12)
 fov = 55.0
+far = 500.0
 script = ExtResource("2_camera")
 target_path = NodePath("../Player")
 look_ahead = 11.0

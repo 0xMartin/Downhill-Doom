@@ -476,7 +476,7 @@ static func _init_objects() -> void:
 		"name": "Catapult",
 		"category": Category.NPC_ENEMY,
 		"model": "res://assets/models/npc_enemy/catapult.blend",
-		"height": 2.1,
+		"height": 2.0,
 		"height_var": 0.1,
 		"spawn_chance": 0.25,  
 		"coins": 350,

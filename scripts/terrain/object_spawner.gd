@@ -294,7 +294,7 @@ func _spawn_rocks_async(chunk: Node3D, chunk_index: int, get_height_func: Callab
 		if not obj_data:
 			continue
 		
-		var margin := 2.0
+		var margin := 0.5  # Spawn rocks close to edges
 		var x := rng.randf_range(-terrain_width / 2 + margin, terrain_width / 2 - margin)
 		var local_z := rng.randf_range(-chunk_size.y + margin, -margin)
 		
@@ -345,7 +345,7 @@ func _spawn_zone_objects_async(chunk: Node3D, chunk_index: int, get_height_func:
 		if not _is_chunk_valid(chunk):
 			return
 			
-		var margin := 3.0
+		var margin := 1.0  # Spawn trees/buildings close to edges
 		var x := rng.randf_range(-terrain_width / 2 + margin, terrain_width / 2 - margin)
 		var local_z := rng.randf_range(-chunk_size.y + margin, -margin)
 		
@@ -453,7 +453,7 @@ func _create_spike_wall_chain(chunk: Node3D, chunk_index: int, base_z: float, rn
 	var wall_spacing := actual_wall_width * wall_scale_factor * 0.65
 	
 	# Random starting X position (can start anywhere across terrain)
-	var start_x := rng.randf_range(-terrain_width / 2 + 4.0, terrain_width / 2 - 4.0)
+	var start_x := rng.randf_range(-terrain_width / 2 + 1.5, terrain_width / 2 - 1.5)
 	
 	# Random chain count
 	var wall_count := rng.randi_range(spike_wall_min_count, spike_wall_max_count)
@@ -474,7 +474,7 @@ func _create_spike_wall_chain(chunk: Node3D, chunk_index: int, base_z: float, rn
 		var local_z := current_z - chunk_start_z
 		
 		# Check bounds
-		if current_x < -terrain_width / 2 + 2.0 or current_x > terrain_width / 2 - 2.0:
+		if current_x < -terrain_width / 2 + 0.5 or current_x > terrain_width / 2 - 0.5:
 			break
 		if local_z < -chunk_size.y or local_z > 0:
 			break
@@ -541,7 +541,7 @@ func _spawn_rocks(chunk: Node3D, chunk_index: int, get_height_func: Callable) ->
 		if not obj_data:
 			continue
 		
-		var margin := 2.0
+		var margin := 0.5  # Spawn rocks close to edges
 		var x := rng.randf_range(-terrain_width / 2 + margin, terrain_width / 2 - margin)
 		var local_z := rng.randf_range(-chunk_size.y + margin, -margin)
 		
@@ -580,7 +580,7 @@ func _spawn_npc_clusters(chunk: Node3D, chunk_index: int, get_height_func: Calla
 		return
 	
 	# Pick random center position for the cluster
-	var margin := 8.0
+	var margin := 3.0  # Allow NPC clusters closer to edges
 	var cluster_x := rng.randf_range(-terrain_width / 2 + margin, terrain_width / 2 - margin)
 	var cluster_z := rng.randf_range(-chunk_size.y + margin, -margin)
 	
@@ -608,8 +608,8 @@ func _spawn_npc_clusters(chunk: Node3D, chunk_index: int, get_height_func: Calla
 		var local_z := cluster_z + sin(angle) * dist
 		
 		# Clamp to terrain bounds
-		x = clampf(x, -terrain_width / 2 + 2.0, terrain_width / 2 - 2.0)
-		local_z = clampf(local_z, -chunk_size.y + 2.0, -2.0)
+		x = clampf(x, -terrain_width / 2 + 0.5, terrain_width / 2 - 0.5)
+		local_z = clampf(local_z, -chunk_size.y + 0.5, -0.5)
 		
 		if _is_near_hole(x, local_z, chunk_index):
 			continue
@@ -645,7 +645,7 @@ func _spawn_enemy_npc_clusters(chunk: Node3D, chunk_index: int, get_height_func:
 		return
 	
 	# Pick random center position for the cluster
-	var margin := 8.0
+	var margin := 3.0  # Allow enemy NPC clusters closer to edges
 	var cluster_x := rng.randf_range(-terrain_width / 2 + margin, terrain_width / 2 - margin)
 	var cluster_z := rng.randf_range(-chunk_size.y + margin, -margin)
 	
@@ -688,8 +688,8 @@ func _spawn_enemy_npc_clusters(chunk: Node3D, chunk_index: int, get_height_func:
 		var local_z := cluster_z + sin(angle) * dist
 		
 		# Clamp to terrain bounds
-		x = clampf(x, -terrain_width / 2 + 2.0, terrain_width / 2 - 2.0)
-		local_z = clampf(local_z, -chunk_size.y + 2.0, -2.0)
+		x = clampf(x, -terrain_width / 2 + 0.5, terrain_width / 2 - 0.5)
+		local_z = clampf(local_z, -chunk_size.y + 0.5, -0.5)
 		
 		if _is_near_hole(x, local_z, chunk_index):
 			continue
@@ -812,7 +812,7 @@ func _spawn_zone_objects(chunk: Node3D, chunk_index: int, get_height_func: Calla
 	var chunk_start_z := -chunk_index * chunk_size.y
 	
 	for i in range(spawn_attempts):
-		var margin := 3.0
+		var margin := 1.0  # Spawn zone objects close to edges
 		var x := rng.randf_range(-terrain_width / 2 + margin, terrain_width / 2 - margin)
 		var local_z := rng.randf_range(-chunk_size.y + margin, -margin)
 		

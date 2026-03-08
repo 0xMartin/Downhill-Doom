@@ -12,6 +12,9 @@ extends CharacterBody3D
 @export var object_id: String = "npc_enemy_unknown"
 @export var object_name: String = "Enemy"
 
+# Terrain bounds (must match terrain_generator)
+const TERRAIN_HALF_WIDTH: float = 18.0  # terrain_width / 2
+
 # Detection and movement - will be set based on enemy type
 var detection_range: float = 32.0  # Range at which enemy starts chasing
 var move_speed: float = 3.8  # Movement speed towards player
@@ -146,6 +149,10 @@ func _physics_process(delta: float) -> void:
 		velocity.z = 0
 	
 	move_and_slide()
+	
+	# Safety: clamp position to terrain bounds
+	if absf(global_position.x) > TERRAIN_HALF_WIDTH - 0.5:
+		global_position.x = clampf(global_position.x, -TERRAIN_HALF_WIDTH + 0.5, TERRAIN_HALF_WIDTH - 0.5)
 
 
 func _update_chase_state() -> void:

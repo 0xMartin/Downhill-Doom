@@ -6,6 +6,9 @@ extends CharacterBody3D
 @export var object_id: String = "npc_unknown"
 @export var object_name: String = "NPC"
 
+# Terrain bounds (must match terrain_generator)
+const TERRAIN_HALF_WIDTH: float = 18.0  # terrain_width / 2
+
 # Movement settings
 var wander_radius_min: float = 4.0
 var wander_radius_max: float = 8.0
@@ -115,6 +118,13 @@ func _physics_process(delta: float) -> void:
 		velocity.z = 0
 	
 	move_and_slide()
+	
+	# Safety: clamp position to terrain bounds
+	if absf(global_position.x) > TERRAIN_HALF_WIDTH - 0.5:
+		global_position.x = clampf(global_position.x, -TERRAIN_HALF_WIDTH + 0.5, TERRAIN_HALF_WIDTH - 0.5)
+		# Pick new target that's back towards center
+		if is_moving:
+			_pick_new_target()
 
 
 func _start_wander_cycle() -> void:
@@ -162,6 +172,9 @@ func _pick_new_target() -> void:
 	# Calculate new position relative to spawn (Y handled by physics)
 	var offset := Vector3(cos(angle) * distance, 0, sin(angle) * distance)
 	target_position = spawn_position + offset
+	
+	# Clamp X to terrain bounds (stay within playable area)
+	target_position.x = clampf(target_position.x, -TERRAIN_HALF_WIDTH + 1.0, TERRAIN_HALF_WIDTH - 1.0)
 
 
 func _on_detect_area_body_entered(body: Node) -> void:
