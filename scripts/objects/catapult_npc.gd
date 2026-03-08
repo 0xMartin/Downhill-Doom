@@ -304,7 +304,30 @@ func _predict_player_position() -> Vector3:
 	# Calculate predicted position
 	var predicted_pos: Vector3 = player_pos + player_vel * intercept_time
 	
+	# Adjust Y to actual terrain height at that XZ position to avoid aiming below ground
+	var terrain_height := _get_terrain_height_at(predicted_pos)
+	predicted_pos.y = terrain_height + 1.0  # Aim slightly above terrain
+	
 	return predicted_pos
+
+
+func _get_terrain_height_at(pos: Vector3) -> float:
+	## Raycast down to find terrain height at the given XZ position
+	var space_state := get_world_3d().direct_space_state
+	if not space_state:
+		return global_position.y  # Fallback
+	
+	var ray_origin := Vector3(pos.x, pos.y + 50.0, pos.z)  # Start well above
+	var ray_end := Vector3(pos.x, pos.y - 100.0, pos.z)  # End well below
+	
+	var query := PhysicsRayQueryParameters3D.create(ray_origin, ray_end)
+	query.collision_mask = 1  # Terrain layer
+	
+	var result := space_state.intersect_ray(query)
+	if result:
+		return result.position.y
+	
+	return global_position.y  # Fallback if no hit
 
 
 func _on_detect_area_body_entered(body: Node) -> void:

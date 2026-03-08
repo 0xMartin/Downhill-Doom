@@ -11,7 +11,7 @@ const TRAIL_WIDTH: float = 0.15
 const PROJECTILE_RADIUS: float = 0.3
 const PROJECTILE_COLOR := Color(0.4, 0.4, 0.4)  # Dark gray
 const TRAIL_COLOR := Color(0.6, 0.1, 0.1, 0.8)  # Red trail
-const IMPACT_SHOCK_WAVE_RADIUS: float = 9.0  # Shock wave radius
+const IMPACT_SHOCK_WAVE_RADIUS: float = 12.0  # Shock wave radius (+30%)
 
 var velocity: Vector3 = Vector3.ZERO
 var damage: int = 30
@@ -96,9 +96,11 @@ func _process(delta: float) -> void:
 				_on_direct_player_hit()
 				return
 	
-	# Check ground collision - only after immunity period and below ground level
-	if time_alive > spawn_immunity_time and global_position.y <= ground_level + 0.5:
-		_on_ground_impact()
+	# Check ground collision using raycast to detect actual terrain
+	if time_alive > spawn_immunity_time:
+		var terrain_height := _get_terrain_height()
+		if global_position.y <= terrain_height + 0.5:
+			_on_ground_impact()
 
 
 func _update_trail_mesh() -> void:
@@ -184,6 +186,25 @@ func launch(start_pos: Vector3, target_pos: Vector3, projectile_damage: int, sou
 	
 	# Initialize trail with starting position
 	trail_points.append(start_pos)
+
+
+func _get_terrain_height() -> float:
+	## Raycast down to find actual terrain height at current position
+	var space_state := get_world_3d().direct_space_state
+	if not space_state:
+		return ground_level  # Fallback
+	
+	var ray_origin := global_position + Vector3(0, 20, 0)  # Start well above
+	var ray_end := global_position + Vector3(0, -100, 0)  # End well below
+	
+	var query := PhysicsRayQueryParameters3D.create(ray_origin, ray_end)
+	query.collision_mask = 1  # Terrain layer
+	
+	var result := space_state.intersect_ray(query)
+	if result:
+		return result.position.y
+	
+	return ground_level  # Fallback if no hit
 
 
 func _calculate_launch_velocity(start: Vector3, target: Vector3) -> Vector3:

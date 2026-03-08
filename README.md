@@ -2,8 +2,6 @@
 
 ## Prioritni
 * Pridat vice modelu pro vice friend npc (pes, kocka, tukan, tucnak)
-* bugy: 
-- spatny zvuk smrti katapultu, katapult často střili nejak pod terén a při dopadu na teren se častokrav nevytváří ten červený splash a jeho polomeř je jeste maly (je treba tak +30% zvetsit)
 * implementace golden zvířat
 * vzacne male objekty: zlaty poklad
 * oziveni za reklamu (pouze 1x bude možné = přida 100% zivota)
