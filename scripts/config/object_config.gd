@@ -418,7 +418,7 @@ static func _init_objects() -> void:
 		"model": "res://assets/models/npc_friend/sheep.blend",
 		"height": 0.9,
 		"height_var": 0.1,
-		"spawn_chance": 0.6,
+		"spawn_chance": 0.5,
 		"coins": 15,
 		"destructible": true,
 	})
@@ -429,8 +429,8 @@ static func _init_objects() -> void:
 		"model": "res://assets/models/npc_friend/cow.blend",
 		"height": 1.1,
 		"height_var": 0.1,
-		"spawn_chance": 0.4,
-		"coins": 18,
+		"spawn_chance": 0.3,
+		"coins": 20,
 		"destructible": true,
 	})
 	_register_object({
@@ -440,7 +440,7 @@ static func _init_objects() -> void:
 		"model": "res://assets/models/npc_friend/dog.blend",
 		"height": 1.4,
 		"height_var": 0.1,
-		"spawn_chance": 0.3,
+		"spawn_chance": 0.17,
 		"coins": 40,
 		"destructible": true,
 	})
@@ -451,7 +451,7 @@ static func _init_objects() -> void:
 		"model": "res://assets/models/npc_friend/cat.blend",
 		"height": 1.2,
 		"height_var": 0.1,
-		"spawn_chance": 0.2,
+		"spawn_chance": 0.12,
 		"coins": 60,
 		"destructible": true,
 	})
