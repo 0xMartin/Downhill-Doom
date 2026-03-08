@@ -570,12 +570,12 @@ func _spawn_rocks(chunk: Node3D, chunk_index: int, get_height_func: Callable) ->
 		chunk.add_child.call_deferred(obj)
 		_register_spawn_position(x, local_z, chunk_index)
 
-## Spawn NPC clusters - random meadows with groups of animals
+## Spawn NPC clusters - random meadows with groups of same-type animals
 func _spawn_npc_clusters(chunk: Node3D, chunk_index: int, get_height_func: Callable) -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = hash(chunk_index * 77777)
 	
-	# 70% chance to have an NPC cluster in this chunk (was 30%)
+	# 70% chance to have an NPC cluster in this chunk
 	if rng.randf() > 0.7:
 		return
 	
@@ -591,15 +591,52 @@ func _spawn_npc_clusters(chunk: Node3D, chunk_index: int, get_height_func: Calla
 	if _is_near_player_spawn(cluster_x, cluster_z, chunk_index):
 		return
 	
-	# Spawn 4-10 animals in the cluster (was 2-5)
-	var animal_count := rng.randi_range(4, 10)
-	var cluster_radius := 6.0
 	var current_distance := _get_distance_from_chunk(chunk_index)
 	
+	# Get all available friend NPCs for this distance
+	var all_npcs: Array = ObjectConfigScript.get_objects_by_category(ObjectConfigScript.Category.NPC_FRIEND)
+	var available_npcs: Array = []
+	var total_weight: float = 0.0
+	
+	for obj in all_npcs:
+		if DistanceConfigScript.can_spawn_at_distance(obj.id, current_distance):
+			available_npcs.append(obj)
+			total_weight += obj.spawn_chance
+	
+	if available_npcs.is_empty():
+		return
+	
+	# Pick primary animal type based on spawn_chance weights
+	var primary_data: RefCounted = _select_weighted_from_array(available_npcs, total_weight, rng)
+	if not primary_data:
+		return
+	
+	# Group size: 1-5 animals
+	var animal_count := rng.randi_range(1, 5)
+	var cluster_radius := 4.0  # Smaller radius for tighter groups
+	
+	# 50% chance to have one different animal in the group (if more than 1 animal and multiple types available)
+	var has_different := animal_count > 1 and available_npcs.size() > 1 and rng.randf() < 0.5
+	var different_index := -1
+	var different_data: RefCounted = null
+	
+	if has_different:
+		different_index = rng.randi_range(0, animal_count - 1)
+		# Pick a different animal type
+		var other_npcs: Array = []
+		var other_weight: float = 0.0
+		for obj in available_npcs:
+			if obj.id != primary_data.id:
+				other_npcs.append(obj)
+				other_weight += obj.spawn_chance
+		if not other_npcs.is_empty():
+			different_data = _select_weighted_from_array(other_npcs, other_weight, rng)
+	
 	for i in range(animal_count):
-		var obj_data: RefCounted = _select_object_for_distance(ObjectConfigScript.Category.NPC_FRIEND, rng, current_distance)
-		if not obj_data:
-			continue
+		# Use different animal at the designated index, otherwise primary
+		var obj_data: RefCounted = primary_data
+		if i == different_index and different_data:
+			obj_data = different_data
 		
 		# Random position within cluster
 		var angle := rng.randf_range(0, TAU)
@@ -633,6 +670,19 @@ func _spawn_npc_clusters(chunk: Node3D, chunk_index: int, get_height_func: Calla
 		
 		chunk.add_child.call_deferred(obj)
 		_register_spawn_position(x, local_z, chunk_index)
+
+
+## Helper: Select weighted random object from array
+func _select_weighted_from_array(objects: Array, total_weight: float, rng: RandomNumberGenerator) -> RefCounted:
+	if objects.is_empty() or total_weight <= 0:
+		return null
+	var roll := rng.randf() * total_weight
+	var cumulative: float = 0.0
+	for obj in objects:
+		cumulative += obj.spawn_chance
+		if roll <= cumulative:
+			return obj
+	return objects[-1]
 
 
 ## Spawn enemy NPC clusters (groups of 3-8 enemies, max 2 catapults)

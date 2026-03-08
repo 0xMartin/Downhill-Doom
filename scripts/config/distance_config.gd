@@ -30,7 +30,7 @@ const MILESTONE_0: Array[String] = [
 	# Basic buildings
 	"building_well", "building_market_stall", "building_wooden_cart",
 	# Friendly animals (all)
-	"npc_chicken", "npc_rabbit", "npc_sheep", "npc_cow",
+	"npc_chicken", "npc_rabbit", "npc_sheep", "npc_cow", "npc_dog", "npc_cat",
 ]
 
 ## Objects unlocked at 960m

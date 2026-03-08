@@ -394,10 +394,10 @@ static func _init_objects() -> void:
 		"name": "Chicken",
 		"category": Category.NPC_FRIEND,
 		"model": "res://assets/models/npc_friend/chicken.blend",
-		"height": 0.75,
+		"height": 0.85,
 		"height_var": 0.1,
 		"spawn_chance": 1.0,
-		"coins": 5,
+		"coins": 8,
 		"destructible": true,
 	})
 	_register_object({
@@ -405,10 +405,10 @@ static func _init_objects() -> void:
 		"name": "Rabbit",
 		"category": Category.NPC_FRIEND,
 		"model": "res://assets/models/npc_friend/rabbit.blend",
-		"height": 0.8,
+		"height": 0.9,
 		"height_var": 0.1,
 		"spawn_chance": 0.8,
-		"coins": 8,
+		"coins": 10,
 		"destructible": true,
 	})
 	_register_object({
@@ -419,7 +419,7 @@ static func _init_objects() -> void:
 		"height": 0.9,
 		"height_var": 0.1,
 		"spawn_chance": 0.6,
-		"coins": 10,
+		"coins": 15,
 		"destructible": true,
 	})
 	_register_object({
@@ -430,7 +430,29 @@ static func _init_objects() -> void:
 		"height": 1.1,
 		"height_var": 0.1,
 		"spawn_chance": 0.4,
-		"coins": 13,
+		"coins": 18,
+		"destructible": true,
+	})
+	_register_object({
+		"id": "npc_dog",
+		"name": "Dog",
+		"category": Category.NPC_FRIEND,
+		"model": "res://assets/models/npc_friend/dog.blend",
+		"height": 1.4,
+		"height_var": 0.1,
+		"spawn_chance": 0.3,
+		"coins": 40,
+		"destructible": true,
+	})
+	_register_object({
+		"id": "npc_cat",
+		"name": "Cat",
+		"category": Category.NPC_FRIEND,
+		"model": "res://assets/models/npc_friend/cat.blend",
+		"height": 1.2,
+		"height_var": 0.1,
+		"spawn_chance": 0.2,
+		"coins": 60,
 		"destructible": true,
 	})
 	
