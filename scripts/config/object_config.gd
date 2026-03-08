@@ -199,10 +199,10 @@ static func _init_objects() -> void:
 		"name": "Excalibur",
 		"category": Category.BUILDING,
 		"model": "res://assets/models/buildings/excalibur.blend",
-		"height": 1.8,
+		"height": 1.9,
 		"height_var": 0.05,
 		"spawn_chance": 0.01,
-		"coins": 1100,
+		"coins": 1500,
 		"destructible": true,
 	})
 	
@@ -271,6 +271,17 @@ static func _init_objects() -> void:
 		"height_var": 0.1,
 		"spawn_chance": 0.1,
 		"coins": 800,
+		"destructible": true,
+	})
+	_register_object({
+		"id": "building_wizard_tower",
+		"name": "Wizard Tower",
+		"category": Category.BUILDING_LARGE,
+		"model": "res://assets/models/buildings/wizard_tower.blend",
+		"height": 9.8,
+		"height_var": 0.1,
+		"spawn_chance": 0.05,
+		"coins": 1900,
 		"destructible": true,
 	})
 	
@@ -431,7 +442,7 @@ static func _init_objects() -> void:
 		"model": "res://assets/models/npc_enemy/dark_pawn.blend",
 		"height": 1.8,  
 		"height_var": 0.1,
-		"spawn_chance": 0.4, 
+		"spawn_chance": 0.7, 
 		"coins": 40,
 		"damage": 5,
 		"destructible": true,
@@ -443,7 +454,7 @@ static func _init_objects() -> void:
 		"model": "res://assets/models/npc_enemy/dark_knight.blend",
 		"height": 2.25, 
 		"height_var": 0.1,
-		"spawn_chance": 0.22, 
+		"spawn_chance": 0.5, 
 		"coins": 50,
 		"damage": 10,
 		"destructible": true,
@@ -455,7 +466,7 @@ static func _init_objects() -> void:
 		"model": "res://assets/models/npc_enemy/horse_knight.blend",
 		"height": 2.7,  
 		"height_var": 0.1,
-		"spawn_chance": 0.18, 
+		"spawn_chance": 0.3, 
 		"coins": 110,
 		"damage": 17,
 		"destructible": true,
@@ -467,9 +478,21 @@ static func _init_objects() -> void:
 		"model": "res://assets/models/npc_enemy/catapult.blend",
 		"height": 2.1,
 		"height_var": 0.1,
-		"spawn_chance": 0.10,  
+		"spawn_chance": 0.25,  
 		"coins": 350,
 		"damage": 30, 
+		"destructible": true,
+	})
+	_register_object({
+		"id": "npc_wizard",
+		"name": "Wizard",
+		"category": Category.NPC_ENEMY,
+		"model": "res://assets/models/npc_enemy/wizard.blend",
+		"height": 2.9,
+		"height_var": 0.1,
+		"spawn_chance": 0.75,
+		"coins": 800,
+		"damage": 22,
 		"destructible": true,
 	})
 	

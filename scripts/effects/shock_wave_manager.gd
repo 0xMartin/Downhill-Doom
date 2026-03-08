@@ -19,7 +19,7 @@ enum Source {
 }
 
 ## Configuration
-const SHOCK_WAVE_RADIUS: float = 5.6  # Maximum radius in meters (reduced 30%)
+const SHOCK_WAVE_RADIUS: float = 7.0  # Maximum radius in meters (reduced 30%)
 const EXPANSION_DURATION: float = 0.35  # Time to reach max radius
 const SHOCK_WAVE_DAMAGE: int = 30  # Damage dealt by enemy shock wave
 const SHOCK_WAVE_COLOR_PLAYER := Color(1.0, 0.7, 0.3, 0.7)  # Light orange

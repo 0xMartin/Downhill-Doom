@@ -23,6 +23,7 @@ const SpikeScript := preload("res://scripts/objects/spike.gd")
 const FriendNPCScript := preload("res://scripts/objects/friend_npc.gd")
 const EnemyNPCScript := preload("res://scripts/objects/enemy_npc.gd")
 const CatapultNPCScript := preload("res://scripts/objects/catapult_npc.gd")
+const WizardNPCScript := preload("res://scripts/objects/wizard_npc.gd")
 const PlaneNPCScript := preload("res://scripts/objects/plane.gd")
 
 # ========== SPAWNING CONFIGURATION ==========
@@ -1209,6 +1210,9 @@ func _create_enemy_npc(obj_data: RefCounted, rng: RandomNumberGenerator) -> Char
 	if obj_data.id == "npc_catapult":
 		npc.set_script(CatapultNPCScript)
 		npc.name = "CatapultNPC"
+	elif obj_data.id == "npc_wizard":
+		npc.set_script(WizardNPCScript)
+		npc.name = "WizardNPC"
 	else:
 		npc.set_script(EnemyNPCScript)
 	

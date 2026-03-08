@@ -10,6 +10,7 @@ const HURT_SOUND := "res://assets/sounds/player/hurt.mp3"
 const DEATH_SOUND := "res://assets/sounds/player/death.mp3"
 const SHOCK_WAVE_SOUND := "res://assets/sounds/sfx/shock_wave.mp3"
 const SUPERCHARGE_SOUND := "res://assets/sounds/player/supercharge.mp3"
+const SPELL_CAST_SOUND := "res://assets/sounds/sfx/spell_cast.mp3"
 
 var game_music_tracks: Array[String] = [
 	"res://assets/sounds/music/music_1.mp3",
@@ -292,6 +293,17 @@ func play_supercharge_sound() -> void:
 		player.finished.connect(player.queue_free)
 	else:
 		push_warning("Supercharge sound not found: " + SUPERCHARGE_SOUND)
+
+func play_spell_cast_sound() -> void:
+	var stream := load(SPELL_CAST_SOUND) as AudioStream
+	if stream:
+		var player := AudioStreamPlayer.new()
+		player.stream = stream
+		player.volume_db = _get_sfx_db(-3.0)
+		player.pitch_scale = _get_sfx_pitch(randf_range(0.95, 1.05))
+		add_child(player)
+		player.play()
+		player.finished.connect(player.queue_free)
 
 # ========== Hit Sounds ==========
 

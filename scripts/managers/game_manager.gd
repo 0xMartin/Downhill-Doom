@@ -13,6 +13,7 @@ signal time_changed(time: float)
 signal supercharge_changed(current: int, required: int)
 signal supercharge_activated
 signal supercharge_ended
+signal blindness_changed(is_blind: bool, time_remaining: float)
 
 # Game state
 var coins: int = 0
@@ -36,6 +37,16 @@ var is_supercharged: bool = false
 var supercharge_duration: float = 10.0  # Duration in seconds
 var supercharge_timer: float = 0.0
 const SUPERCHARGE_BASE_REQUIREMENT: int = 10  # First activation needs 10, then 15, 23, 35... (+50% each time)
+
+# Blindness system (wizard spell effect)
+var is_blind: bool = false
+var blindness_timer: float = 0.0
+var blindness_duration: float = 0.0
+var default_fog_begin: float = 49.0  # Default fog settings
+var default_fog_end: float = 150.0
+var blind_fog_begin: float = 0.0
+var blind_fog_end: float = 40.0
+var world_environment: WorldEnvironment = null
 
 # Player reference
 var player: Node3D
@@ -78,6 +89,22 @@ func _process(_delta: float) -> void:
 			
 			if supercharge_timer <= 0:
 				end_supercharge()
+		
+		# Handle blindness timer countdown
+		if is_blind:
+			blindness_timer -= _delta
+			blindness_changed.emit(true, blindness_timer)
+			
+			# Gradually restore fog as blindness wears off (last 1 second)
+			if blindness_timer <= 1.0 and blindness_timer > 0:
+				var restore_ratio := 1.0 - blindness_timer
+				_update_fog(
+					lerpf(blind_fog_begin, default_fog_begin, restore_ratio),
+					lerpf(blind_fog_end, default_fog_end, restore_ratio)
+				)
+			
+			if blindness_timer <= 0:
+				end_blindness()
 
 func start_game() -> void:
 	coins = 0
@@ -94,6 +121,11 @@ func start_game() -> void:
 	is_supercharged = false
 	supercharge_timer = 0.0
 	supercharge_changed.emit(supercharge_objects, get_supercharge_requirement())
+	
+	# Reset blindness
+	is_blind = false
+	blindness_timer = 0.0
+	_update_fog(default_fog_begin, default_fog_end)
 	
 	# Reset stats
 	destroyed_objects.clear()
@@ -200,6 +232,51 @@ func take_damage(amount: int) -> void:
 			player.die()
 		else:
 			end_game()
+
+## Apply blindness effect (fog closes in)
+func apply_blindness(duration: float, fog_begin: float = 0.0, fog_end: float = 40.0) -> void:
+	is_blind = true
+	blindness_duration = duration
+	blindness_timer = duration
+	blind_fog_begin = fog_begin
+	blind_fog_end = fog_end
+	
+	# Immediately apply blindness fog
+	_update_fog(blind_fog_begin, blind_fog_end)
+	blindness_changed.emit(true, blindness_timer)
+
+## End blindness effect
+func end_blindness() -> void:
+	is_blind = false
+	blindness_timer = 0.0
+	_update_fog(default_fog_begin, default_fog_end)
+	blindness_changed.emit(false, 0.0)
+
+## Update fog settings in WorldEnvironment
+func _update_fog(fog_begin: float, fog_end: float) -> void:
+	# Lazy initialization of world_environment reference
+	if not world_environment:
+		# Try group first
+		world_environment = get_tree().get_first_node_in_group("world_environment") as WorldEnvironment
+		if not world_environment:
+			# Search entire tree for WorldEnvironment
+			var all_nodes := _get_all_nodes(get_tree().root)
+			for node in all_nodes:
+				if node is WorldEnvironment:
+					world_environment = node
+					break
+	
+	if world_environment and world_environment.environment:
+		world_environment.environment.fog_depth_begin = fog_begin
+		world_environment.environment.fog_depth_end = fog_end
+
+
+func _get_all_nodes(node: Node) -> Array[Node]:
+	## Recursively get all nodes in the tree
+	var nodes: Array[Node] = [node]
+	for child in node.get_children():
+		nodes.append_array(_get_all_nodes(child))
+	return nodes
 
 func set_player(p: Node3D) -> void:
 	player = p

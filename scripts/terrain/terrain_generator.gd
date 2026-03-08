@@ -38,8 +38,8 @@ signal terrain_ready
 # Hole parameters
 @export_group("Holes")
 @export var hole_enabled: bool = true
-@export var hole_min_spacing: float = 67.0
-@export var hole_max_spacing: float = 107.0
+@export var hole_min_spacing: float = 80.0
+@export var hole_max_spacing: float = 200.0
 @export var hole_safe_chunks: int = 3
 @export var narrow_hole_width: float = 8.0
 @export var narrow_hole_irregularity: float = 3.0

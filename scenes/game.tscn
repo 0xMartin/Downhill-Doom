@@ -27,7 +27,7 @@ fog_density = 1.0
 fog_sky_affect = 0.85
 fog_depth_curve = 2.4367573
 fog_depth_begin = 49.0
-fog_depth_end = 147.4
+fog_depth_end = 150.0
 
 [node name="Game" type="Node3D" unique_id=1842668777]
 
@@ -54,7 +54,6 @@ transform = Transform3D(1, 0, 0, 0, 0.8, 0.6, 0, -0.6, 0.8, 0, 10, 12)
 fov = 55.0
 script = ExtResource("2_camera")
 target_path = NodePath("../Player")
-offset = Vector3(0, 9, 11)
 look_ahead = 11.0
 
 [node name="HUD" parent="." unique_id=877656401 instance=ExtResource("4_hud")]
