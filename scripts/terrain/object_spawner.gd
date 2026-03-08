@@ -1175,7 +1175,7 @@ func _create_rock(obj_data: RefCounted, rng: RandomNumberGenerator) -> StaticBod
 	var rock := StaticBody3D.new()
 	rock.name = "Rock"
 	rock.add_to_group("rocks")
-	rock.collision_layer = 1
+	rock.collision_layer = 4  # Layer 3 (separate from terrain for supercharge pass-through)
 	rock.collision_mask = 0
 	
 	# Load model (cached) - uses materials from .blend, disable shadows/reflections

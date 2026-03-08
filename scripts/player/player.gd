@@ -49,6 +49,11 @@ var supercharge_current_scale: float = 1.0
 var supercharge_glow: OmniLight3D
 var supercharge_particles: GPUParticles3D
 var supercharge_trail: GPUParticles3D  # Fire trail behind player
+var supercharge_pulse_layer: CanvasLayer  # Screen pulse overlay
+var supercharge_pulse_rect: ColorRect  # Pulse shader rect
+var supercharge_pulse_material: ShaderMaterial  # Pulse shader material
+var supercharge_outline: Node3D  # Red outline mesh container
+var supercharge_outline_material: ShaderMaterial  # Outline shader material
 var base_forward_force: float
 var base_jump_force: float
 var base_max_speed: float
@@ -56,6 +61,8 @@ const SUPERCHARGE_SCALE_MULTIPLIER: float = 2.0
 const SUPERCHARGE_SCALE_DURATION: float = 0.4
 const SUPERCHARGE_SPEED_BONUS: float = 1.3
 const SUPERCHARGE_JUMP_BONUS: float = 1.6
+const SUPERCHARGE_PULSE_SPEED: float = 1.0  # 1Hz pulse
+const SUPERCHARGE_OUTLINE_SCALE: float = 1.12  # Outline scale (12% larger)
 
 # Shock wave effect class
 const ShockWaveManager := preload("res://scripts/effects/shock_wave_manager.gd")
@@ -965,6 +972,9 @@ func _on_supercharge_activated() -> void:
 	is_supercharged = true
 	supercharge_scale_target = SUPERCHARGE_SCALE_MULTIPLIER
 	
+	# Pass through rocks during supercharge (disable collision with layer 3 = bit 2 = value 4)
+	collision_mask &= ~4
+	
 	# Apply speed and jump bonuses
 	forward_force = base_forward_force * SUPERCHARGE_SPEED_BONUS
 	jump_force = base_jump_force * SUPERCHARGE_JUMP_BONUS
@@ -980,10 +990,17 @@ func _on_supercharge_activated() -> void:
 	if supercharge_trail:
 		supercharge_trail.visible = true
 		supercharge_trail.emitting = true
+	if supercharge_pulse_material:
+		supercharge_pulse_material.set_shader_parameter("intensity", 1.0)
+	if supercharge_outline:
+		supercharge_outline.visible = true
 
 func _on_supercharge_ended() -> void:
 	is_supercharged = false
 	supercharge_scale_target = 1.0
+	
+	# Re-enable collision with rocks (layer 3 = bit 2 = value 4)
+	collision_mask |= 4
 	
 	# Restore normal values
 	forward_force = base_forward_force
@@ -1000,9 +1017,10 @@ func _on_supercharge_ended() -> void:
 	if supercharge_trail:
 		supercharge_trail.emitting = false
 		supercharge_trail.visible = false
-	if supercharge_particles:
-		supercharge_particles.emitting = false
-		supercharge_particles.visible = false
+	if supercharge_pulse_material:
+		supercharge_pulse_material.set_shader_parameter("intensity", 0.0)
+	if supercharge_outline:
+		supercharge_outline.visible = false
 
 func _update_supercharge_scale(delta: float) -> void:
 	if absf(supercharge_current_scale - supercharge_scale_target) < 0.01:
@@ -1062,6 +1080,8 @@ func _precreate_supercharge_effects() -> void:
 	_create_supercharge_glow()
 	_create_supercharge_particles()
 	_create_supercharge_trail()
+	_create_supercharge_pulse()
+	_create_supercharge_outline()
 
 func _create_supercharge_particles() -> void:
 	if supercharge_particles:
@@ -1195,3 +1215,90 @@ func _create_supercharge_trail() -> void:
 	# Position trail at the back of the player
 	supercharge_trail.position = Vector3(0, 0, sphere_radius * 0.5)
 	add_child(supercharge_trail)
+
+## Create screen pulse overlay effect for supercharge mode
+func _create_supercharge_pulse() -> void:
+	if supercharge_pulse_layer:
+		return
+	
+	# Create CanvasLayer above everything for screen effect
+	supercharge_pulse_layer = CanvasLayer.new()
+	supercharge_pulse_layer.name = "SuperchargePulseLayer"
+	supercharge_pulse_layer.layer = 100  # Above HUD
+	
+	# Create full-screen ColorRect with pulse shader
+	supercharge_pulse_rect = ColorRect.new()
+	supercharge_pulse_rect.name = "PulseRect"
+	supercharge_pulse_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+	supercharge_pulse_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	
+	# Load and apply pulse shader
+	var shader := load("res://scripts/shaders/supercharge_pulse.gdshader")
+	if shader:
+		supercharge_pulse_material = ShaderMaterial.new()
+		supercharge_pulse_material.shader = shader
+		supercharge_pulse_material.set_shader_parameter("intensity", 0.0)
+		supercharge_pulse_material.set_shader_parameter("pulse_speed", SUPERCHARGE_PULSE_SPEED)
+		supercharge_pulse_rect.material = supercharge_pulse_material
+	else:
+		# Fallback: transparent (no effect if shader fails)
+		supercharge_pulse_rect.color = Color(0.0, 0.0, 0.0, 0.0)
+	
+	supercharge_pulse_layer.add_child(supercharge_pulse_rect)
+	
+	# Add to scene tree (not as child of player, needs to stay in viewport)
+	get_tree().root.call_deferred("add_child", supercharge_pulse_layer)
+
+## Create red outline mesh for supercharge mode (wallhack-style outline)
+func _create_supercharge_outline() -> void:
+	if supercharge_outline:
+		return
+	if not player_model:
+		return
+	
+	# Create outline shader material
+	var outline_shader := load("res://scripts/shaders/outline.gdshader")
+	if not outline_shader:
+		return
+	
+	supercharge_outline_material = ShaderMaterial.new()
+	supercharge_outline_material.shader = outline_shader
+	supercharge_outline_material.set_shader_parameter("outline_color", Color(1.0, 0.15, 0.1, 1.0))
+	supercharge_outline_material.set_shader_parameter("outline_scale", SUPERCHARGE_OUTLINE_SCALE)
+	
+	# Create a container for outline meshes
+	supercharge_outline = Node3D.new()
+	supercharge_outline.name = "SuperchargeOutline"
+	supercharge_outline.visible = false
+	
+	# Clone the player model meshes and apply outline material
+	_create_outline_from_node(player_model, supercharge_outline)
+	
+	# Add as child of player_model so it follows the same transform
+	player_model.add_child(supercharge_outline)
+	supercharge_outline.position = Vector3.ZERO
+	supercharge_outline.rotation = Vector3.ZERO
+	supercharge_outline.scale = Vector3.ONE
+
+## Recursively create outline meshes from the source node
+func _create_outline_from_node(source: Node, target: Node) -> void:
+	for child in source.get_children():
+		if child is MeshInstance3D:
+			# Create a duplicate mesh with outline material
+			var outline_mesh := MeshInstance3D.new()
+			outline_mesh.name = child.name + "_outline"
+			outline_mesh.mesh = child.mesh
+			outline_mesh.transform = child.transform
+			outline_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			
+			# Apply outline material to all surfaces
+			outline_mesh.material_override = supercharge_outline_material
+			
+			target.add_child(outline_mesh)
+		elif child is Node3D:
+			# Recurse into child nodes
+			var sub_container := Node3D.new()
+			sub_container.name = child.name
+			sub_container.transform = child.transform
+			target.add_child(sub_container)
+			_create_outline_from_node(child, sub_container)
