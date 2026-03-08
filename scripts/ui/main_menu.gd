@@ -1017,6 +1017,14 @@ func _create_object_card(obj_data: RefCounted, kill_count: int) -> PanelContaine
 	spawn_label.add_theme_color_override("font_color", COLOR_TEXT_SECONDARY if kill_count > 0 else COLOR_TEXT_MUTED)
 	stats_row.add_child(spawn_label)
 	
+	# Supercharge indicator for large buildings and enemy buildings (spikes)
+	if obj_data.category == ObjectConfigScript.Category.BUILDING_LARGE or obj_data.category == ObjectConfigScript.Category.BUILDING_ENEMY:
+		var supercharge_label := Label.new()
+		supercharge_label.text = "ARMORED" if kill_count > 0 else "???"
+		supercharge_label.add_theme_font_size_override("font_size", 14)
+		supercharge_label.add_theme_color_override("font_color", COLOR_ACCENT_GOLD if kill_count > 0 else COLOR_TEXT_MUTED)
+		stats_row.add_child(supercharge_label)
+	
 	# Kill count badge
 	var kill_badge := _create_kill_badge(kill_count)
 	info.add_child(kill_badge)

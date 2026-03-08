@@ -306,7 +306,7 @@ static func _init_objects() -> void:
 		"model": "res://assets/models/buildings_enemy/spike_wall.blend",
 		"height": 2.0, 
 		"height_var": 0.05,
-		"spawn_chance": 0.0, 
+		"spawn_chance": 0.6, 
 		"coins": 475,
 		"damage": 15,
 		"destructible": false,

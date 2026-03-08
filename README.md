@@ -1,7 +1,7 @@
 # Downhill Doom
 
 ## Prioritni
-* Pridat vice modelu pro vice friend npc (pes, kocka, tukan, tucnak)
+* Pridat vice modelu pro vice friend npc (tukan, tucnak)
 * implementace golden zvířat
 * vzacne male objekty: zlaty poklad
 * oziveni za reklamu (pouze 1x bude možné = přida 100% zivota)
