@@ -1,14 +1,6 @@
 extends Node
 ## AudioManager - Handles all game audio with proper transitions
-
-const SETTINGS_PATH := "user://settings.cfg"
-
-# Volume settings (0.0 to 1.0)
-var music_volume: float = 0.7
-var sfx_volume: float = 0.8
-var show_pickup_popup: bool = true  # Show +1 coin popup on pickup
-var show_damage_popup: bool = true  # Show damage numbers when taking damage
-var haptic_enabled: bool = true  # Enable vibration feedback
+## Settings are handled by SettingsManager - this only plays audio
 
 # Sound paths
 const BUTTON_CLICK := "res://assets/sounds/ui/button_click.mp3"
@@ -64,8 +56,12 @@ const ROLL_SILENT_DB: float = -80.0  # Volume at which sound is considered silen
 var is_supercharged: bool = false
 const SUPERCHARGE_PITCH_BOOST: float = 1.2  # 20% higher pitch during supercharge
 
+# Reference to SettingsManager
+var settings: Node
+
 func _ready() -> void:
-	_load_settings()
+	# Get SettingsManager reference
+	settings = get_node("/root/SettingsManager")
 	
 	# Connect to GameManager for supercharge state
 	var gm := get_node_or_null("/root/GameManager")
@@ -378,58 +374,59 @@ func play_jump_sound() -> void:
 	player.play()
 	player.finished.connect(player.queue_free)
 
-# ========== Volume Control ==========
+# ========== Volume Control (delegates to SettingsManager) ==========
+# These methods are kept for backward compatibility with existing code
 
 func set_music_volume(value: float) -> void:
-	music_volume = clampf(value, 0.0, 1.0)
+	settings.set_music_volume(value)
 	_apply_music_volume()
-	_save_settings()
 
 func set_sfx_volume(value: float) -> void:
-	sfx_volume = clampf(value, 0.0, 1.0)
-	_save_settings()
+	settings.set_sfx_volume(value)
 
 func get_music_volume() -> float:
-	return music_volume
+	return settings.get_music_volume()
 
 func get_sfx_volume() -> float:
-	return sfx_volume
+	return settings.get_sfx_volume()
 
 func set_show_pickup_popup(value: bool) -> void:
-	show_pickup_popup = value
-	_save_settings()
+	settings.set_show_pickup_popup(value)
 
 func get_show_pickup_popup() -> bool:
-	return show_pickup_popup
+	return settings.get_show_pickup_popup()
 
 func set_show_damage_popup(value: bool) -> void:
-	show_damage_popup = value
-	_save_settings()
+	settings.set_show_damage_popup(value)
 
 func get_show_damage_popup() -> bool:
-	return show_damage_popup
+	return settings.get_show_damage_popup()
 
 func set_haptic_enabled(value: bool) -> void:
-	haptic_enabled = value
-	_save_settings()
+	settings.set_haptic_enabled(value)
 
 func get_haptic_enabled() -> bool:
-	return haptic_enabled
+	return settings.get_haptic_enabled()
+
+## Control mode: 0 = gyro, 1 = touch
+func set_control_mode(value: int) -> void:
+	settings.set_control_mode(value)
+
+func get_control_mode() -> int:
+	return settings.get_control_mode()
+
+func is_touch_mode() -> bool:
+	return settings.is_touch_mode()
 
 ## Vibrate if haptic is enabled
 func vibrate(duration_ms: int = 100) -> void:
-	if haptic_enabled:
-		Input.vibrate_handheld(duration_ms)
+	settings.vibrate(duration_ms)
 
 func _get_music_db(base_db: float = 0.0) -> float:
-	if music_volume <= 0.0:
-		return -80.0
-	return base_db + linear_to_db(music_volume)
+	return settings.get_music_db(base_db)
 
 func _get_sfx_db(base_db: float = 0.0) -> float:
-	if sfx_volume <= 0.0:
-		return -80.0
-	return base_db + linear_to_db(sfx_volume)
+	return settings.get_sfx_db(base_db)
 
 
 ## Get pitch with supercharge boost applied
@@ -453,23 +450,3 @@ func _apply_music_volume() -> void:
 		menu_music_player.volume_db = target_db
 	if game_music_player.playing:
 		game_music_player.volume_db = _get_music_db(-8.0)
-
-# ========== Settings Persistence ==========
-
-func _save_settings() -> void:
-	var config := ConfigFile.new()
-	config.set_value("audio", "music_volume", music_volume)
-	config.set_value("audio", "sfx_volume", sfx_volume)
-	config.set_value("ui", "show_pickup_popup", show_pickup_popup)
-	config.set_value("ui", "show_damage_popup", show_damage_popup)
-	config.set_value("ui", "haptic_enabled", haptic_enabled)
-	config.save(SETTINGS_PATH)
-
-func _load_settings() -> void:
-	var config := ConfigFile.new()
-	if config.load(SETTINGS_PATH) == OK:
-		music_volume = config.get_value("audio", "music_volume", 0.7)
-		sfx_volume = config.get_value("audio", "sfx_volume", 0.8)
-		show_pickup_popup = config.get_value("ui", "show_pickup_popup", true)
-		show_damage_popup = config.get_value("ui", "show_damage_popup", true)
-		haptic_enabled = config.get_value("ui", "haptic_enabled", true)

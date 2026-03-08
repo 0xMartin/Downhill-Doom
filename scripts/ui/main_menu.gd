@@ -31,6 +31,12 @@ var sfx_slider: HSlider
 var popup_check: CheckButton
 var damage_check: CheckButton
 var haptic_check: CheckButton
+var screen_shake_check: CheckButton
+var control_gyro_btn: Button
+var control_touch_btn: Button
+var tilt_sensitivity_container: VBoxContainer  # Container for tilt sensitivity (hidden in touch mode)
+var tilt_sensitivity_slider: HSlider
+var tilt_sensitivity_label: Label
 
 var audio_manager: Node
 var player_model_instance: Node3D
@@ -444,6 +450,79 @@ func _rebuild_settings_panel() -> void:
 	haptic_check.toggled.connect(_on_haptic_check_toggled)
 	display_content.add_child(haptic_check)
 	
+	# Screen shake check
+	screen_shake_check = CheckButton.new()
+	screen_shake_check.text = "Screen Shake"
+	screen_shake_check.button_pressed = true
+	screen_shake_check.add_theme_font_size_override("font_size", 22)
+	screen_shake_check.add_theme_color_override("font_color", COLOR_TEXT_SECONDARY)
+	screen_shake_check.toggled.connect(_on_screen_shake_check_toggled)
+	display_content.add_child(screen_shake_check)
+	
+	# Controls Section
+	var controls_card := _create_settings_section("CONTROLS")
+	inner_vbox.add_child(controls_card)
+	
+	var controls_content := controls_card.get_child(0)
+	
+	# Control mode label
+	var control_label := Label.new()
+	control_label.text = "Control Mode"
+	control_label.add_theme_font_size_override("font_size", 22)
+	control_label.add_theme_color_override("font_color", COLOR_TEXT_SECONDARY)
+	controls_content.add_child(control_label)
+	
+	# Control mode buttons row
+	var control_row := HBoxContainer.new()
+	control_row.add_theme_constant_override("separation", 12)
+	controls_content.add_child(control_row)
+	
+	control_gyro_btn = Button.new()
+	control_gyro_btn.text = "GYRO"
+	control_gyro_btn.custom_minimum_size = Vector2(130, 44)
+	control_gyro_btn.add_theme_font_size_override("font_size", 18)
+	control_gyro_btn.pressed.connect(_on_control_gyro_pressed)
+	control_row.add_child(control_gyro_btn)
+	
+	control_touch_btn = Button.new()
+	control_touch_btn.text = "TOUCH"
+	control_touch_btn.custom_minimum_size = Vector2(130, 44)
+	control_touch_btn.add_theme_font_size_override("font_size", 18)
+	control_touch_btn.pressed.connect(_on_control_touch_pressed)
+	control_row.add_child(control_touch_btn)
+	
+	# Tilt Sensitivity (only visible in gyro mode)
+	tilt_sensitivity_container = VBoxContainer.new()
+	tilt_sensitivity_container.add_theme_constant_override("separation", 6)
+	controls_content.add_child(tilt_sensitivity_container)
+	
+	# Sensitivity label row with value
+	var sensitivity_row := HBoxContainer.new()
+	tilt_sensitivity_container.add_child(sensitivity_row)
+	
+	var sensitivity_label := Label.new()
+	sensitivity_label.text = "Tilt Sensitivity"
+	sensitivity_label.add_theme_font_size_override("font_size", 22)
+	sensitivity_label.add_theme_color_override("font_color", COLOR_TEXT_SECONDARY)
+	sensitivity_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sensitivity_row.add_child(sensitivity_label)
+	
+	tilt_sensitivity_label = Label.new()
+	tilt_sensitivity_label.text = "1.0x"
+	tilt_sensitivity_label.add_theme_font_size_override("font_size", 22)
+	tilt_sensitivity_label.add_theme_color_override("font_color", COLOR_ACCENT_PRIMARY)
+	sensitivity_row.add_child(tilt_sensitivity_label)
+	
+	# Sensitivity slider
+	tilt_sensitivity_slider = HSlider.new()
+	tilt_sensitivity_slider.min_value = 0.5
+	tilt_sensitivity_slider.max_value = 2.0
+	tilt_sensitivity_slider.step = 0.1
+	tilt_sensitivity_slider.value = 1.0
+	tilt_sensitivity_slider.custom_minimum_size = Vector2(250, 32)
+	tilt_sensitivity_slider.value_changed.connect(_on_tilt_sensitivity_changed)
+	tilt_sensitivity_container.add_child(tilt_sensitivity_slider)
+	
 	# Spacer before back button
 	var spacer2 := Control.new()
 	spacer2.custom_minimum_size = Vector2(0, 16)
@@ -460,13 +539,21 @@ func _rebuild_settings_panel() -> void:
 	back_btn.pressed.connect(_on_settings_back_pressed)
 	inner_vbox.add_child(back_btn)
 	
-	# Load saved settings from audio manager
+	# Load saved settings from audio manager (which delegates to SettingsManager)
 	if audio_manager:
 		music_slider.value = audio_manager.get_music_volume()
 		sfx_slider.value = audio_manager.get_sfx_volume()
 		popup_check.button_pressed = audio_manager.get_show_pickup_popup()
 		damage_check.button_pressed = audio_manager.get_show_damage_popup()
 		haptic_check.button_pressed = audio_manager.get_haptic_enabled()
+		_update_control_mode_buttons(audio_manager.get_control_mode())
+	
+	# Load settings from SettingsManager for new settings
+	var settings := get_node_or_null("/root/SettingsManager")
+	if settings:
+		screen_shake_check.button_pressed = settings.get_screen_shake_enabled()
+		tilt_sensitivity_slider.value = settings.get_tilt_sensitivity()
+		_update_tilt_sensitivity_label(settings.get_tilt_sensitivity())
 
 
 func _create_settings_section(title_text: String) -> PanelContainer:
@@ -1435,6 +1522,76 @@ func _on_damage_check_toggled(toggled_on: bool) -> void:
 
 func _on_haptic_check_toggled(toggled_on: bool) -> void:
 	audio_manager.set_haptic_enabled(toggled_on)
+
+
+func _on_control_gyro_pressed() -> void:
+	audio_manager.set_control_mode(0)
+	_update_control_mode_buttons(0)
+
+
+func _on_control_touch_pressed() -> void:
+	audio_manager.set_control_mode(1)
+	_update_control_mode_buttons(1)
+
+
+func _update_control_mode_buttons(mode: int) -> void:
+	if not control_gyro_btn or not control_touch_btn:
+		return
+	
+	# Style active button
+	var active_style := StyleBoxFlat.new()
+	active_style.bg_color = COLOR_ACCENT_PRIMARY
+	active_style.set_corner_radius_all(10)
+	active_style.set_border_width_all(2)
+	active_style.border_color = COLOR_ACCENT_PRIMARY.lightened(0.3)
+	
+	# Style inactive button
+	var inactive_style := StyleBoxFlat.new()
+	inactive_style.bg_color = COLOR_BG_DARK
+	inactive_style.set_corner_radius_all(10)
+	inactive_style.set_border_width_all(2)
+	inactive_style.border_color = COLOR_BORDER
+	
+	if mode == 0:  # Gyro
+		control_gyro_btn.add_theme_stylebox_override("normal", active_style)
+		control_gyro_btn.add_theme_stylebox_override("hover", active_style)
+		control_gyro_btn.add_theme_stylebox_override("pressed", active_style)
+		control_gyro_btn.add_theme_color_override("font_color", COLOR_TEXT_PRIMARY)
+		control_touch_btn.add_theme_stylebox_override("normal", inactive_style)
+		control_touch_btn.add_theme_stylebox_override("hover", inactive_style)
+		control_touch_btn.add_theme_stylebox_override("pressed", inactive_style)
+		control_touch_btn.add_theme_color_override("font_color", COLOR_TEXT_MUTED)
+	else:  # Touch
+		control_touch_btn.add_theme_stylebox_override("normal", active_style)
+		control_touch_btn.add_theme_stylebox_override("hover", active_style)
+		control_touch_btn.add_theme_stylebox_override("pressed", active_style)
+		control_touch_btn.add_theme_color_override("font_color", COLOR_TEXT_PRIMARY)
+		control_gyro_btn.add_theme_stylebox_override("normal", inactive_style)
+		control_gyro_btn.add_theme_stylebox_override("hover", inactive_style)
+		control_gyro_btn.add_theme_stylebox_override("pressed", inactive_style)
+		control_gyro_btn.add_theme_color_override("font_color", COLOR_TEXT_MUTED)
+	
+	# Show/hide tilt sensitivity based on mode (only relevant for gyro mode)
+	if tilt_sensitivity_container:
+		tilt_sensitivity_container.visible = (mode == 0)
+
+
+func _on_screen_shake_check_toggled(toggled_on: bool) -> void:
+	var settings := get_node_or_null("/root/SettingsManager")
+	if settings:
+		settings.set_screen_shake_enabled(toggled_on)
+
+
+func _on_tilt_sensitivity_changed(value: float) -> void:
+	var settings := get_node_or_null("/root/SettingsManager")
+	if settings:
+		settings.set_tilt_sensitivity(value)
+	_update_tilt_sensitivity_label(value)
+
+
+func _update_tilt_sensitivity_label(value: float) -> void:
+	if tilt_sensitivity_label:
+		tilt_sensitivity_label.text = "%.1fx" % value
 
 
 func _on_author_link_clicked(meta: Variant) -> void:

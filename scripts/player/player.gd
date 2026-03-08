@@ -7,13 +7,13 @@ signal died
 @export var forward_force: float = 50.0  # Constant forward push
 @export var lateral_force: float = 100.0  # Direct sideways steering force
 @export var max_angular_velocity: float = 30.0  # Cap rotation speed
-@export var max_speed: float = 25.0  # Maximum forward speed
+@export var max_speed: float = 27.5  # Maximum forward speed
 @export var max_lateral_speed: float = 10.0  # Cap sideways speed
 @export var death_height_offset: float = -30.0  # Y offset below terrain that triggers death
 @export var sphere_radius: float = 0.7  # For calculating proper roll rotation
 
 # Jump parameters
-@export var jump_force: float = 120.0  # Upward impulse when jumping
+@export var jump_force: float = 132.0  # Upward impulse when jumping (increased 10%)
 @export var jump_cooldown_time: float = 0.3  # Minimum time between jumps
 
 # Tilt control - SIMPLE direct mapping
@@ -28,6 +28,8 @@ var game_manager: Node
 var terrain_slope: float = 15.0  # Will be set from terrain generator
 var terrain_generator: Node  # Reference to terrain for height queries
 var audio_manager: Node
+var settings_manager: Node  # Reference to SettingsManager
+var hud: Node  # Reference to HUD for touch controls
 var jump_cooldown: float = 0.0  # Time until next jump allowed
 var is_on_ground: bool = true  # Track if player is touching ground
 var was_on_ground: bool = true  # Previous frame ground state
@@ -84,6 +86,14 @@ func _ready() -> void:
 	# Get autoload references
 	game_manager = get_node("/root/GameManager")
 	audio_manager = get_node("/root/AudioManager")
+	settings_manager = get_node("/root/SettingsManager")
+	
+	# Get HUD reference (will be available after game scene loads)
+	hud = get_node_or_null("/root/Game/HUD")
+	
+	# Connect to HUD jump signal for touch mode
+	if hud and hud.has_signal("jump_pressed"):
+		hud.jump_pressed.connect(_try_jump)
 	
 	# Store base values for supercharge
 	base_forward_force = forward_force
@@ -258,18 +268,29 @@ func _physics_process(delta: float) -> void:
 	if Input.is_action_pressed("move_right") or Input.is_action_pressed("ui_right"):
 		keyboard_input = 0.85
 	
-	# Tilt controls for mobile - SIMPLE AND DIRECT
-	# accel.x: negative when tilted left, positive when tilted right
-	# We want: tilt left = move left (negative X), tilt right = move right (positive X)
-	var accel := Input.get_accelerometer()
-	var tilt_input: float = 0.0
-	if accel != Vector3.ZERO:
-		# Direct mapping: accel.x typically ranges from -10 to +10
-		# Normalize to roughly -1 to +1 and apply multiplier
-		tilt_input = clamp(accel.x / 6.0, -1.0, 1.0)
+	# Check control mode (gyro/tilt vs touch joystick)
+	var is_touch_mode: bool = settings_manager != null and settings_manager.is_touch_mode()
+	var final_input: float = 0.0
 	
-	# Use tilt if present, otherwise keyboard
-	var final_input: float = tilt_input if abs(tilt_input) > 0.05 else keyboard_input
+	if is_touch_mode:
+		# Touch mode: use joystick input from HUD
+		if hud and hud.has_method("get_joystick_input"):
+			final_input = hud.get_joystick_input()
+		# Fall back to keyboard if no joystick input
+		if abs(final_input) < 0.05:
+			final_input = keyboard_input
+	else:
+		# Gyro/tilt mode: use accelerometer
+		var accel := Input.get_accelerometer()
+		var tilt_input: float = 0.0
+		if accel != Vector3.ZERO:
+			# Direct mapping: accel.x typically ranges from -10 to +10
+			# Normalize to roughly -1 to +1 and apply sensitivity
+			var sensitivity: float = settings_manager.get_tilt_sensitivity() if settings_manager != null else 1.0
+			tilt_input = clamp(accel.x / 6.0 * sensitivity, -1.0, 1.0)
+		
+		# Use tilt if present, otherwise keyboard
+		final_input = tilt_input if abs(tilt_input) > 0.05 else keyboard_input
 	
 	# Apply direct lateral force - INSTANT RESPONSE
 	if final_input != 0.0:
@@ -395,7 +416,15 @@ func _input(event: InputEvent) -> void:
 		_try_jump()
 		return
 	
-	# Jump on screen tap (mobile) - but not on UI elements
+	# Check control mode
+	var is_touch_mode: bool = audio_manager != null and audio_manager.is_touch_mode()
+	
+	if is_touch_mode:
+		# Touch mode: jump only via dedicated button (handled in _physics_process)
+		# Don't trigger jump on tap-anywhere
+		return
+	
+	# Gyro mode: Jump on screen tap (mobile) - but not on UI elements
 	if event is InputEventScreenTouch:
 		if event.pressed:
 			# Use Godot's proper GUI hit testing
@@ -403,18 +432,18 @@ func _input(event: InputEvent) -> void:
 			if viewport:
 				var touch_pos: Vector2 = event.position
 				# Check if a GUI control is at this position
-				var is_gui_hit := viewport.gui_is_drag_successful() or _is_touch_on_supercharge_ui(touch_pos)
+				var is_gui_hit: bool = viewport.gui_is_drag_successful() or _is_touch_on_supercharge_ui(touch_pos)
 				if is_gui_hit:
 					return  # Don't jump, UI handled it
 			_try_jump()
 
 ## Check if touch position is over the supercharge UI panel
 func _is_touch_on_supercharge_ui(touch_pos: Vector2) -> bool:
-	var hud := get_node_or_null("/root/Game/HUD")
-	if not hud:
+	var hud_node: Node = get_node_or_null("/root/Game/HUD")
+	if not hud_node:
 		return false
 	
-	var panel := hud.get_node_or_null("SuperchargePanel")
+	var panel: Node = hud_node.get_node_or_null("SuperchargePanel")
 	if panel and panel is Control:
 		var rect: Rect2 = panel.get_global_rect()
 		return rect.has_point(touch_pos)

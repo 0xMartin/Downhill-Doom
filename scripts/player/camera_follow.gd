@@ -7,11 +7,15 @@ extends Camera3D
 @export var look_ahead: float = 5.0  # How far ahead of player to look
 
 var target: Node3D
+var settings_manager: Node
 var shake_intensity: float = 0.0
 var shake_decay: float = 5.0
 var is_following: bool = true  # Stop following when player dies
 
 func _ready() -> void:
+	# Get SettingsManager reference
+	settings_manager = get_node_or_null("/root/SettingsManager")
+	
 	if target_path:
 		target = get_node(target_path)
 	
@@ -53,11 +57,17 @@ func _physics_process(delta: float) -> void:
 	look_at(look_target, Vector3.UP)
 
 func shake(intensity: float = 0.5) -> void:
+	# Check if screen shake is enabled
+	if settings_manager and not settings_manager.get_screen_shake_enabled():
+		return
 	shake_intensity = intensity
 
 
 ## Extended shake with custom decay rate for longer shakes
 func shake_extended(intensity: float, decay: float) -> void:
+	# Check if screen shake is enabled
+	if settings_manager and not settings_manager.get_screen_shake_enabled():
+		return
 	shake_intensity = intensity
 	shake_decay = decay
 
