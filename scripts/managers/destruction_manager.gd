@@ -329,9 +329,16 @@ func _spawn_fragment(
 	debris.name = "Fragment_%d" % index
 	debris.mesh = frag_mesh
 	
-	# Apply material - use cached base material (much faster than duplicating each time)
-	var fade_material: StandardMaterial3D = _cached_base_material.duplicate() as StandardMaterial3D
-	fade_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	# Apply material - use source material if available, otherwise cached base material
+	var fade_material: StandardMaterial3D
+	if material and material is StandardMaterial3D:
+		# Use the original object's material (preserves texture skins etc)
+		fade_material = (material as StandardMaterial3D).duplicate() as StandardMaterial3D
+		fade_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	else:
+		# Fallback to cached color palette material
+		fade_material = _cached_base_material.duplicate() as StandardMaterial3D
+		fade_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	debris.material_override = fade_material
 	
 	# Extract scale from world transform to apply to debris

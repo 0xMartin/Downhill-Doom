@@ -10,7 +10,7 @@ signal died
 @export var max_speed: float = 27.5  # Maximum forward speed
 @export var max_lateral_speed: float = 10.0  # Cap sideways speed
 @export var death_height_offset: float = -30.0  # Y offset below terrain that triggers death
-@export var sphere_radius: float = 0.7  # For calculating proper roll rotation
+@export var sphere_radius: float = 0.75  # For calculating proper roll rotation
 
 # Jump parameters
 @export var jump_force: float = 132.0  # Upward impulse when jumping (increased 10%)
@@ -328,15 +328,16 @@ func _physics_process(delta: float) -> void:
 	
 	# Manual visual rotation based on actual velocity (not physics rotation)
 	if player_model:
-		# Keep visual model at player position
-		player_model.global_position = global_position
+		# Keep visual model at player position with slight Y offset for visual centering
+		# The model origin is at its base, so lift it up slightly to center visually in sphere
+		player_model.global_position = global_position + Vector3(0, 0.1 * supercharge_current_scale, 0)
 		
-		# Calculate proper angular velocity: omega = v / r
-		var rotation_scale := 0.7  # Slow down visual rotation slightly
+		# Calculate proper angular velocity: omega = v / r (physically accurate)
+		var effective_radius := sphere_radius * supercharge_current_scale
 		# Forward movement (negative Z) rotates around X axis
-		var forward_angular := linear_velocity.z / sphere_radius * rotation_scale
+		var forward_angular := linear_velocity.z / effective_radius
 		# Sideways movement (X) rotates around Z axis (negated for correct direction)
-		var side_angular := -linear_velocity.x / sphere_radius * rotation_scale
+		var side_angular := -linear_velocity.x / effective_radius
 		
 		# Apply rotation to visual model
 		player_model.rotate_x(forward_angular * delta)
@@ -724,7 +725,7 @@ func _load_selected_skin() -> void:
 	# Update player_model reference and setup top_level for proper scale control
 	player_model = new_model
 	player_model.top_level = true
-	player_model.global_position = global_position
+	player_model.global_position = global_position + Vector3(0, 0.1 * supercharge_current_scale, 0)
 	# Apply current supercharge scale if active
 	player_model.scale = Vector3.ONE * supercharge_current_scale
 
@@ -738,7 +739,7 @@ func _apply_skin_texture(node: Node, texture: Texture2D) -> void:
 		var material := StandardMaterial3D.new()
 		material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 		material.albedo_texture = texture
-		material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+		material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 		
 		# Apply to all surfaces
 		if mesh_instance.mesh:

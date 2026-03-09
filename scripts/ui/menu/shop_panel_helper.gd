@@ -602,27 +602,41 @@ func show_roulette(crate_type: String) -> void:
 	title.add_theme_color_override("font_color", COLOR_ACCENT_GOLD)
 	center.add_child(title)
 	
-	# Roulette window with mask
+	# Roulette window with mask - fixed width, centered in VBox
+	var window_wrapper := CenterContainer.new()
+	center.add_child(window_wrapper)
+	
 	var window_container := Control.new()
-	window_container.custom_minimum_size = Vector2(500, 100)
+	window_container.custom_minimum_size = Vector2(500, 120)
+	# Prevent expansion from VBoxContainer
+	window_container.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	window_container.clip_contents = true
-	center.add_child(window_container)
+	window_wrapper.add_child(window_container)
 	
-	# Center marker
-	var marker := ColorRect.new()
-	marker.color = COLOR_ACCENT_GOLD
-	marker.custom_minimum_size = Vector2(4, 100)
-	marker.set_anchors_preset(Control.PRESET_CENTER)
-	marker.anchor_left = 0.5
-	marker.anchor_right = 0.5
-	marker.offset_left = -2
-	marker.offset_right = 2
-	window_container.add_child(marker)
+	# Center marker - fancy gold crystal pointer
+	var marker_container := Control.new()
+	marker_container.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	marker_container.anchor_left = 0.5
+	marker_container.anchor_right = 0.5
+	marker_container.offset_left = -24
+	marker_container.offset_right = 24
+	marker_container.offset_top = -12
+	marker_container.offset_bottom = 60
+	marker_container.z_index = 10  # Ensure it's on top
+	window_container.add_child(marker_container)
 	
-	# Items container
+	var marker_texture := TextureRect.new()
+	if ResourceLoader.exists("res://assets/svg/roulette_indicator.svg"):
+		marker_texture.texture = load("res://assets/svg/roulette_indicator.svg")
+	marker_texture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	marker_texture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	marker_texture.set_anchors_preset(Control.PRESET_FULL_RECT)
+	marker_container.add_child(marker_texture)
+	
+	# Items container - positioned lower to make room for arrow
 	roulette_hbox = HBoxContainer.new()
 	roulette_hbox.add_theme_constant_override("separation", 10)
-	roulette_hbox.position = Vector2(0, 0)
+	roulette_hbox.position = Vector2(0, 30)
 	window_container.add_child(roulette_hbox)
 	
 	# Populate items
@@ -637,6 +651,9 @@ func show_roulette(crate_type: String) -> void:
 func _create_roulette_item(item_data: Dictionary) -> PanelContainer:
 	var panel := PanelContainer.new()
 	panel.custom_minimum_size = Vector2(90, 90)
+	# Prevent panel from expanding beyond minimum size
+	panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	
 	var style := StyleBoxFlat.new()
 	var border_color := COLOR_BORDER
@@ -709,6 +726,7 @@ func _create_roulette_item(item_data: Dictionary) -> PanelContainer:
 func _animate_roulette() -> void:
 	var winning_index := 25
 	var window_width := 500.0
+	var window_center := window_width / 2.0
 	
 	roulette_hbox.position.x = window_width
 	roulette_last_item_index = -1
@@ -729,12 +747,14 @@ func _animate_roulette() -> void:
 	await shop_panel.get_tree().process_frame
 	await shop_panel.get_tree().process_frame
 	
-	# Use actual positions from the child after layout is complete
-	var winning_child: Control = roulette_hbox.get_child(winning_index)
-	var item_x := winning_child.position.x
-	var item_w := winning_child.size.x
-	var winning_center := item_x + item_w / 2.0
-	var target_x := (window_width / 2.0) - winning_center
+	# Calculate target position using precise item geometry
+	# Each item: 90px wide + 10px separation = 100px step
+	# Item N center = N * 100 + 45
+	var item_size := 90.0
+	var separation := 10.0
+	var item_step := item_size + separation
+	var item_center := float(winning_index) * item_step + (item_size / 2.0)
+	var target_x := window_center - item_center
 	
 	# Connect to process for click sounds
 	if not shop_panel.get_tree().process_frame.is_connected(_on_roulette_process):
@@ -926,19 +946,17 @@ func _on_roulette_process() -> void:
 	
 	# Calculate which item is currently under the indicator (center of window at 250)
 	var window_center := 250.0
+	var item_size := 90.0
+	var separation := 10.0
+	var item_step := item_size + separation
 	
-	# Find which item's bounds contain the indicator
-	var current_item_index := -1
-	for i in range(roulette_hbox.get_child_count()):
-		var child: Control = roulette_hbox.get_child(i)
-		var item_left := roulette_hbox.position.x + child.position.x
-		var item_right := item_left + child.size.x
-		if item_left < window_center and item_right > window_center:
-			current_item_index = i
-			break
+	# Position in HBox coordinates = window_center - hbox.position.x
+	var pos_in_hbox := window_center - roulette_hbox.position.x
+	# Which item index contains this position
+	var current_item_index := int(pos_in_hbox / item_step)
 	
 	# Play click when crossing to new item
-	if current_item_index != roulette_last_item_index and current_item_index >= 0:
+	if current_item_index != roulette_last_item_index and current_item_index >= 0 and current_item_index < roulette_hbox.get_child_count():
 		roulette_last_item_index = current_item_index
 		if roulette_click_sound:
 			roulette_click_sound.play()

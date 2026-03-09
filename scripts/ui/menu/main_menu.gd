@@ -197,7 +197,7 @@ func _apply_skin_texture_to_model(node: Node, texture: Texture2D) -> void:
 		var material := StandardMaterial3D.new()
 		material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 		material.albedo_texture = texture
-		material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+		material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 		
 		if mesh_inst.mesh:
 			for i in range(mesh_inst.mesh.get_surface_count()):

@@ -10,7 +10,7 @@ albedo_texture = ExtResource("3_texture")
 texture_filter = 0
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_1"]
-radius = 0.7
+radius = 0.8
 
 [node name="Player" type="RigidBody3D"]
 collision_layer = 2
