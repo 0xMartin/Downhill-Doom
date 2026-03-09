@@ -544,8 +544,8 @@ static func _init_objects() -> void:
 		"model": "res://assets/models/npc_enemy/catapult.blend",
 		"height": 2.0,
 		"height_var": 0.1,
-		"spawn_chance": 0.25,  
-		"coins": 850,
+		"spawn_chance": 0.2,  
+		"coins": 1250,
 		"damage": 20, 
 		"destructible": true,
 	})

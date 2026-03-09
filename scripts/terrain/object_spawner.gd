@@ -27,6 +27,22 @@ const CatapultNPCScript := preload("res://scripts/objects/catapult_npc.gd")
 const WizardNPCScript := preload("res://scripts/objects/wizard_npc.gd")
 const PlaneNPCScript := preload("res://scripts/objects/plane.gd")
 
+# Golden NPC shader
+const GoldenShader := preload("res://scripts/shaders/golden_npc.gdshader")
+
+# Golden NPC configuration
+const GOLDEN_NPC_CHANCE: float = 0.10  # 10% chance for golden variant
+const GOLDEN_NPC_COIN_MULTIPLIER: int = 5  # 5x coins for golden
+
+# Cached golden material (created once, reused)
+static var _golden_material: ShaderMaterial = null
+
+static func _get_golden_material() -> ShaderMaterial:
+	if _golden_material == null:
+		_golden_material = ShaderMaterial.new()
+		_golden_material.shader = GoldenShader
+	return _golden_material
+
 # ========== SPAWNING CONFIGURATION ==========
 
 var terrain_width: float = 36.0
@@ -1255,9 +1271,19 @@ func _create_friend_npc(obj_data: RefCounted, rng: RandomNumberGenerator) -> Cha
 	npc.collision_layer = 0  # Don't block anything
 	npc.collision_mask = 1   # Collide with terrain for walking
 	npc.set_script(FriendNPCScript)
-	npc.set("coin_value", obj_data.coins)
-	npc.set("object_id", obj_data.id)
+	
+	# Check for golden variant (10% chance, 5x coins)
+	var is_golden := rng.randf() < GOLDEN_NPC_CHANCE
+	var coins: int = obj_data.coins * GOLDEN_NPC_COIN_MULTIPLIER if is_golden else obj_data.coins
+	
+	npc.set("coin_value", coins)
+	npc.set("object_id", obj_data.id)  # Same ID for statistics
 	npc.set("object_name", obj_data.display_name)
+	npc.set("is_golden", is_golden)
+	
+	if is_golden:
+		npc.add_to_group("golden_npcs")
+		npc.name = "GoldenNPC"
 	
 	# Load model (separate from collision, will hop) - cached
 	var model: Node3D = null
@@ -1266,6 +1292,11 @@ func _create_friend_npc(obj_data: RefCounted, rng: RandomNumberGenerator) -> Cha
 		model = model_scene.instantiate()
 		model.name = "Model"
 		_disable_shadows_recursive(model)
+		
+		# Apply golden material if golden variant
+		if is_golden:
+			_apply_golden_material(model)
+		
 		npc.add_child(model)
 	
 	# Use target_height for collision sizing (not unscaled AABB!)
@@ -1527,6 +1558,16 @@ func _disable_shadows_recursive(node: Node) -> void:
 	
 	for child in node.get_children():
 		_disable_shadows_recursive(child)
+
+## Apply golden shader material to all mesh instances in a node tree
+func _apply_golden_material(node: Node) -> void:
+	if node is MeshInstance3D:
+		var mesh_instance := node as MeshInstance3D
+		# Use material_override to replace all materials with golden shader
+		mesh_instance.material_override = _get_golden_material()
+	
+	for child in node.get_children():
+		_apply_golden_material(child)
 
 ## Create collision shape from AABB with support for box or sphere
 ## collision_shape: ObjectConfig.CollisionShape.BOX or .SPHERE

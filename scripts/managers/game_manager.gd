@@ -36,7 +36,7 @@ var supercharge_activations: int = 0  # How many times supercharge has been acti
 var is_supercharged: bool = false
 var supercharge_duration: float = 10.0  # Duration in seconds
 var supercharge_timer: float = 0.0
-const SUPERCHARGE_BASE_REQUIREMENT: int = 10  # First activation needs 10, then 15, 23, 35... (+50% each time)
+const SUPERCHARGE_BASE_REQUIREMENT: int = 10  # First activation needs 10, then 17, 29, 49... (+70% each time)
 
 # Blindness system (wizard spell effect)
 var is_blind: bool = false
@@ -347,9 +347,9 @@ static func format_time_static(time_seconds: float) -> String:
 # ========== Supercharge System ==========
 
 ## Get current supercharge requirement based on activation count
-## Escalates by +50% each time: 10 -> 15 -> 23 -> 35 -> 53...
+## Escalates by +70% each time: 10 -> 17 -> 29 -> 49 -> 83...
 func get_supercharge_requirement() -> int:
-	return int(SUPERCHARGE_BASE_REQUIREMENT * pow(1.5, supercharge_activations))
+	return int(SUPERCHARGE_BASE_REQUIREMENT * pow(1.7, supercharge_activations))
 
 ## Add one object to supercharge counter (called when destroying objects)
 func add_supercharge_object() -> void:

@@ -5,6 +5,7 @@ extends CharacterBody3D
 @export var coin_value: int = 3
 @export var object_id: String = "npc_unknown"
 @export var object_name: String = "NPC"
+@export var is_golden: bool = false  # Golden variant gives 5x coins
 
 # Terrain bounds (must match terrain_generator)
 const TERRAIN_HALF_WIDTH: float = 18.0  # terrain_width / 2
