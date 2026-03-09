@@ -55,6 +55,12 @@ func precalculate_holes(chunk_index: int) -> void:
 		chunk_holes[chunk_index] = []
 		return
 	
+	# Check for no_holes boost
+	var game_manager: Node = Engine.get_main_loop().root.get_node_or_null("/root/GameManager")
+	if game_manager and game_manager.has_boost("no_holes"):
+		chunk_holes[chunk_index] = []
+		return
+	
 	# Check if holes are unlocked at current distance (2000m+)
 	var current_distance := chunk_index * chunk_size.y
 	if not DistanceConfigScript.can_spawn_holes(current_distance):

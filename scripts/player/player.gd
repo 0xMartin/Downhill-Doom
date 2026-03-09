@@ -112,6 +112,9 @@ func _ready() -> void:
 		game_manager.supercharge_activated.connect(_on_supercharge_activated)
 		game_manager.supercharge_ended.connect(_on_supercharge_ended)
 	
+	# Load selected skin from ShopManager
+	_load_selected_skin()
+	
 	# Get visual model for manual rotation
 	player_model = get_node_or_null("PlayerModel")
 	if player_model:
@@ -670,6 +673,71 @@ func _setup_unshaded_materials(node: Node) -> void:
 	# Recurse to children
 	for child in node.get_children():
 		_setup_unshaded_materials(child)
+
+
+## Load the selected skin from ShopManager and replace the default model
+func _load_selected_skin() -> void:
+	var shop_manager := get_node_or_null("/root/ShopManager")
+	if not shop_manager:
+		return
+	
+	# Get selected skin info
+	var model_path: String = shop_manager.get_selected_skin_model_path()
+	var texture_path: String = shop_manager.get_selected_skin_texture_path()
+	
+	# Check if model exists
+	if not ResourceLoader.exists(model_path):
+		push_warning("Skin model not found: %s" % model_path)
+		return
+	
+	# Remove existing PlayerModel
+	var old_model := get_node_or_null("PlayerModel")
+	if old_model:
+		old_model.queue_free()
+	
+	# Load and instance new model
+	var model_scene: PackedScene = load(model_path)
+	if not model_scene:
+		push_warning("Failed to load skin model: %s" % model_path)
+		return
+	
+	var new_model := model_scene.instantiate()
+	new_model.name = "PlayerModel"
+	new_model.transform = Transform3D(Basis.IDENTITY.scaled(Vector3(0.7, 0.7, 0.7)), Vector3.ZERO)
+	add_child(new_model)
+	
+	# If this is a texture skin, apply the texture
+	if texture_path and ResourceLoader.exists(texture_path):
+		var texture: Texture2D = load(texture_path)
+		if texture:
+			_apply_skin_texture(new_model, texture)
+	
+	# Always setup unshaded materials (disables shadows and reflections)
+	_setup_unshaded_materials(new_model)
+	
+	# Note: player_model reference and top_level setup is handled in _ready() after this call
+
+
+## Apply a texture to all mesh instances in a model
+func _apply_skin_texture(node: Node, texture: Texture2D) -> void:
+	if node is MeshInstance3D:
+		var mesh_instance := node as MeshInstance3D
+		
+		# Create new material with texture
+		var material := StandardMaterial3D.new()
+		material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		material.albedo_texture = texture
+		material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+		
+		# Apply to all surfaces
+		if mesh_instance.mesh:
+			for i in range(mesh_instance.mesh.get_surface_count()):
+				mesh_instance.set_surface_override_material(i, material)
+	
+	# Recurse to children
+	for child in node.get_children():
+		_apply_skin_texture(child, texture)
+
 
 ## Setup dust particles when touching ground
 func _setup_dust_particles() -> void:

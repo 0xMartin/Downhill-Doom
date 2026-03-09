@@ -348,6 +348,10 @@ func _spawn_zone_objects_async(chunk: Node3D, chunk_index: int, get_height_func:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = hash(chunk_index * 54321)
 	
+	# Check for no_enemy_building boost early
+	var gm_async: Node = Engine.get_main_loop().root.get_node_or_null("/root/GameManager")
+	var building_enemies_blocked_async: bool = gm_async and gm_async.has_boost("no_enemy_building")
+	
 	# Calculate how many spawn attempts based on combined densities
 	var area := chunk_size.x * chunk_size.y
 	var combined_density := tree_density + building_density + enemy_density
@@ -400,7 +404,7 @@ func _spawn_zone_objects_async(chunk: Node3D, chunk_index: int, get_height_func:
 		# Additionally, try to spawn building enemy with separate probability
 		var enemy_roll := rng.randf()
 		var should_spawn_enemy := false
-		if chunk_index >= enemy_safe_chunks:
+		if chunk_index >= enemy_safe_chunks and not building_enemies_blocked_async:
 			# Building enemies can spawn in both zones but more likely in building zones
 			var enemy_chance := enemy_density / 10.0  # Base chance
 			if building_weight > 0.5:
@@ -422,6 +426,11 @@ func _spawn_zone_objects_async(chunk: Node3D, chunk_index: int, get_height_func:
 ## Spawn spike wall chains across the terrain
 ## Chains are generated first to reserve space before other objects
 func _spawn_spike_wall_chains(chunk: Node3D, chunk_index: int, get_height_func: Callable) -> void:
+	# Check for no_enemy_building boost
+	var game_manager: Node = Engine.get_main_loop().root.get_node_or_null("/root/GameManager")
+	if game_manager and game_manager.has_boost("no_enemy_building"):
+		return
+	
 	var rng := RandomNumberGenerator.new()
 	rng.seed = hash(chunk_index * 55555 + 12345)  # Unique seed for spike walls
 	
@@ -703,6 +712,11 @@ func _select_weighted_from_array(objects: Array, total_weight: float, rng: Rando
 
 ## Spawn enemy NPC clusters (groups of 3-8 enemies, max 2 catapults)
 func _spawn_enemy_npc_clusters(chunk: Node3D, chunk_index: int, get_height_func: Callable) -> void:
+	# Check for no_enemy_npc boost
+	var game_manager: Node = Engine.get_main_loop().root.get_node_or_null("/root/GameManager")
+	if game_manager and game_manager.has_boost("no_enemy_npc"):
+		return
+	
 	var rng := RandomNumberGenerator.new()
 	rng.seed = hash(chunk_index * 55555)
 	
@@ -869,6 +883,10 @@ func _spawn_zone_objects(chunk: Node3D, chunk_index: int, get_height_func: Calla
 	var rng := RandomNumberGenerator.new()
 	rng.seed = hash(chunk_index * 54321)
 	
+	# Check for no_enemy_building boost early
+	var gm_sync: Node = Engine.get_main_loop().root.get_node_or_null("/root/GameManager")
+	var building_enemies_blocked_sync: bool = gm_sync and gm_sync.has_boost("no_enemy_building")
+	
 	# Calculate how many spawn attempts based on combined densities
 	var area := chunk_size.x * chunk_size.y
 	var combined_density := tree_density + building_density + enemy_density
@@ -917,7 +935,7 @@ func _spawn_zone_objects(chunk: Node3D, chunk_index: int, get_height_func: Calla
 		# Additionally, try to spawn building enemy with separate probability
 		var enemy_roll := rng.randf()
 		var should_spawn_enemy := false
-		if chunk_index >= enemy_safe_chunks:
+		if chunk_index >= enemy_safe_chunks and not building_enemies_blocked_sync:
 			# Building enemies can spawn in both zones but more likely in building zones
 			var enemy_chance := enemy_density / 10.0  # Base chance
 			if building_weight > 0.5:

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <!-- Ground -->
+  <rect x="6" y="28" width="36" height="14" fill="#5D4037" stroke="#3E2723" stroke-width="2" rx="2"/>
+  <!-- Hole -->
+  <ellipse cx="24" cy="28" rx="10" ry="5" fill="#1A1A1A"/>
+  <ellipse cx="24" cy="28" rx="8" ry="3" fill="#0D0D0D"/>
+  <!-- Danger sign -->
+  <path d="M24 8L30 18H18L24 8Z" fill="#FFD700" stroke="#CC9900" stroke-width="1.5"/>
+  <text x="24" y="17" text-anchor="middle" font-size="8" font-weight="bold" fill="#000">!</text>
+  <!-- Ban circle -->
+  <circle cx="24" cy="28" r="16" fill="none" stroke="#FF0000" stroke-width="3"/>
+  <line x1="12" y1="40" x2="36" y2="16" stroke="#FF0000" stroke-width="3"/>
+</svg>

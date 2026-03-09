@@ -465,8 +465,7 @@ func fling_object(
 	call_deferred("_do_fling_object", target, killer, model_node, speed_min, speed_max, rotation_scale)
 
 ## Internal deferred fling implementation
-func _do_fling_object(
-	target: Node3D,
+func _do_fling_object(	target: Node3D,
 	killer: Node,
 	model_node: Node3D,
 	speed_min: float,

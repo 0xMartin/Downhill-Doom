@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <!-- Lightning bolt -->
+  <path d="M28 4L14 26H22L18 44L36 20H26L28 4Z" fill="#FFD700" stroke="#CC9900" stroke-width="2"/>
+  <!-- Inner glow -->
+  <path d="M26 10L18 26H23L20 38L32 22H25L26 10Z" fill="#FFEB3B"/>
+  <!-- Timer icon -->
+  <circle cx="38" cy="36" r="8" fill="#4A9EFF" stroke="#2575CF" stroke-width="1.5"/>
+  <text x="38" y="40" text-anchor="middle" font-size="9" font-weight="bold" fill="#0D47A1">x2</text>
+  <!-- Clock hands suggestion -->
+  <line x1="38" y1="36" x2="38" y2="32" stroke="#0D47A1" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="38" y1="36" x2="41" y2="36" stroke="#0D47A1" stroke-width="1.5" stroke-linecap="round"/>
+</svg>

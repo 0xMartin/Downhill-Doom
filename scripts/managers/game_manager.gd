@@ -26,6 +26,7 @@ var is_paused := false
 var coin_multiplier: int = 1  # Distance-based multiplier (1x per 1000m)
 
 # Health system
+const BASE_MAX_HEALTH: int = 100
 var max_health: int = 100
 var health: int = 100
 var infinite_health: bool = false  # Debug: skip damage
@@ -34,9 +35,23 @@ var infinite_health: bool = false  # Debug: skip damage
 var supercharge_objects: int = 0  # Objects destroyed since last supercharge
 var supercharge_activations: int = 0  # How many times supercharge has been activated
 var is_supercharged: bool = false
-var supercharge_duration: float = 10.0  # Duration in seconds
+const BASE_SUPERCHARGE_DURATION: float = 10.0  # Base duration in seconds
+var supercharge_duration: float = 10.0  # Duration in seconds (may be modified by boosts)
 var supercharge_timer: float = 0.0
 const SUPERCHARGE_BASE_REQUIREMENT: int = 10  # First activation needs 10, then 17, 29, 49... (+70% each time)
+var supercharge_requirement_multiplier: float = 1.0  # Modified by half_supercharge boost
+
+# Active boosts for current game
+var active_boosts: Array = []
+
+# Boost effects:
+# - double_hp: max_health = 200
+# - double_coins: coin earnings x2
+# - no_enemy_npc: enemy NPCs don't spawn
+# - no_enemy_building: enemy buildings don't spawn
+# - no_holes: holes don't spawn
+# - half_supercharge: supercharge requirement halved
+# - double_supercharge: supercharge duration doubled
 
 # Blindness system (wizard spell effect)
 var is_blind: bool = false
@@ -110,10 +125,14 @@ func start_game() -> void:
 	coins = 0
 	distance = 0.0
 	game_time = 0.0
-	health = max_health
 	is_playing = true
 	is_paused = false
 	coin_multiplier = 1
+	
+	# Consume and apply boosts from ShopManager
+	_apply_boosts()
+	
+	health = max_health
 	
 	# Reset supercharge
 	supercharge_objects = 0
@@ -142,6 +161,38 @@ func start_game() -> void:
 	if audio:
 		audio.start_game_music()
 
+
+func _apply_boosts() -> void:
+	# Reset to base values
+	max_health = BASE_MAX_HEALTH
+	supercharge_duration = BASE_SUPERCHARGE_DURATION
+	supercharge_requirement_multiplier = 1.0
+	active_boosts.clear()
+	
+	# Get boosts from ShopManager
+	var shop_manager := get_node_or_null("/root/ShopManager")
+	if not shop_manager:
+		return
+	
+	# Consume selected boosts (removes from inventory and returns list)
+	active_boosts = shop_manager.consume_selected_boosts()
+	
+	# Apply boost effects
+	for boost_id in active_boosts:
+		match boost_id:
+			"double_hp":
+				max_health = BASE_MAX_HEALTH * 2
+			"half_supercharge":
+				supercharge_requirement_multiplier = 0.5
+			"double_supercharge":
+				supercharge_duration = BASE_SUPERCHARGE_DURATION * 2
+
+
+## Check if a specific boost is active
+func has_boost(boost_id: String) -> bool:
+	return boost_id in active_boosts
+
+
 func end_game() -> void:
 	is_playing = false
 	
@@ -164,6 +215,9 @@ func end_game() -> void:
 
 func add_coin(amount: int = 1) -> void:
 	var multiplied_amount := amount * coin_multiplier
+	# Apply double coins boost
+	if has_boost("double_coins"):
+		multiplied_amount *= 2
 	coins += multiplied_amount
 	coins_changed.emit(coins)
 
@@ -348,8 +402,10 @@ static func format_time_static(time_seconds: float) -> String:
 
 ## Get current supercharge requirement based on activation count
 ## Escalates by +70% each time: 10 -> 17 -> 29 -> 49 -> 83...
+## Halved with half_supercharge boost
 func get_supercharge_requirement() -> int:
-	return int(SUPERCHARGE_BASE_REQUIREMENT * pow(1.7, supercharge_activations))
+	var base := int(SUPERCHARGE_BASE_REQUIREMENT * pow(1.7, supercharge_activations))
+	return int(base * supercharge_requirement_multiplier)
 
 ## Add one object to supercharge counter (called when destroying objects)
 func add_supercharge_object() -> void:

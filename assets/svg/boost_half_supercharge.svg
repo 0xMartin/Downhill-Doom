@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <!-- Lightning bolt -->
+  <path d="M28 4L14 26H22L18 44L36 20H26L28 4Z" fill="#FFD700" stroke="#CC9900" stroke-width="2"/>
+  <!-- Inner glow -->
+  <path d="M26 10L18 26H23L20 38L32 22H25L26 10Z" fill="#FFEB3B"/>
+  <!-- Half badge -->
+  <circle cx="36" cy="38" r="8" fill="#4ADE80" stroke="#22C55E" stroke-width="1.5"/>
+  <text x="36" y="42" text-anchor="middle" font-size="9" font-weight="bold" fill="#166534">½</text>
+  <!-- Arrow down -->
+  <path d="M8 14L12 20L16 14" stroke="#4ADE80" stroke-width="2" fill="none" stroke-linecap="round"/>
+</svg>

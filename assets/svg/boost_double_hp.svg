@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <!-- Heart 1 -->
+  <path d="M14 22C14 18 17 15 20 15C22 15 24 16.5 24 19C24 16.5 26 15 28 15C31 15 34 18 34 22C34 28 24 36 24 36C24 36 14 28 14 22Z" fill="#FF4B6E" stroke="#C73A58" stroke-width="2"/>
+  <!-- Shine -->
+  <circle cx="18" cy="20" r="2" fill="#FF8FA3"/>
+  <!-- x2 badge -->
+  <circle cx="36" cy="14" r="8" fill="#FFD700" stroke="#CC9900" stroke-width="1.5"/>
+  <text x="36" y="18" text-anchor="middle" font-size="10" font-weight="bold" fill="#664400">x2</text>
+</svg>

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <!-- Glow effect -->
+  <ellipse cx="24" cy="28" rx="20" ry="16" fill="#4A9EFF" opacity="0.2"/>
+  <!-- Box base -->
+  <rect x="8" y="14" width="32" height="28" rx="3" fill="#4A9EFF" stroke="#2575CF" stroke-width="2"/>
+  <!-- Ornamental lines -->
+  <line x1="8" y1="22" x2="40" y2="22" stroke="#2575CF" stroke-width="1.5"/>
+  <line x1="8" y1="32" x2="40" y2="32" stroke="#2575CF" stroke-width="1.5"/>
+  <line x1="24" y1="14" x2="24" y2="42" stroke="#2575CF" stroke-width="1.5"/>
+  <!-- Gold lock -->
+  <rect x="19" y="23" width="10" height="8" rx="1" fill="#FFD700" stroke="#CC9900" stroke-width="1"/>
+  <circle cx="24" cy="27" r="2" fill="#996600"/>
+  <!-- Two stars -->
+  <polygon points="16,6 17.2,9 20.5,9 18,11 19,14.5 16,12 13,14.5 14,11 11.5,9 14.8,9" fill="#FFD700" stroke="#CC9900" stroke-width="0.8"/>
+  <polygon points="32,6 33.2,9 36.5,9 34,11 35,14.5 32,12 29,14.5 30,11 27.5,9 30.8,9" fill="#FFD700" stroke="#CC9900" stroke-width="0.8"/>
+</svg>

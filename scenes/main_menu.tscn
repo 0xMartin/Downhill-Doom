@@ -709,6 +709,25 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_back_button")
 theme_override_styles/hover = SubResource("StyleBoxFlat_back_button_hover")
 text = "Back"
 
+[node name="ShopPanel" type="Control" parent="."]
+visible = false
+z_index = 100
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Background" type="ColorRect" parent="ShopPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.9)
+
 [connection signal="pressed" from="MainContent/ButtonGrid/PlayButton" to="." method="_on_play_button_pressed"]
 [connection signal="pressed" from="MainContent/ButtonGrid/StatsButton" to="." method="_on_stats_button_pressed"]
 [connection signal="pressed" from="MainContent/ButtonGrid/SettingsButton" to="." method="_on_settings_button_pressed"]

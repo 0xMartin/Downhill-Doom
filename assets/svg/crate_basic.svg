@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <!-- Box base -->
+  <rect x="8" y="14" width="32" height="28" rx="3" fill="#8B7355" stroke="#5D4E37" stroke-width="2"/>
+  <!-- Wood planks -->
+  <line x1="8" y1="22" x2="40" y2="22" stroke="#5D4E37" stroke-width="1.5"/>
+  <line x1="8" y1="32" x2="40" y2="32" stroke="#5D4E37" stroke-width="1.5"/>
+  <line x1="24" y1="14" x2="24" y2="42" stroke="#5D4E37" stroke-width="1.5"/>
+  <!-- Lock/clasp -->
+  <rect x="20" y="24" width="8" height="6" rx="1" fill="#A0A0A0" stroke="#707070" stroke-width="1"/>
+  <circle cx="24" cy="27" r="1.5" fill="#505050"/>
+  <!-- Star label -->
+  <polygon points="24,6 25.5,10 30,10 26.5,12.5 28,17 24,14 20,17 21.5,12.5 18,10 22.5,10" fill="#C0C0C0" stroke="#909090" stroke-width="1"/>
+</svg>
