@@ -151,17 +151,6 @@ static func _init_objects() -> void:
 		"destructible": true,
 	})
 	_register_object({
-		"id": "building_well",
-		"name": "Well",
-		"category": Category.BUILDING,
-		"model": "res://assets/models/buildings/well.blend",
-		"height": 1.8,
-		"height_var": 0.1,
-		"spawn_chance": 0.3,
-		"coins": 40,
-		"destructible": true,
-	})
-	_register_object({
 		"id": "building_market_stall",
 		"name": "Market Stall",
 		"category": Category.BUILDING,
@@ -177,7 +166,7 @@ static func _init_objects() -> void:
 		"name": "Wooden Cart",
 		"category": Category.BUILDING,
 		"model": "res://assets/models/buildings/wooden_cart.blend",
-		"height": 0.8,
+		"height": 0.95,
 		"height_var": 0.1,
 		"spawn_chance": 0.8,
 		"coins": 10,
@@ -203,6 +192,17 @@ static func _init_objects() -> void:
 		"height_var": 0.1,
 		"spawn_chance": 0.6,
 		"coins": 20,
+		"destructible": true,
+	})
+	_register_object({
+		"id": "building_well",
+		"name": "Well",
+		"category": Category.BUILDING,
+		"model": "res://assets/models/buildings/well.blend",
+		"height": 1.8,
+		"height_var": 0.1,
+		"spawn_chance": 0.3,
+		"coins": 40,
 		"destructible": true,
 	})
 	_register_object({

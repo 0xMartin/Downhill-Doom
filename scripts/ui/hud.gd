@@ -579,13 +579,17 @@ func _create_combo_ui() -> void:
 	combo_label.text = "COMBO x2"
 	combo_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	combo_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	combo_label.add_theme_font_size_override("font_size", 32)
+	combo_label.add_theme_font_size_override("font_size", 38)  # +20% size
+	# Bold font
+	var bold_font := SystemFont.new()
+	bold_font.font_weight = 700  # Bold
+	combo_label.add_theme_font_override("font", bold_font)
 	combo_label.add_theme_color_override("font_color", Color(1.0, 0.6, 0.1, 1.0))  # Orange-gold
 	combo_label.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.9))
 	combo_label.add_theme_color_override("font_outline_color", Color(0.3, 0.1, 0.0, 1.0))
 	combo_label.add_theme_constant_override("shadow_offset_x", 2)
 	combo_label.add_theme_constant_override("shadow_offset_y", 2)
-	combo_label.add_theme_constant_override("outline_size", 4)
+	combo_label.add_theme_constant_override("outline_size", 5)
 	combo_label.set_anchors_preset(Control.PRESET_FULL_RECT)
 	combo_panel.add_child(combo_label)
 

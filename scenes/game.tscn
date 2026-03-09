@@ -24,7 +24,7 @@ fog_enabled = true
 fog_mode = 1
 fog_light_color = Color(0.6915058, 0.7331261, 0.95488065, 1)
 fog_density = 1.0
-fog_sky_affect = 0.85
+fog_sky_affect = 0.95
 fog_depth_curve = 2.4367573
 fog_depth_begin = 49.0
 fog_depth_end = 150.0
@@ -47,7 +47,7 @@ light_energy = 1.2
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -7.4005804, 0)
 script = ExtResource("3_terrain")
 chunks_behind = 1
-tree_density = 0.60
+tree_density = 0.6
 
 [node name="Player" parent="." unique_id=1084123691 instance=ExtResource("1_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -3, -25)
