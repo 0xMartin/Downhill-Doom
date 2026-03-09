@@ -455,6 +455,39 @@ static func _init_objects() -> void:
 		"coins": 60,
 		"destructible": true,
 	})
+	_register_object({
+		"id": "npc_squirrel",
+		"name": "Squirrel",
+		"category": Category.NPC_FRIEND,
+		"model": "res://assets/models/npc_friend/squirrel.blend",
+		"height": 1.3,
+		"height_var": 0.1,
+		"spawn_chance": 0.20, # 0.20
+		"coins": 150,
+		"destructible": true,
+	})
+	_register_object({
+		"id": "npc_penguin",
+		"name": "Penguin",
+		"category": Category.NPC_FRIEND,
+		"model": "res://assets/models/npc_friend/penguin.blend",
+		"height": 1.8,
+		"height_var": 0.1,
+		"spawn_chance": 0.06, # 0.06
+		"coins": 500,
+		"destructible": true,
+	})
+	_register_object({
+		"id": "npc_lord_penguin",
+		"name": "Lord Penguin",
+		"category": Category.NPC_FRIEND,
+		"model": "res://assets/models/npc_friend/lord_penguin.blend",
+		"height": 2.3,
+		"height_var": 0.1,
+		"spawn_chance": 0.015, # 0.015
+		"coins": 3000,
+		"destructible": true,
+	})
 	
 	# ===== ENEMY NPCs =====
 	_register_object({

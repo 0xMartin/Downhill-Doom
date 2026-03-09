@@ -1,8 +1,9 @@
 # Downhill Doom
 
 ## Prioritni
-* Pridat vice modelu pro vice friend npc (tukan: 5% - 250, tucnak: 1% - 1000)
-* implementace golden zvířat
+* Pridat vice modelu pro vice friend npc (veverka: 7% - 250, tucnak: 2% - 800, lord tucnak 0.5% - 2500)
+* implementace golden zvířata
+* studnu nahradit hrobadou dřeva, studtu dat jako meně četnějsi
 * vzacne male objekty: zlaty poklad
 * oziveni za reklamu (pouze 1x bude možné = přida 100% zivota)
  
@@ -12,6 +13,13 @@
 
 Co za coiny
 Offline:
-* Shop pro boosty do hry (double hp, double coins, no enemy npc, no enemy building, no holes, half supercharge grow, double supercharge time) .. bude mozne aktivovat pouze dva na hru
-* Ruzne skiny - bude mit i ruzne boosty
+* Shop:
+- double hp
+- double coins
+- no enemy npc
+- no enemy building
+- no holes
+- half supercharge grow
+- double supercharge time
+- base skiny (5x)
 
