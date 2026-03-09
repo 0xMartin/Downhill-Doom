@@ -140,14 +140,25 @@ static func _init_objects() -> void:
 	
 	# ===== BUILDINGS (Small - always destructible) =====
 	_register_object({
+		"id": "building_log_stack",
+		"name": "Log Stack",
+		"category": Category.BUILDING,
+		"model": "res://assets/models/buildings/log_stack.blend",
+		"height": 1.2,
+		"height_var": 0.1,
+		"spawn_chance": 1.0,
+		"coins": 5,
+		"destructible": true,
+	})
+	_register_object({
 		"id": "building_well",
 		"name": "Well",
 		"category": Category.BUILDING,
 		"model": "res://assets/models/buildings/well.blend",
 		"height": 1.9,
 		"height_var": 0.1,
-		"spawn_chance": 1.0,
-		"coins": 5,
+		"spawn_chance": 0.3,
+		"coins": 40,
 		"destructible": true,
 	})
 	_register_object({
@@ -158,7 +169,7 @@ static func _init_objects() -> void:
 		"height": 2.2,
 		"height_var": 0.1,
 		"spawn_chance": 0.9,
-		"coins": 6,
+		"coins": 8,
 		"destructible": true,
 	})
 	_register_object({
@@ -169,7 +180,7 @@ static func _init_objects() -> void:
 		"height": 0.8,
 		"height_var": 0.1,
 		"spawn_chance": 0.8,
-		"coins": 8,
+		"coins": 10,
 		"destructible": true,
 	})
 	_register_object({
@@ -180,7 +191,7 @@ static func _init_objects() -> void:
 		"height": 1.0,
 		"height_var": 0.15,
 		"spawn_chance": 0.7,
-		"coins": 10,
+		"coins": 14,
 		"destructible": true,
 	})
 	_register_object({

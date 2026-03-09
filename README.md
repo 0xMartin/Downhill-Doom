@@ -1,7 +1,6 @@
 # Downhill Doom
 
 ## Prioritni
-* Pridat vice modelu pro vice friend npc (veverka: 7% - 250, tucnak: 2% - 800, lord tucnak 0.5% - 2500)
 * implementace golden zvířata
 * studnu nahradit hrobadou dřeva, studtu dat jako meně četnějsi
 * vzacne male objekty: zlaty poklad

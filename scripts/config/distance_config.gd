@@ -28,7 +28,7 @@ const MILESTONE_0: Array[String] = [
 	# Rocks (all)
 	"rock_1", "rock_2", "rock_3", "rock_4", "rock_5", "rock_6",
 	# Basic buildings
-	"building_well", "building_market_stall", "building_wooden_cart",
+	"building_log_stack", "building_well", "building_market_stall", "building_wooden_cart",
 	# Friendly animals (all)
 	"npc_chicken", "npc_rabbit", "npc_sheep", "npc_cow", "npc_dog", "npc_cat",
 	"npc_squirrel", "npc_penguin", "npc_lord_penguin",
