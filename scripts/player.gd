@@ -6,9 +6,9 @@ signal hit_rock(impact_position: Vector3)
 
 # Movement parameters
 @export var forward_force: float = 50.0  # Constant forward push
-@export var lateral_force: float = 100.0  # Direct sideways steering force
+@export var lateral_force: float = 110.0  # Direct sideways steering force (+10%)
 @export var max_angular_velocity: float = 30.0  # Cap rotation speed
-@export var max_speed: float = 25.0  # Maximum forward speed
+@export var max_speed: float = 27.5  # Maximum forward speed (+10%)
 @export var max_lateral_speed: float = 10.0  # Cap sideways speed
 @export var death_height_offset: float = -30.0  # Y offset below terrain that triggers death
 @export var rock_damage: int = 12  # Damage taken from rocks (halved)
@@ -43,7 +43,7 @@ var base_forward_force: float
 var base_jump_force: float
 const SUPERCHARGE_SCALE_MULTIPLIER: float = 2.0
 const SUPERCHARGE_SCALE_DURATION: float = 0.4
-const SUPERCHARGE_SPEED_BONUS: float = 1.25
+const SUPERCHARGE_SPEED_BONUS: float = 1.375  # (+10%)
 const SUPERCHARGE_JUMP_BONUS: float = 1.25
 
 func _ready() -> void:
@@ -141,12 +141,11 @@ func _physics_process(delta: float) -> void:
 		apply_central_force(Vector3(0, 0, -forward_force * speed_factor))
 	
 	# Get horizontal input (A/D or arrow keys) - for desktop testing
-	# Inverted and reduced to 60% intensity compared to tilt
 	var keyboard_input: float = 0.0
 	if Input.is_action_pressed("move_left") or Input.is_action_pressed("ui_left"):
-		keyboard_input = -0.7
+		keyboard_input = -1.0
 	if Input.is_action_pressed("move_right") or Input.is_action_pressed("ui_right"):
-		keyboard_input = 0.7
+		keyboard_input = 1.0
 	
 	# Tilt controls for mobile - SIMPLE AND DIRECT
 	# accel.x: negative when tilted left, positive when tilted right
