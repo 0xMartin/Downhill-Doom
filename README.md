@@ -1,6 +1,7 @@
 # Downhill Doom
 
 ## Prioritni
+* hra se na mobilu občas mirne zasekne z neznameho duvodu (200-500ms) na google pixel 10 pro
 * oziveni za reklamu (pouze 1x bude možné = přida 100% zivota)
 * shop sekce (skin, boosts, crates)
 * crates system (potiony, dalsi crate, skiny)
