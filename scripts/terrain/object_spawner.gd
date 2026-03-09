@@ -1593,3 +1593,10 @@ func _create_collision_from_aabb(aabb: AABB, collision_shape: int, scale_factor:
 func cleanup_chunk(chunk_index: int) -> void:
 	if spawned_positions.has(chunk_index):
 		spawned_positions.erase(chunk_index)
+	
+	# Also clean zone cache for areas behind player
+	# chunk_index 0 starts at Z=0, increasing indices go more negative
+	# Clean cache for Z values greater than (behind) this chunk
+	if zone_manager and zone_manager.has_method("cleanup_old_cache"):
+		var chunk_start_z := -chunk_index * chunk_size.y
+		zone_manager.cleanup_old_cache(chunk_start_z)

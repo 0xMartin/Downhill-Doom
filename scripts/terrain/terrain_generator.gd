@@ -286,6 +286,8 @@ func _cleanup_chunk(chunk_index: int) -> void:
 	chunks.erase(chunk_index)
 	if hole_manager:
 		hole_manager.cleanup_chunk(chunk_index)
+	if object_spawner:
+		object_spawner.cleanup_chunk(chunk_index)
 
 
 ## Return spawned objects to pool for reuse

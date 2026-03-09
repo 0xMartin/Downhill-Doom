@@ -198,6 +198,20 @@ func get_zone_info(world_x: float, world_z: float) -> String:
 func clear_cache() -> void:
 	_zone_cache.clear()
 
+## Clear cache entries behind player (Z > threshold)
+## Call periodically to prevent memory growth during long sessions
+func cleanup_old_cache(min_z: float) -> void:
+	var threshold_key_z := int(min_z / _cache_resolution)
+	var keys_to_remove: Array[Vector2i] = []
+	
+	for key in _zone_cache.keys():
+		# Cache key Y corresponds to world Z
+		if key.y > threshold_key_z:
+			keys_to_remove.append(key)
+	
+	for key in keys_to_remove:
+		_zone_cache.erase(key)
+
 ## Legacy compatibility: Get zone for chunk by index
 ## For backwards compatibility with old object_spawner
 func get_zone_for_chunk(chunk_index: int, chunk_size_y: float = 50.0, 

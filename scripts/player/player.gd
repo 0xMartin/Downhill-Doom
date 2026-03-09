@@ -222,10 +222,7 @@ func _physics_process(delta: float) -> void:
 	if not was_on_ground and is_on_ground:
 		if slam_charged:
 			_spawn_landing_shock_wave()
-			# Apply 60% slowdown after slam landing
-			linear_velocity *= SLAM_SLOWDOWN_FACTOR
-			slam_slowdown_active = true
-			slam_slowdown_timer = 0.0
+			# Note: Slowdown already applied when slam was activated in air
 		# Reset states
 		slam_charged = false
 		has_jumped = false
@@ -476,13 +473,18 @@ func _try_jump() -> void:
 ## Charge slam attack when tapping while falling
 func _charge_slam() -> void:
 	if slam_charged:
-		return  # Already charged
+		return  # Already charged (prevents repeated button presses)
 	
 	# Only allow slam if player jumped themselves (not knocked into air)
 	if not has_jumped:
 		return
 	
 	slam_charged = true
+	
+	# Apply immediate slowdown in air (allows jump correction/shortening)
+	linear_velocity *= SLAM_SLOWDOWN_FACTOR
+	slam_slowdown_active = true
+	slam_slowdown_timer = 0.0
 	
 	# Show slam cone effect with grow animation
 	if slam_cone:
