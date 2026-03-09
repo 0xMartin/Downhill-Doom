@@ -47,7 +47,7 @@ light_energy = 1.2
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -7.4005804, 0)
 script = ExtResource("3_terrain")
 chunks_behind = 1
-tree_density = 0.55
+tree_density = 0.60
 
 [node name="Player" parent="." unique_id=1084123691 instance=ExtResource("1_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -3, -25)

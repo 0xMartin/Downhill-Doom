@@ -8,7 +8,7 @@ extends RefCounted
 
 # ========== DEBUG ==========
 ## Set to true to unlock ALL objects and features from the start (for testing)
-const DEBUG_UNLOCK_ALL: bool = false
+const DEBUG_UNLOCK_ALL: bool = true
 
 # ========== FEATURE UNLOCK DISTANCES ==========
 

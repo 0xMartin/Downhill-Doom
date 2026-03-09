@@ -11,10 +11,10 @@ const TRAIL_WIDTH: float = 0.15
 const PROJECTILE_RADIUS: float = 0.3
 const PROJECTILE_COLOR := Color(0.4, 0.4, 0.4)  # Dark gray
 const TRAIL_COLOR := Color(0.6, 0.1, 0.1, 0.8)  # Red trail
-const IMPACT_SHOCK_WAVE_RADIUS: float = 12.0  # Shock wave radius (+30%)
+const IMPACT_SHOCK_WAVE_RADIUS: float = 10.0  # Shock wave radius (+30%)
 
 var velocity: Vector3 = Vector3.ZERO
-var damage: int = 30
+var damage: int = 20
 var shooter: Node3D = null
 var is_active := true
 var spawn_immunity_time: float = 0.5  # Brief immunity after spawn
