@@ -1,0 +1,1073 @@
+class_name ShopPanelHelper
+extends RefCounted
+## Helper class for building and managing the shop panel UI
+
+# Signals for communication with main menu
+signal balance_update_needed
+signal stats_reload_needed
+signal player_model_refresh_needed
+
+# Color palette
+const COLOR_BG_DARK := Color(0.06, 0.08, 0.12, 1.0)
+const COLOR_BG_MEDIUM := Color(0.10, 0.14, 0.20, 1.0)
+const COLOR_BG_LIGHT := Color(0.14, 0.18, 0.26, 1.0)
+const COLOR_ACCENT_PRIMARY := Color(0.25, 0.65, 0.96, 1.0)
+const COLOR_ACCENT_SECONDARY := Color(0.30, 0.85, 0.55, 1.0)
+const COLOR_ACCENT_GOLD := Color(1.0, 0.82, 0.25, 1.0)
+const COLOR_TEXT_PRIMARY := Color(1.0, 1.0, 1.0, 1.0)
+const COLOR_TEXT_SECONDARY := Color(0.7, 0.75, 0.85, 1.0)
+const COLOR_TEXT_MUTED := Color(0.5, 0.55, 0.65, 1.0)
+const COLOR_BORDER := Color(0.25, 0.32, 0.45, 0.8)
+
+const SHOP_SECTIONS := ["SKINS", "BOOSTS", "CRATES"]
+
+var shop_panel: Control
+var shop_manager: Node
+var audio_manager: Node
+var stats: Dictionary
+
+var shop_section_index: int = 0
+var shop_content_container: Control
+var shop_section_label: Label
+
+# Roulette state
+var roulette_container: Control
+var roulette_hbox: HBoxContainer
+var roulette_tween: Tween
+var roulette_items: Array = []
+var roulette_result: Dictionary = {}
+var roulette_crate_type: String = ""
+var roulette_last_item_index: int = -1
+var roulette_click_sound: AudioStreamPlayer
+
+
+func _init(panel: Control, shop_mgr: Node, audio_mgr: Node, stats_dict: Dictionary) -> void:
+	shop_panel = panel
+	shop_manager = shop_mgr
+	audio_manager = audio_mgr
+	stats = stats_dict
+
+
+func update_stats(new_stats: Dictionary) -> void:
+	stats = new_stats
+
+
+func rebuild() -> void:
+	# Clear existing content (except Background) - use free() for immediate removal
+	var children_to_remove: Array[Node] = []
+	for child in shop_panel.get_children():
+		if child.name != "Background":
+			children_to_remove.append(child)
+	for child in children_to_remove:
+		shop_panel.remove_child(child)
+		child.free()
+	
+	# Update background
+	var bg: ColorRect = shop_panel.get_node("Background")
+	bg.color = Color(0, 0, 0, 0.95)
+	
+	var screen_size: Vector2 = shop_panel.get_viewport().get_visible_rect().size
+	var panel_width: float = minf(720.0, screen_size.x * 0.95)
+	var panel_height: float = minf(screen_size.y * 0.92, screen_size.y - 40)
+	
+	# Create centered VBox for positioning
+	var center_vbox := VBoxContainer.new()
+	center_vbox.anchors_preset = Control.PRESET_CENTER
+	center_vbox.anchor_left = 0.5
+	center_vbox.anchor_top = 0.5
+	center_vbox.anchor_right = 0.5
+	center_vbox.anchor_bottom = 0.5
+	center_vbox.offset_left = -panel_width / 2
+	center_vbox.offset_right = panel_width / 2
+	center_vbox.offset_top = -panel_height / 2
+	center_vbox.offset_bottom = panel_height / 2
+	center_vbox.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	center_vbox.grow_vertical = Control.GROW_DIRECTION_BOTH
+	shop_panel.add_child(center_vbox)
+	
+	# Create main card container
+	var card := PanelContainer.new()
+	card.custom_minimum_size = Vector2(panel_width, panel_height)
+	
+	var card_style := StyleBoxFlat.new()
+	card_style.bg_color = COLOR_BG_MEDIUM
+	card_style.set_corner_radius_all(24)
+	card_style.set_border_width_all(2)
+	card_style.border_color = COLOR_ACCENT_GOLD.darkened(0.3)
+	card_style.shadow_color = Color(0, 0, 0, 0.5)
+	card_style.shadow_size = 20
+	card_style.set_content_margin_all(20)
+	card.add_theme_stylebox_override("panel", card_style)
+	center_vbox.add_child(card)
+	
+	var inner_vbox := VBoxContainer.new()
+	inner_vbox.add_theme_constant_override("separation", 10)
+	card.add_child(inner_vbox)
+	
+	# Title with gold glow
+	var title := Label.new()
+	title.text = "SHOP"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 38)
+	title.add_theme_color_override("font_color", COLOR_ACCENT_GOLD)
+	title.add_theme_color_override("font_outline_color", COLOR_ACCENT_GOLD.darkened(0.3))
+	title.add_theme_constant_override("outline_size", 2)
+	inner_vbox.add_child(title)
+	
+	# Balance display in shop
+	var balance_row := HBoxContainer.new()
+	balance_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	balance_row.add_theme_constant_override("separation", 10)
+	inner_vbox.add_child(balance_row)
+	
+	var coin_icon := TextureRect.new()
+	coin_icon.texture = load("res://assets/svg/coin.svg")
+	coin_icon.custom_minimum_size = Vector2(28, 28)
+	coin_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	coin_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	coin_icon.modulate = COLOR_ACCENT_GOLD
+	balance_row.add_child(coin_icon)
+	
+	var shop_balance_label := Label.new()
+	shop_balance_label.name = "ShopBalanceLabel"
+	shop_balance_label.text = _format_balance(stats.get("coin_balance", 0))
+	shop_balance_label.add_theme_font_size_override("font_size", 28)
+	shop_balance_label.add_theme_color_override("font_color", COLOR_ACCENT_GOLD)
+	balance_row.add_child(shop_balance_label)
+	
+	# Section Navigation
+	var nav_container := HBoxContainer.new()
+	nav_container.alignment = BoxContainer.ALIGNMENT_CENTER
+	nav_container.add_theme_constant_override("separation", 15)
+	inner_vbox.add_child(nav_container)
+	
+	var prev_btn := _create_nav_button("<")
+	prev_btn.name = "PrevButton"
+	prev_btn.pressed.connect(_on_section_prev)
+	nav_container.add_child(prev_btn)
+	
+	shop_section_label = Label.new()
+	shop_section_label.text = SHOP_SECTIONS[shop_section_index]
+	shop_section_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	shop_section_label.custom_minimum_size = Vector2(140, 40)
+	shop_section_label.add_theme_font_size_override("font_size", 24)
+	shop_section_label.add_theme_color_override("font_color", COLOR_ACCENT_GOLD)
+	nav_container.add_child(shop_section_label)
+	
+	var next_btn := _create_nav_button(">")
+	next_btn.name = "NextButton"
+	next_btn.pressed.connect(_on_section_next)
+	nav_container.add_child(next_btn)
+	
+	# Content area
+	var scroll := ScrollContainer.new()
+	var scroll_height: float = maxf(400.0, screen_size.y * 0.55)
+	scroll.custom_minimum_size = Vector2(panel_width - 50, scroll_height)
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	inner_vbox.add_child(scroll)
+	
+	shop_content_container = VBoxContainer.new()
+	shop_content_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	shop_content_container.add_theme_constant_override("separation", 12)
+	scroll.add_child(shop_content_container)
+	
+	_populate_section()
+	
+	# Back Button
+	var back_btn := Button.new()
+	back_btn.name = "BackButton"
+	back_btn.text = "BACK"
+	back_btn.custom_minimum_size = Vector2(180, 50)
+	back_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	back_btn.add_theme_font_size_override("font_size", 20)
+	_style_secondary_button(back_btn)
+	inner_vbox.add_child(back_btn)
+
+
+func get_back_button() -> Button:
+	return shop_panel.find_child("BackButton", true, false) as Button
+
+
+func update_balance() -> void:
+	var label := shop_panel.find_child("ShopBalanceLabel", true, false)
+	if label and label is Label:
+		label.text = _format_balance(stats.get("coin_balance", 0))
+
+
+func _on_section_prev() -> void:
+	shop_section_index = (shop_section_index - 1 + SHOP_SECTIONS.size()) % SHOP_SECTIONS.size()
+	_update_section_display()
+
+
+func _on_section_next() -> void:
+	shop_section_index = (shop_section_index + 1) % SHOP_SECTIONS.size()
+	_update_section_display()
+
+
+func _update_section_display() -> void:
+	if shop_section_label:
+		shop_section_label.text = SHOP_SECTIONS[shop_section_index]
+	_populate_section()
+
+
+func _populate_section() -> void:
+	if not shop_content_container:
+		return
+	
+	for child in shop_content_container.get_children():
+		child.queue_free()
+	
+	match shop_section_index:
+		0:
+			_populate_skins_section()
+		1:
+			_populate_boosts_section()
+		2:
+			_populate_crates_section()
+
+
+func _populate_skins_section() -> void:
+	if not shop_manager:
+		return
+	
+	# Model-based skins
+	var model_header := Label.new()
+	model_header.text = "MODEL SKINS"
+	model_header.add_theme_font_size_override("font_size", 20)
+	model_header.add_theme_color_override("font_color", COLOR_TEXT_SECONDARY)
+	shop_content_container.add_child(model_header)
+	
+	var model_skins := ["player_1", "player_2", "player_3", "player_4", "player_5", "player_6", "player_7", "player_8", "player_9"]
+	for skin_id in model_skins:
+		var card := _create_skin_card(skin_id, false)
+		shop_content_container.add_child(card)
+	
+	# Texture skins from crates
+	var texture_header := Label.new()
+	texture_header.text = "SPECIAL SKINS (from crates)"
+	texture_header.add_theme_font_size_override("font_size", 20)
+	texture_header.add_theme_color_override("font_color", COLOR_TEXT_SECONDARY)
+	shop_content_container.add_child(texture_header)
+	
+	var texture_skins: Array = shop_manager.available_texture_skins
+	if texture_skins.is_empty():
+		var empty_label := Label.new()
+		empty_label.text = "No special skins available yet"
+		empty_label.add_theme_font_size_override("font_size", 16)
+		empty_label.add_theme_color_override("font_color", COLOR_TEXT_MUTED)
+		shop_content_container.add_child(empty_label)
+	else:
+		for skin_id in texture_skins:
+			var card := _create_skin_card(skin_id, true)
+			shop_content_container.add_child(card)
+
+
+func _create_skin_card(skin_id: String, is_texture: bool) -> PanelContainer:
+	var card := PanelContainer.new()
+	card.custom_minimum_size = Vector2(0, 80)
+	
+	var is_owned: bool = shop_manager.is_skin_owned(skin_id)
+	var is_selected: bool = shop_manager.get_selected_skin() == skin_id
+	var price: int = shop_manager.get_skin_price(skin_id)
+	
+	var style := StyleBoxFlat.new()
+	style.bg_color = COLOR_BG_DARK
+	style.set_corner_radius_all(14)
+	style.set_border_width_all(2)
+	if is_selected:
+		style.border_color = COLOR_ACCENT_SECONDARY
+	elif is_owned:
+		style.border_color = COLOR_ACCENT_PRIMARY.darkened(0.3)
+	else:
+		style.border_color = COLOR_BORDER
+	style.set_content_margin_all(12)
+	card.add_theme_stylebox_override("panel", style)
+	
+	var hbox := HBoxContainer.new()
+	hbox.add_theme_constant_override("separation", 15)
+	card.add_child(hbox)
+	
+	# Skin name
+	var name_vbox := VBoxContainer.new()
+	name_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	hbox.add_child(name_vbox)
+	
+	var display_name := skin_id.replace("_", " ").capitalize()
+	if is_texture:
+		display_name += " ★"
+	
+	var name_label := Label.new()
+	name_label.text = display_name
+	name_label.add_theme_font_size_override("font_size", 20)
+	name_label.add_theme_color_override("font_color", COLOR_TEXT_PRIMARY if is_owned else COLOR_TEXT_MUTED)
+	name_vbox.add_child(name_label)
+	
+	# Status or price
+	var status_label := Label.new()
+	if is_selected:
+		status_label.text = "EQUIPPED"
+		status_label.add_theme_color_override("font_color", COLOR_ACCENT_SECONDARY)
+	elif is_owned:
+		status_label.text = "OWNED"
+		status_label.add_theme_color_override("font_color", COLOR_ACCENT_PRIMARY)
+	elif is_texture:
+		status_label.text = "CRATE ONLY"
+		status_label.add_theme_color_override("font_color", COLOR_TEXT_MUTED)
+	else:
+		status_label.text = "%s coins" % _format_balance(price)
+		status_label.add_theme_color_override("font_color", COLOR_ACCENT_GOLD)
+	status_label.add_theme_font_size_override("font_size", 14)
+	name_vbox.add_child(status_label)
+	
+	# Action button
+	var action_btn := Button.new()
+	action_btn.custom_minimum_size = Vector2(100, 40)
+	
+	if is_selected:
+		action_btn.text = "SELECTED"
+		action_btn.disabled = true
+	elif is_owned:
+		action_btn.text = "SELECT"
+		action_btn.pressed.connect(_on_skin_select.bind(skin_id))
+	elif not is_texture and price > 0:
+		action_btn.text = "BUY"
+		action_btn.pressed.connect(_on_skin_buy.bind(skin_id))
+	else:
+		action_btn.text = "LOCKED"
+		action_btn.disabled = true
+	
+	_style_shop_button(action_btn, is_owned and not is_selected)
+	hbox.add_child(action_btn)
+	
+	return card
+
+
+func _populate_boosts_section() -> void:
+	if not shop_manager:
+		return
+	
+	# Selected boosts info
+	var selected: Array = shop_manager.get_selected_boosts()
+	var selected_label := Label.new()
+	selected_label.text = "Selected for next game: %d/2" % selected.size()
+	selected_label.add_theme_font_size_override("font_size", 18)
+	selected_label.add_theme_color_override("font_color", COLOR_TEXT_SECONDARY)
+	selected_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	shop_content_container.add_child(selected_label)
+	
+	# Boost cards
+	var boost_ids: Array = shop_manager.BOOST_PRICES.keys()
+	for boost_id in boost_ids:
+		var card := _create_boost_card(boost_id)
+		shop_content_container.add_child(card)
+
+
+func _create_boost_card(boost_id: String) -> PanelContainer:
+	var card := PanelContainer.new()
+	card.custom_minimum_size = Vector2(0, 90)
+	
+	var owned_count: int = shop_manager.get_boost_count(boost_id)
+	var is_selected: bool = shop_manager.is_boost_selected(boost_id)
+	var price: int = shop_manager.BOOST_PRICES.get(boost_id, 0)
+	var display_name: String = shop_manager.BOOST_NAMES.get(boost_id, boost_id)
+	var icon_path: String = shop_manager.BOOST_ICONS.get(boost_id, "")
+	
+	var style := StyleBoxFlat.new()
+	style.bg_color = COLOR_BG_DARK
+	style.set_corner_radius_all(14)
+	style.set_border_width_all(2)
+	if is_selected:
+		style.border_color = COLOR_ACCENT_SECONDARY
+	elif owned_count > 0:
+		style.border_color = COLOR_ACCENT_PRIMARY.darkened(0.3)
+	else:
+		style.border_color = COLOR_BORDER
+	style.set_content_margin_all(12)
+	card.add_theme_stylebox_override("panel", style)
+	
+	var hbox := HBoxContainer.new()
+	hbox.add_theme_constant_override("separation", 12)
+	card.add_child(hbox)
+	
+	# Icon
+	if icon_path and ResourceLoader.exists(icon_path):
+		var icon := TextureRect.new()
+		icon.texture = load(icon_path)
+		icon.custom_minimum_size = Vector2(48, 48)
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		hbox.add_child(icon)
+	
+	# Info
+	var info_vbox := VBoxContainer.new()
+	info_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	hbox.add_child(info_vbox)
+	
+	var name_label := Label.new()
+	name_label.text = display_name
+	name_label.add_theme_font_size_override("font_size", 18)
+	name_label.add_theme_color_override("font_color", COLOR_TEXT_PRIMARY)
+	info_vbox.add_child(name_label)
+	
+	var owned_label := Label.new()
+	owned_label.text = "Owned: %d" % owned_count
+	owned_label.add_theme_font_size_override("font_size", 14)
+	owned_label.add_theme_color_override("font_color", COLOR_TEXT_SECONDARY if owned_count > 0 else COLOR_TEXT_MUTED)
+	info_vbox.add_child(owned_label)
+	
+	var price_label := Label.new()
+	price_label.text = "%s coins" % _format_balance(price)
+	price_label.add_theme_font_size_override("font_size", 14)
+	price_label.add_theme_color_override("font_color", COLOR_ACCENT_GOLD)
+	info_vbox.add_child(price_label)
+	
+	# Buttons
+	var btn_vbox := VBoxContainer.new()
+	btn_vbox.add_theme_constant_override("separation", 6)
+	hbox.add_child(btn_vbox)
+	
+	# Select/deselect button
+	var select_btn := Button.new()
+	select_btn.custom_minimum_size = Vector2(90, 32)
+	if is_selected:
+		select_btn.text = "REMOVE"
+		select_btn.pressed.connect(_on_boost_toggle.bind(boost_id))
+	elif owned_count > 0:
+		select_btn.text = "USE"
+		select_btn.pressed.connect(_on_boost_toggle.bind(boost_id))
+	else:
+		select_btn.text = "USE"
+		select_btn.disabled = true
+	_style_shop_button(select_btn, is_selected)
+	btn_vbox.add_child(select_btn)
+	
+	# Buy button
+	var buy_btn := Button.new()
+	buy_btn.text = "BUY"
+	buy_btn.custom_minimum_size = Vector2(90, 32)
+	buy_btn.pressed.connect(_on_boost_buy.bind(boost_id))
+	_style_shop_button(buy_btn, false)
+	btn_vbox.add_child(buy_btn)
+	
+	return card
+
+
+func _populate_crates_section() -> void:
+	if not shop_manager:
+		return
+	
+	var crate_types := ["basic", "premium", "legendary"]
+	for crate_type in crate_types:
+		var card := _create_crate_card(crate_type)
+		shop_content_container.add_child(card)
+
+
+func _create_crate_card(crate_type: String) -> PanelContainer:
+	var card := PanelContainer.new()
+	card.custom_minimum_size = Vector2(0, 120)
+	
+	var owned_count: int = shop_manager.get_crate_count(crate_type)
+	var price: int = shop_manager.CRATE_PRICES.get(crate_type, 0)
+	var display_name: String = shop_manager.CRATE_NAMES.get(crate_type, crate_type)
+	var icon_path: String = shop_manager.CRATE_ICONS.get(crate_type, "")
+	var chances: Dictionary = shop_manager.CRATE_DROP_CHANCES.get(crate_type, {})
+	
+	var accent_color := COLOR_TEXT_SECONDARY
+	match crate_type:
+		"basic":
+			accent_color = Color(0.7, 0.7, 0.7)
+		"premium":
+			accent_color = COLOR_ACCENT_PRIMARY
+		"legendary":
+			accent_color = COLOR_ACCENT_GOLD
+	
+	var style := StyleBoxFlat.new()
+	style.bg_color = COLOR_BG_DARK
+	style.set_corner_radius_all(14)
+	style.set_border_width_all(2)
+	style.border_color = accent_color.darkened(0.3)
+	style.set_content_margin_all(12)
+	card.add_theme_stylebox_override("panel", style)
+	
+	var hbox := HBoxContainer.new()
+	hbox.add_theme_constant_override("separation", 15)
+	card.add_child(hbox)
+	
+	# Icon
+	if icon_path and ResourceLoader.exists(icon_path):
+		var icon := TextureRect.new()
+		icon.texture = load(icon_path)
+		icon.custom_minimum_size = Vector2(64, 64)
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		hbox.add_child(icon)
+	
+	# Info
+	var info_vbox := VBoxContainer.new()
+	info_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	hbox.add_child(info_vbox)
+	
+	var name_label := Label.new()
+	name_label.text = display_name
+	name_label.add_theme_font_size_override("font_size", 20)
+	name_label.add_theme_color_override("font_color", accent_color)
+	info_vbox.add_child(name_label)
+	
+	var owned_label := Label.new()
+	owned_label.text = "Owned: %d" % owned_count
+	owned_label.add_theme_font_size_override("font_size", 14)
+	owned_label.add_theme_color_override("font_color", COLOR_TEXT_SECONDARY)
+	info_vbox.add_child(owned_label)
+	
+	# Drop chances
+	var chances_label := Label.new()
+	chances_label.text = "Boost: %.0f%% | Crate: %.0f%% | Skin: %.0f%%" % [
+		chances.get("boost", 0) * 100,
+		chances.get("crate", 0) * 100,
+		chances.get("skin", 0) * 100
+	]
+	chances_label.add_theme_font_size_override("font_size", 12)
+	chances_label.add_theme_color_override("font_color", COLOR_TEXT_MUTED)
+	info_vbox.add_child(chances_label)
+	
+	var price_label := Label.new()
+	price_label.text = "%s coins" % _format_balance(price)
+	price_label.add_theme_font_size_override("font_size", 14)
+	price_label.add_theme_color_override("font_color", COLOR_ACCENT_GOLD)
+	info_vbox.add_child(price_label)
+	
+	# Buttons
+	var btn_vbox := VBoxContainer.new()
+	btn_vbox.add_theme_constant_override("separation", 6)
+	hbox.add_child(btn_vbox)
+	
+	# Open button
+	var open_btn := Button.new()
+	open_btn.text = "OPEN"
+	open_btn.custom_minimum_size = Vector2(90, 36)
+	open_btn.disabled = owned_count <= 0
+	open_btn.pressed.connect(_on_crate_open.bind(crate_type))
+	_style_shop_button(open_btn, owned_count > 0)
+	btn_vbox.add_child(open_btn)
+	
+	# Buy button
+	var buy_btn := Button.new()
+	buy_btn.text = "BUY"
+	buy_btn.custom_minimum_size = Vector2(90, 36)
+	buy_btn.pressed.connect(_on_crate_buy.bind(crate_type))
+	_style_shop_button(buy_btn, false)
+	btn_vbox.add_child(buy_btn)
+	
+	return card
+
+
+# ========== ROULETTE ==========
+
+func show_roulette(crate_type: String) -> void:
+	roulette_crate_type = crate_type
+	roulette_items = shop_manager.generate_roulette_items(crate_type, 35)
+	
+	# Create roulette overlay
+	roulette_container = Control.new()
+	roulette_container.set_anchors_preset(Control.PRESET_FULL_RECT)
+	shop_panel.add_child(roulette_container)
+	
+	# Dark background
+	var bg := ColorRect.new()
+	bg.color = Color(0, 0, 0, 0.9)
+	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+	roulette_container.add_child(bg)
+	
+	# Center container
+	var center := VBoxContainer.new()
+	center.set_anchors_preset(Control.PRESET_CENTER)
+	center.anchor_left = 0.5
+	center.anchor_right = 0.5
+	center.anchor_top = 0.5
+	center.anchor_bottom = 0.5
+	center.offset_left = -300
+	center.offset_right = 300
+	center.offset_top = -150
+	center.offset_bottom = 150
+	center.add_theme_constant_override("separation", 20)
+	center.alignment = BoxContainer.ALIGNMENT_CENTER
+	roulette_container.add_child(center)
+	
+	# Title
+	var title := Label.new()
+	title.text = "OPENING %s" % shop_manager.CRATE_NAMES.get(crate_type, "Crate").to_upper()
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 28)
+	title.add_theme_color_override("font_color", COLOR_ACCENT_GOLD)
+	center.add_child(title)
+	
+	# Roulette window with mask
+	var window_container := Control.new()
+	window_container.custom_minimum_size = Vector2(500, 100)
+	window_container.clip_contents = true
+	center.add_child(window_container)
+	
+	# Center marker
+	var marker := ColorRect.new()
+	marker.color = COLOR_ACCENT_GOLD
+	marker.custom_minimum_size = Vector2(4, 100)
+	marker.set_anchors_preset(Control.PRESET_CENTER)
+	marker.anchor_left = 0.5
+	marker.anchor_right = 0.5
+	marker.offset_left = -2
+	marker.offset_right = 2
+	window_container.add_child(marker)
+	
+	# Items container
+	roulette_hbox = HBoxContainer.new()
+	roulette_hbox.add_theme_constant_override("separation", 10)
+	roulette_hbox.position = Vector2(0, 0)
+	window_container.add_child(roulette_hbox)
+	
+	# Populate items
+	for i in range(roulette_items.size()):
+		var item := _create_roulette_item(roulette_items[i])
+		roulette_hbox.add_child(item)
+	
+	# Start animation
+	_animate_roulette()
+
+
+func _create_roulette_item(item_data: Dictionary) -> PanelContainer:
+	var panel := PanelContainer.new()
+	panel.custom_minimum_size = Vector2(90, 90)
+	
+	var style := StyleBoxFlat.new()
+	var border_color := COLOR_BORDER
+	var bg_color := COLOR_BG_DARK
+	
+	# Set colors based on rarity/type
+	match item_data.get("type", ""):
+		"boost":
+			border_color = COLOR_ACCENT_PRIMARY
+			bg_color = Color(COLOR_ACCENT_PRIMARY.r, COLOR_ACCENT_PRIMARY.g, COLOR_ACCENT_PRIMARY.b, 0.15)
+		"crate":
+			border_color = COLOR_ACCENT_SECONDARY
+			bg_color = Color(COLOR_ACCENT_SECONDARY.r, COLOR_ACCENT_SECONDARY.g, COLOR_ACCENT_SECONDARY.b, 0.15)
+		"skin":
+			border_color = COLOR_ACCENT_GOLD
+			bg_color = Color(COLOR_ACCENT_GOLD.r, COLOR_ACCENT_GOLD.g, COLOR_ACCENT_GOLD.b, 0.2)
+	
+	style.bg_color = bg_color
+	style.border_color = border_color
+	style.set_corner_radius_all(10)
+	style.set_border_width_all(3)
+	style.set_content_margin_all(8)
+	panel.add_theme_stylebox_override("panel", style)
+	
+	var vbox := VBoxContainer.new()
+	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	vbox.add_theme_constant_override("separation", 4)
+	panel.add_child(vbox)
+	
+	# Icon
+	var icon_path := ""
+	match item_data.get("type", ""):
+		"boost":
+			icon_path = shop_manager.BOOST_ICONS.get(item_data.get("id", ""), "")
+		"crate":
+			icon_path = shop_manager.CRATE_ICONS.get(item_data.get("id", ""), "")
+		"skin":
+			icon_path = "res://assets/skins/%s.png" % item_data.get("id", "")
+	
+	if icon_path and ResourceLoader.exists(icon_path):
+		var icon := TextureRect.new()
+		icon.texture = load(icon_path)
+		icon.custom_minimum_size = Vector2(40, 40)
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		vbox.add_child(icon)
+	
+	# Name
+	var name_label := Label.new()
+	var item_name := ""
+	match item_data.get("type", ""):
+		"boost":
+			item_name = shop_manager.BOOST_NAMES.get(item_data.get("id", ""), item_data.get("id", ""))
+		"crate":
+			item_name = shop_manager.CRATE_NAMES.get(item_data.get("id", ""), item_data.get("id", ""))
+		"skin":
+			item_name = item_data.get("id", "Skin").replace("_", " ").capitalize()
+	
+	name_label.text = item_name
+	name_label.add_theme_font_size_override("font_size", 10)
+	name_label.add_theme_color_override("font_color", COLOR_TEXT_SECONDARY)
+	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD
+	vbox.add_child(name_label)
+	
+	return panel
+
+
+func _animate_roulette() -> void:
+	var winning_index := 25
+	var window_width := 500.0
+	
+	roulette_hbox.position.x = window_width
+	roulette_last_item_index = -1
+	
+	# Setup click sound
+	_setup_roulette_click_sound()
+	
+	# Get the actual result
+	roulette_result = shop_manager.open_crate(roulette_crate_type)
+	
+	# Update winning item with result
+	if roulette_hbox.get_child_count() > winning_index:
+		var winning_panel_update: PanelContainer = roulette_hbox.get_child(winning_index)
+		_update_roulette_item(winning_panel_update, roulette_result)
+	
+	# Wait for layout to be fully calculated
+	await shop_panel.get_tree().process_frame
+	await shop_panel.get_tree().process_frame
+	await shop_panel.get_tree().process_frame
+	
+	# Use actual positions from the child after layout is complete
+	var winning_child: Control = roulette_hbox.get_child(winning_index)
+	var item_x := winning_child.position.x
+	var item_w := winning_child.size.x
+	var winning_center := item_x + item_w / 2.0
+	var target_x := (window_width / 2.0) - winning_center
+	
+	# Connect to process for click sounds
+	if not shop_panel.get_tree().process_frame.is_connected(_on_roulette_process):
+		shop_panel.get_tree().process_frame.connect(_on_roulette_process)
+	
+	# Animate
+	roulette_tween = shop_panel.create_tween()
+	roulette_tween.set_ease(Tween.EASE_OUT)
+	roulette_tween.set_trans(Tween.TRANS_CUBIC)
+	roulette_tween.tween_property(roulette_hbox, "position:x", target_x, 4.0)
+	roulette_tween.tween_callback(_on_roulette_finished)
+
+
+func _update_roulette_item(panel: PanelContainer, result: Dictionary) -> void:
+	for child in panel.get_children():
+		child.queue_free()
+	
+	var style: StyleBoxFlat = panel.get_theme_stylebox("panel").duplicate()
+	var border_color := COLOR_BORDER
+	var bg_color := COLOR_BG_DARK
+	
+	match result.get("type", ""):
+		"boost":
+			border_color = COLOR_ACCENT_PRIMARY
+			bg_color = Color(COLOR_ACCENT_PRIMARY.r, COLOR_ACCENT_PRIMARY.g, COLOR_ACCENT_PRIMARY.b, 0.15)
+		"crate":
+			border_color = COLOR_ACCENT_SECONDARY
+			bg_color = Color(COLOR_ACCENT_SECONDARY.r, COLOR_ACCENT_SECONDARY.g, COLOR_ACCENT_SECONDARY.b, 0.15)
+		"skin":
+			border_color = COLOR_ACCENT_GOLD
+			bg_color = Color(COLOR_ACCENT_GOLD.r, COLOR_ACCENT_GOLD.g, COLOR_ACCENT_GOLD.b, 0.2)
+	
+	style.border_color = border_color
+	style.bg_color = bg_color
+	style.set_border_width_all(3)
+	panel.add_theme_stylebox_override("panel", style)
+	
+	var vbox := VBoxContainer.new()
+	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	vbox.add_theme_constant_override("separation", 4)
+	panel.add_child(vbox)
+	
+	# Icon
+	var icon_path := ""
+	match result.get("type", ""):
+		"boost":
+			icon_path = shop_manager.BOOST_ICONS.get(result.get("id", ""), "")
+		"crate":
+			icon_path = shop_manager.CRATE_ICONS.get(result.get("id", ""), "")
+		"skin":
+			if result.get("is_duplicate", false):
+				icon_path = "res://assets/svg/coin.svg"
+			else:
+				icon_path = "res://assets/skins/%s.png" % result.get("id", "")
+	
+	if icon_path and ResourceLoader.exists(icon_path):
+		var icon := TextureRect.new()
+		icon.texture = load(icon_path)
+		icon.custom_minimum_size = Vector2(40, 40)
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		vbox.add_child(icon)
+	
+	# Name
+	var name_label := Label.new()
+	var item_name := ""
+	match result.get("type", ""):
+		"boost":
+			item_name = shop_manager.BOOST_NAMES.get(result.get("id", ""), result.get("id", ""))
+		"crate":
+			item_name = shop_manager.CRATE_NAMES.get(result.get("id", ""), result.get("id", ""))
+		"skin":
+			if result.get("is_duplicate", false):
+				item_name = "Refund: %s" % _format_balance(result.get("refund", 0))
+			else:
+				item_name = result.get("id", "Skin").replace("_", " ").capitalize()
+	
+	name_label.text = item_name
+	name_label.add_theme_font_size_override("font_size", 10)
+	name_label.add_theme_color_override("font_color", COLOR_TEXT_SECONDARY)
+	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD
+	vbox.add_child(name_label)
+
+
+func _on_roulette_finished() -> void:
+	# Stop click sound tracking
+	if shop_panel.get_tree().process_frame.is_connected(_on_roulette_process):
+		shop_panel.get_tree().process_frame.disconnect(_on_roulette_process)
+	
+	# Wait and show result
+	var timer := shop_panel.get_tree().create_timer(1.0)
+	await timer.timeout
+	
+	if roulette_container:
+		for child in roulette_container.get_children():
+			if child != roulette_container.get_child(0):
+				child.queue_free()
+		
+		# Result display
+		var result_vbox := VBoxContainer.new()
+		result_vbox.set_anchors_preset(Control.PRESET_CENTER)
+		result_vbox.anchor_left = 0.5
+		result_vbox.anchor_right = 0.5
+		result_vbox.anchor_top = 0.5
+		result_vbox.anchor_bottom = 0.5
+		result_vbox.offset_left = -150
+		result_vbox.offset_right = 150
+		result_vbox.offset_top = -120
+		result_vbox.offset_bottom = 120
+		result_vbox.add_theme_constant_override("separation", 15)
+		result_vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+		roulette_container.add_child(result_vbox)
+		
+		var win_label := Label.new()
+		win_label.text = "YOU WON!"
+		win_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		win_label.add_theme_font_size_override("font_size", 32)
+		win_label.add_theme_color_override("font_color", COLOR_ACCENT_GOLD)
+		result_vbox.add_child(win_label)
+		
+		var result_text := ""
+		match roulette_result.get("type", ""):
+			"boost":
+				result_text = shop_manager.BOOST_NAMES.get(roulette_result.get("id", ""), "Boost")
+			"crate":
+				result_text = shop_manager.CRATE_NAMES.get(roulette_result.get("id", ""), "Crate")
+			"skin":
+				if roulette_result.get("is_duplicate", false):
+					result_text = "Duplicate! Refund: %s coins" % _format_balance(roulette_result.get("refund", 0))
+				else:
+					result_text = "%s Skin!" % roulette_result.get("id", "").replace("_", " ").capitalize()
+		
+		var item_label := Label.new()
+		item_label.text = result_text
+		item_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		item_label.add_theme_font_size_override("font_size", 24)
+		item_label.add_theme_color_override("font_color", COLOR_TEXT_PRIMARY)
+		result_vbox.add_child(item_label)
+		
+		# Close button
+		var close_btn := Button.new()
+		close_btn.text = "CLOSE"
+		close_btn.custom_minimum_size = Vector2(150, 50)
+		close_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		close_btn.add_theme_font_size_override("font_size", 18)
+		_style_secondary_button(close_btn)
+		close_btn.pressed.connect(_on_roulette_close)
+		result_vbox.add_child(close_btn)
+
+
+func _on_roulette_close() -> void:
+	# Disconnect process frame if connected
+	if shop_panel.get_tree().process_frame.is_connected(_on_roulette_process):
+		shop_panel.get_tree().process_frame.disconnect(_on_roulette_process)
+	
+	# Cleanup click sound
+	if roulette_click_sound:
+		roulette_click_sound.queue_free()
+		roulette_click_sound = null
+	
+	if roulette_container:
+		roulette_container.queue_free()
+		roulette_container = null
+	
+	# Signal main menu to refresh
+	stats_reload_needed.emit()
+	balance_update_needed.emit()
+	_populate_section()
+
+
+func _setup_roulette_click_sound() -> void:
+	# Create dedicated audio player for click sounds
+	roulette_click_sound = AudioStreamPlayer.new()
+	var click_stream := load("res://assets/sounds/ui/click.mp3")
+	if click_stream:
+		roulette_click_sound.stream = click_stream
+		roulette_click_sound.volume_db = -5.0  # Slightly quieter
+	shop_panel.add_child(roulette_click_sound)
+
+
+func _on_roulette_process() -> void:
+	if not roulette_hbox or not roulette_tween or not roulette_tween.is_running():
+		# Disconnect when animation done
+		if shop_panel.get_tree().process_frame.is_connected(_on_roulette_process):
+			shop_panel.get_tree().process_frame.disconnect(_on_roulette_process)
+		return
+	
+	# Calculate which item is currently under the indicator (center of window at 250)
+	var window_center := 250.0
+	
+	# Find which item's bounds contain the indicator
+	var current_item_index := -1
+	for i in range(roulette_hbox.get_child_count()):
+		var child: Control = roulette_hbox.get_child(i)
+		var item_left := roulette_hbox.position.x + child.position.x
+		var item_right := item_left + child.size.x
+		if item_left < window_center and item_right > window_center:
+			current_item_index = i
+			break
+	
+	# Play click when crossing to new item
+	if current_item_index != roulette_last_item_index and current_item_index >= 0:
+		roulette_last_item_index = current_item_index
+		if roulette_click_sound:
+			roulette_click_sound.play()
+
+
+# ========== EVENT HANDLERS ==========
+
+func _on_skin_buy(skin_id: String) -> void:
+	audio_manager.play_button_click()
+	if shop_manager.buy_skin(skin_id):
+		stats_reload_needed.emit()
+		balance_update_needed.emit()
+		_populate_section()
+		player_model_refresh_needed.emit()
+
+
+func _on_skin_select(skin_id: String) -> void:
+	audio_manager.play_button_click()
+	if shop_manager.select_skin(skin_id):
+		_populate_section()
+		player_model_refresh_needed.emit()
+
+
+func _on_boost_buy(boost_id: String) -> void:
+	audio_manager.play_button_click()
+	if shop_manager.buy_boost(boost_id):
+		stats_reload_needed.emit()
+		balance_update_needed.emit()
+		_populate_section()
+
+
+func _on_boost_toggle(boost_id: String) -> void:
+	audio_manager.play_button_click()
+	shop_manager.toggle_boost_selection(boost_id)
+	_populate_section()
+
+
+func _on_crate_buy(crate_type: String) -> void:
+	audio_manager.play_button_click()
+	if shop_manager.buy_crate(crate_type):
+		stats_reload_needed.emit()
+		balance_update_needed.emit()
+		_populate_section()
+
+
+func _on_crate_open(crate_type: String) -> void:
+	show_roulette(crate_type)
+
+
+# ========== UTILITIES ==========
+
+func _format_balance(amount: int) -> String:
+	if amount >= 1000000:
+		return "%.1fM" % (amount / 1000000.0)
+	elif amount >= 1000:
+		return "%.1fK" % (amount / 1000.0)
+	return str(amount)
+
+
+func _create_nav_button(text: String) -> Button:
+	var btn := Button.new()
+	btn.text = text
+	btn.custom_minimum_size = Vector2(50, 44)
+	btn.add_theme_font_size_override("font_size", 26)
+	
+	var normal := StyleBoxFlat.new()
+	normal.bg_color = COLOR_BG_LIGHT
+	normal.set_corner_radius_all(12)
+	normal.set_border_width_all(2)
+	normal.border_color = COLOR_BORDER
+	
+	var hover := StyleBoxFlat.new()
+	hover.bg_color = COLOR_ACCENT_GOLD.darkened(0.3)
+	hover.set_corner_radius_all(12)
+	hover.set_border_width_all(2)
+	hover.border_color = COLOR_ACCENT_GOLD
+	
+	btn.add_theme_stylebox_override("normal", normal)
+	btn.add_theme_stylebox_override("hover", hover)
+	btn.add_theme_stylebox_override("pressed", hover)
+	btn.add_theme_color_override("font_color", COLOR_TEXT_PRIMARY)
+	btn.add_theme_color_override("font_hover_color", COLOR_ACCENT_GOLD)
+	
+	return btn
+
+
+func _style_secondary_button(button: Button) -> void:
+	var normal := StyleBoxFlat.new()
+	normal.bg_color = COLOR_BG_LIGHT
+	normal.set_corner_radius_all(14)
+	normal.set_border_width_all(2)
+	normal.border_color = COLOR_BORDER
+	
+	var hover := StyleBoxFlat.new()
+	hover.bg_color = COLOR_BG_LIGHT.lightened(0.1)
+	hover.set_corner_radius_all(14)
+	hover.set_border_width_all(2)
+	hover.border_color = COLOR_ACCENT_PRIMARY
+	
+	button.add_theme_stylebox_override("normal", normal)
+	button.add_theme_stylebox_override("hover", hover)
+	button.add_theme_stylebox_override("pressed", hover)
+	button.add_theme_stylebox_override("focus", hover)
+	button.add_theme_color_override("font_color", COLOR_TEXT_PRIMARY)
+	button.add_theme_color_override("font_hover_color", COLOR_ACCENT_PRIMARY)
+
+
+func _style_shop_button(button: Button, is_active: bool) -> void:
+	var normal := StyleBoxFlat.new()
+	var hover := StyleBoxFlat.new()
+	
+	if is_active:
+		normal.bg_color = COLOR_ACCENT_SECONDARY.darkened(0.3)
+		normal.border_color = COLOR_ACCENT_SECONDARY
+		hover.bg_color = COLOR_ACCENT_SECONDARY.darkened(0.1)
+		hover.border_color = COLOR_ACCENT_SECONDARY.lightened(0.2)
+	else:
+		normal.bg_color = COLOR_BG_LIGHT
+		normal.border_color = COLOR_BORDER
+		hover.bg_color = COLOR_ACCENT_PRIMARY.darkened(0.3)
+		hover.border_color = COLOR_ACCENT_PRIMARY
+	
+	normal.set_corner_radius_all(8)
+	normal.set_border_width_all(2)
+	hover.set_corner_radius_all(8)
+	hover.set_border_width_all(2)
+	
+	button.add_theme_stylebox_override("normal", normal)
+	button.add_theme_stylebox_override("hover", hover)
+	button.add_theme_stylebox_override("pressed", hover)
+	button.add_theme_font_size_override("font_size", 14)
+	button.add_theme_color_override("font_color", COLOR_TEXT_PRIMARY)

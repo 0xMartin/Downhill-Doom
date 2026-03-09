@@ -1,0 +1,618 @@
+class_name StatsPanelHelper
+extends RefCounted
+## Helper class for building and managing the stats panel UI
+
+const ObjectConfigScript := preload("res://scripts/config/object_config.gd")
+
+# Color palette (shared with main menu)
+const COLOR_BG_DARK := Color(0.06, 0.08, 0.12, 1.0)
+const COLOR_BG_MEDIUM := Color(0.10, 0.14, 0.20, 1.0)
+const COLOR_BG_LIGHT := Color(0.14, 0.18, 0.26, 1.0)
+const COLOR_ACCENT_PRIMARY := Color(0.25, 0.65, 0.96, 1.0)
+const COLOR_ACCENT_SECONDARY := Color(0.30, 0.85, 0.55, 1.0)
+const COLOR_ACCENT_GOLD := Color(1.0, 0.82, 0.25, 1.0)
+const COLOR_TEXT_PRIMARY := Color(1.0, 1.0, 1.0, 1.0)
+const COLOR_TEXT_SECONDARY := Color(0.7, 0.75, 0.85, 1.0)
+const COLOR_TEXT_MUTED := Color(0.5, 0.55, 0.65, 1.0)
+const COLOR_BORDER := Color(0.25, 0.32, 0.45, 0.8)
+
+const OBJECT_SECTIONS := ["Trees", "Buildings", "Friend NPC", "Enemy NPC", "Enemy Building"]
+
+var stats_panel: Control
+var stats: Dictionary
+var current_section_index: int = 0
+var object_grid: GridContainer
+var section_label: Label
+var object_viewports: Array[SubViewportContainer] = []
+var model_rotation_speed: float = 0.5
+
+
+func _init(panel: Control, stats_dict: Dictionary) -> void:
+	stats_panel = panel
+	stats = stats_dict
+
+
+func rebuild() -> void:
+	# Clear existing content (except Background) - use free() for immediate removal
+	var children_to_remove: Array[Node] = []
+	for child in stats_panel.get_children():
+		if child.name != "Background":
+			children_to_remove.append(child)
+	for child in children_to_remove:
+		stats_panel.remove_child(child)
+		child.free()
+	
+	object_viewports.clear()
+	
+	# Update background
+	var bg: ColorRect = stats_panel.get_node("Background")
+	bg.color = Color(0, 0, 0, 0.92)
+	
+	var screen_size: Vector2 = stats_panel.get_viewport().get_visible_rect().size
+	var panel_width: float = minf(720.0, screen_size.x * 0.92)
+	var panel_height: float = minf(screen_size.y * 0.88, screen_size.y - 60)
+	
+	# Create centered VBox for positioning
+	var center_vbox := VBoxContainer.new()
+	center_vbox.anchors_preset = Control.PRESET_CENTER
+	center_vbox.anchor_left = 0.5
+	center_vbox.anchor_top = 0.5
+	center_vbox.anchor_right = 0.5
+	center_vbox.anchor_bottom = 0.5
+	center_vbox.offset_left = -panel_width / 2
+	center_vbox.offset_right = panel_width / 2
+	center_vbox.offset_top = -panel_height / 2
+	center_vbox.offset_bottom = panel_height / 2
+	center_vbox.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	center_vbox.grow_vertical = Control.GROW_DIRECTION_BOTH
+	stats_panel.add_child(center_vbox)
+	
+	# Create main card container
+	var card := PanelContainer.new()
+	card.custom_minimum_size = Vector2(panel_width, panel_height)
+	
+	var card_style := StyleBoxFlat.new()
+	card_style.bg_color = COLOR_BG_MEDIUM
+	card_style.set_corner_radius_all(24)
+	card_style.set_border_width_all(2)
+	card_style.border_color = COLOR_BORDER
+	card_style.shadow_color = Color(0, 0, 0, 0.5)
+	card_style.shadow_size = 20
+	card_style.set_content_margin_all(24)
+	card.add_theme_stylebox_override("panel", card_style)
+	center_vbox.add_child(card)
+	
+	var inner_vbox := VBoxContainer.new()
+	inner_vbox.add_theme_constant_override("separation", 12)
+	card.add_child(inner_vbox)
+	
+	# Title with glow
+	var title := Label.new()
+	title.text = "STATISTICS"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 38)
+	title.add_theme_color_override("font_color", COLOR_TEXT_PRIMARY)
+	title.add_theme_color_override("font_outline_color", COLOR_ACCENT_PRIMARY)
+	title.add_theme_constant_override("outline_size", 2)
+	inner_vbox.add_child(title)
+	
+	# Decoration under title
+	var decoration := TextureRect.new()
+	var deco_tex = load("res://assets/svg/settings_decoration.svg")
+	if deco_tex:
+		decoration.texture = deco_tex
+		decoration.custom_minimum_size = Vector2(180, 16)
+		decoration.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+		decoration.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		decoration.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		decoration.modulate = COLOR_ACCENT_PRIMARY.lightened(0.3)
+		inner_vbox.add_child(decoration)
+	
+	# Spacer
+	var spacer1 := Control.new()
+	spacer1.custom_minimum_size = Vector2(0, 8)
+	inner_vbox.add_child(spacer1)
+	
+	# Global Stats Card
+	var global_card := _create_stats_card()
+	inner_vbox.add_child(global_card)
+	
+	var global_content := VBoxContainer.new()
+	global_content.add_theme_constant_override("separation", 8)
+	global_card.add_child(global_content)
+	
+	_populate_global_stats(global_content)
+	
+	# Separator
+	var sep := HSeparator.new()
+	sep.custom_minimum_size.y = 8
+	sep.modulate = COLOR_BORDER
+	inner_vbox.add_child(sep)
+	
+	# Objects Section Header
+	var obj_header := Label.new()
+	obj_header.text = "DESTROYED OBJECTS"
+	obj_header.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	obj_header.add_theme_font_size_override("font_size", 22)
+	obj_header.add_theme_color_override("font_color", COLOR_TEXT_SECONDARY)
+	inner_vbox.add_child(obj_header)
+	
+	# Section Navigation
+	var nav_container := HBoxContainer.new()
+	nav_container.alignment = BoxContainer.ALIGNMENT_CENTER
+	nav_container.add_theme_constant_override("separation", 15)
+	inner_vbox.add_child(nav_container)
+	
+	var prev_btn := _create_nav_button("<")
+	prev_btn.name = "PrevButton"
+	nav_container.add_child(prev_btn)
+	
+	section_label = Label.new()
+	section_label.text = OBJECT_SECTIONS[current_section_index]
+	section_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	section_label.custom_minimum_size = Vector2(180, 40)
+	section_label.add_theme_font_size_override("font_size", 24)
+	section_label.add_theme_color_override("font_color", COLOR_ACCENT_PRIMARY)
+	nav_container.add_child(section_label)
+	
+	var next_btn := _create_nav_button(">")
+	next_btn.name = "NextButton"
+	nav_container.add_child(next_btn)
+	
+	# Scrollable Object Grid
+	var scroll := ScrollContainer.new()
+	var scroll_height: float = maxf(350.0, screen_size.y * 0.45)
+	scroll.custom_minimum_size = Vector2(panel_width - 50, scroll_height)
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	inner_vbox.add_child(scroll)
+	
+	object_grid = GridContainer.new()
+	object_grid.columns = 1
+	object_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	object_grid.add_theme_constant_override("v_separation", 12)
+	object_grid.mouse_filter = Control.MOUSE_FILTER_PASS
+	scroll.add_child(object_grid)
+	
+	_populate_object_cards()
+	
+	# Back Button
+	var back_btn := Button.new()
+	back_btn.name = "BackButton"
+	back_btn.text = "BACK"
+	back_btn.custom_minimum_size = Vector2(180, 50)
+	back_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	back_btn.add_theme_font_size_override("font_size", 20)
+	_style_secondary_button(back_btn)
+	inner_vbox.add_child(back_btn)
+
+
+func get_back_button() -> Button:
+	return stats_panel.find_child("BackButton", true, false) as Button
+
+
+func get_prev_button() -> Button:
+	return stats_panel.find_child("PrevButton", true, false) as Button
+
+
+func get_next_button() -> Button:
+	return stats_panel.find_child("NextButton", true, false) as Button
+
+
+func get_object_viewports() -> Array[SubViewportContainer]:
+	return object_viewports
+
+
+func update_stats(new_stats: Dictionary) -> void:
+	stats = new_stats
+
+
+func prev_section() -> void:
+	current_section_index = (current_section_index - 1 + OBJECT_SECTIONS.size()) % OBJECT_SECTIONS.size()
+	_update_section_display()
+
+
+func next_section() -> void:
+	current_section_index = (current_section_index + 1) % OBJECT_SECTIONS.size()
+	_update_section_display()
+
+
+func _update_section_display() -> void:
+	if section_label:
+		section_label.text = OBJECT_SECTIONS[current_section_index]
+	_populate_object_cards()
+
+
+func _populate_global_stats(container: VBoxContainer) -> void:
+	var coin_icon: Texture2D = load("res://assets/svg/coin.svg")
+	var distance_icon: Texture2D = load("res://assets/svg/distance.svg")
+	var games_count: int = stats.get("games_played", 0)
+	
+	# Games played
+	var games_row := _create_stat_row("Games Played", str(games_count), null, COLOR_TEXT_SECONDARY)
+	container.add_child(games_row)
+	
+	# Coins stats
+	var max_c: int = stats.get("max_coins", 0)
+	var total_c: int = stats.get("total_coins", 0)
+	var avg_c: int = int(total_c / games_count) if games_count > 0 else 0
+	var coins_text := "Best: %d  |  Avg: %d  |  Total: %d" % [max_c, avg_c, total_c]
+	var coins_row := _create_stat_row("Coins", coins_text, coin_icon, COLOR_ACCENT_GOLD)
+	container.add_child(coins_row)
+	
+	# Distance stats
+	var max_d: float = stats.get("max_distance", 0.0)
+	var total_d: float = stats.get("total_distance", 0.0)
+	var avg_d: float = total_d / games_count if games_count > 0 else 0.0
+	var dist_text := "Best: %dm  |  Avg: %dm" % [int(max_d), int(avg_d)]
+	var dist_row := _create_stat_row("Distance", dist_text, distance_icon, COLOR_ACCENT_PRIMARY)
+	container.add_child(dist_row)
+	
+	# Time stats
+	var max_t: float = stats.get("max_time", 0.0)
+	var total_t: float = stats.get("total_time", 0.0)
+	var avg_t: float = total_t / games_count if games_count > 0 else 0.0
+	var time_text := "Best: %s  |  Avg: %s  |  Total: %s" % [_format_time(max_t), _format_time(avg_t), _format_time(total_t)]
+	var time_row := _create_stat_row("Time", time_text, null, COLOR_ACCENT_SECONDARY)
+	container.add_child(time_row)
+
+
+func _create_stat_row(label_text: String, value_text: String, icon: Texture2D, accent: Color) -> HBoxContainer:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 10)
+	
+	if icon:
+		var tex := TextureRect.new()
+		tex.custom_minimum_size = Vector2(24, 24)
+		tex.texture = icon
+		tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		tex.modulate = accent
+		row.add_child(tex)
+	else:
+		var spacer := Control.new()
+		spacer.custom_minimum_size = Vector2(24, 24)
+		row.add_child(spacer)
+	
+	var lbl := Label.new()
+	lbl.text = label_text + ": "
+	lbl.add_theme_font_size_override("font_size", 18)
+	lbl.add_theme_color_override("font_color", accent)
+	row.add_child(lbl)
+	
+	var val := Label.new()
+	val.text = value_text
+	val.add_theme_font_size_override("font_size", 18)
+	val.add_theme_color_override("font_color", COLOR_TEXT_PRIMARY)
+	row.add_child(val)
+	
+	return row
+
+
+func _format_time(time_seconds: float) -> String:
+	var total_seconds := int(time_seconds)
+	var hours := total_seconds / 3600
+	var minutes := (total_seconds % 3600) / 60
+	var seconds := total_seconds % 60
+	if hours > 0:
+		return "%d:%02d:%02d" % [hours, minutes, seconds]
+	return "%02d:%02d" % [minutes, seconds]
+
+
+func _populate_object_cards() -> void:
+	if not object_grid:
+		return
+	
+	for child in object_grid.get_children():
+		child.queue_free()
+	object_viewports.clear()
+	
+	var objects: Array = []
+	match current_section_index:
+		0:
+			objects = ObjectConfigScript.get_trees()
+		1:
+			objects = ObjectConfigScript.get_buildings() + ObjectConfigScript.get_large_buildings()
+		2:
+			objects = ObjectConfigScript.get_npcs_friend()
+		3:
+			objects = ObjectConfigScript.get_objects_by_category(ObjectConfigScript.Category.NPC_ENEMY)
+			objects += ObjectConfigScript.get_objects_by_category(ObjectConfigScript.Category.NPC_AERIAL)
+		4:
+			objects = ObjectConfigScript.get_building_enemies()
+	
+	var destroyed: Dictionary = stats.get("destroyed_objects", {})
+	
+	if objects.is_empty():
+		var empty_label := Label.new()
+		empty_label.text = "No objects in this category"
+		empty_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		empty_label.add_theme_font_size_override("font_size", 18)
+		empty_label.add_theme_color_override("font_color", COLOR_TEXT_MUTED)
+		object_grid.add_child(empty_label)
+		return
+	
+	for obj_data in objects:
+		var card := _create_object_card(obj_data, destroyed.get(obj_data.id, 0))
+		object_grid.add_child(card)
+
+
+func _create_object_card(obj_data: RefCounted, kill_count: int) -> PanelContainer:
+	var card := PanelContainer.new()
+	card.custom_minimum_size = Vector2(620, 120)
+	card.mouse_filter = Control.MOUSE_FILTER_PASS
+	
+	var style := StyleBoxFlat.new()
+	style.bg_color = COLOR_BG_DARK
+	style.set_corner_radius_all(16)
+	style.set_border_width_all(2)
+	style.border_color = COLOR_BORDER if kill_count > 0 else Color(0.3, 0.3, 0.35, 0.5)
+	style.set_content_margin_all(10)
+	card.add_theme_stylebox_override("panel", style)
+	
+	var hbox := HBoxContainer.new()
+	hbox.add_theme_constant_override("separation", 18)
+	hbox.mouse_filter = Control.MOUSE_FILTER_PASS
+	card.add_child(hbox)
+	
+	# 3D Preview
+	var preview := _create_3d_preview(obj_data, kill_count)
+	hbox.add_child(preview)
+	object_viewports.append(preview)
+	
+	# Info section
+	var info := VBoxContainer.new()
+	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	info.mouse_filter = Control.MOUSE_FILTER_PASS
+	info.add_theme_constant_override("separation", 6)
+	hbox.add_child(info)
+	
+	# Object name
+	var name_label := Label.new()
+	name_label.text = obj_data.display_name if kill_count > 0 else "???"
+	name_label.add_theme_font_size_override("font_size", 24)
+	name_label.add_theme_color_override("font_color", COLOR_TEXT_PRIMARY if kill_count > 0 else COLOR_TEXT_MUTED)
+	info.add_child(name_label)
+	
+	# Stats row
+	var stats_row := HBoxContainer.new()
+	stats_row.add_theme_constant_override("separation", 20)
+	stats_row.mouse_filter = Control.MOUSE_FILTER_PASS
+	info.add_child(stats_row)
+	
+	# Coins
+	var coin_row := HBoxContainer.new()
+	coin_row.add_theme_constant_override("separation", 5)
+	coin_row.mouse_filter = Control.MOUSE_FILTER_PASS
+	stats_row.add_child(coin_row)
+	
+	var coin_icon := TextureRect.new()
+	coin_icon.custom_minimum_size = Vector2(20, 20)
+	coin_icon.texture = load("res://assets/svg/coin.svg")
+	coin_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	coin_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	coin_icon.modulate = COLOR_ACCENT_GOLD if kill_count > 0 else COLOR_TEXT_MUTED
+	coin_icon.mouse_filter = Control.MOUSE_FILTER_PASS
+	coin_row.add_child(coin_icon)
+	
+	var coin_label := Label.new()
+	coin_label.text = "%d" % obj_data.coins if kill_count > 0 else "?"
+	coin_label.add_theme_font_size_override("font_size", 16)
+	coin_label.add_theme_color_override("font_color", COLOR_ACCENT_GOLD if kill_count > 0 else COLOR_TEXT_MUTED)
+	coin_row.add_child(coin_label)
+	
+	# Spawn chance
+	var spawn_label := Label.new()
+	spawn_label.text = "Spawn: %.0f%%" % (obj_data.spawn_chance * 100) if kill_count > 0 else "Spawn: ?%"
+	spawn_label.add_theme_font_size_override("font_size", 15)
+	spawn_label.add_theme_color_override("font_color", COLOR_TEXT_SECONDARY if kill_count > 0 else COLOR_TEXT_MUTED)
+	stats_row.add_child(spawn_label)
+	
+	# Supercharge indicator for large buildings and enemy buildings
+	if obj_data.category == ObjectConfigScript.Category.BUILDING_LARGE or obj_data.category == ObjectConfigScript.Category.BUILDING_ENEMY:
+		var supercharge_label := Label.new()
+		supercharge_label.text = "ARMORED" if kill_count > 0 else "???"
+		supercharge_label.add_theme_font_size_override("font_size", 14)
+		supercharge_label.add_theme_color_override("font_color", COLOR_ACCENT_GOLD if kill_count > 0 else COLOR_TEXT_MUTED)
+		stats_row.add_child(supercharge_label)
+	
+	# Kill count badge
+	var kill_badge := _create_kill_badge(kill_count)
+	info.add_child(kill_badge)
+	
+	return card
+
+
+func _create_kill_badge(count: int) -> HBoxContainer:
+	var container := HBoxContainer.new()
+	container.add_theme_constant_override("separation", 8)
+	container.mouse_filter = Control.MOUSE_FILTER_PASS
+	
+	var badge := PanelContainer.new()
+	badge.mouse_filter = Control.MOUSE_FILTER_PASS
+	var badge_style := StyleBoxFlat.new()
+	badge_style.set_corner_radius_all(10)
+	badge_style.set_content_margin_all(6)
+	badge_style.content_margin_left = 12
+	badge_style.content_margin_right = 12
+	
+	if count > 0:
+		badge_style.bg_color = COLOR_ACCENT_SECONDARY.darkened(0.5)
+		badge_style.border_color = COLOR_ACCENT_SECONDARY
+	else:
+		badge_style.bg_color = COLOR_BG_LIGHT
+		badge_style.border_color = COLOR_BORDER
+	badge_style.set_border_width_all(1)
+	badge.add_theme_stylebox_override("panel", badge_style)
+	
+	var label := Label.new()
+	label.text = "Destroyed: %d" % count
+	label.add_theme_font_size_override("font_size", 14)
+	label.add_theme_color_override("font_color", COLOR_ACCENT_SECONDARY if count > 0 else COLOR_TEXT_MUTED)
+	badge.add_child(label)
+	
+	container.add_child(badge)
+	return container
+
+
+func _create_3d_preview(obj_data: RefCounted, kill_count: int) -> SubViewportContainer:
+	var container := SubViewportContainer.new()
+	container.custom_minimum_size = Vector2(100, 100)
+	container.stretch = true
+	container.mouse_filter = Control.MOUSE_FILTER_PASS
+	
+	var viewport := SubViewport.new()
+	viewport.name = "SubViewport"
+	viewport.transparent_bg = true
+	viewport.size = Vector2i(100, 100)
+	viewport.render_target_update_mode = SubViewport.UPDATE_WHEN_VISIBLE
+	viewport.own_world_3d = true
+	container.add_child(viewport)
+	
+	var env := Environment.new()
+	env.background_mode = Environment.BG_COLOR
+	env.background_color = Color(0, 0, 0, 0)
+	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	env.ambient_light_color = Color(1, 1, 1, 1)
+	
+	var camera := Camera3D.new()
+	camera.name = "Camera"
+	camera.environment = env
+	camera.fov = 35.0
+	camera.near = 0.01
+	camera.far = 100.0
+	viewport.add_child(camera)
+	
+	var light := DirectionalLight3D.new()
+	light.transform.basis = Basis(Vector3(1, 0, 0), -0.5) * Basis(Vector3(0, 1, 0), 0.3)
+	viewport.add_child(light)
+	
+	var holder := Node3D.new()
+	holder.name = "ModelHolder"
+	viewport.add_child(holder)
+	
+	if obj_data.model_path and obj_data.model_path != "":
+		var model_scene: PackedScene = load(obj_data.model_path)
+		if model_scene:
+			var model := model_scene.instantiate()
+			holder.add_child(model)
+			
+			var combined_aabb := AABB()
+			var first := true
+			for mesh_inst: MeshInstance3D in _find_all_mesh_instances(model):
+				if mesh_inst.mesh == null:
+					continue
+				var mesh_aabb := mesh_inst.mesh.get_aabb()
+				var local_transform: Transform3D = mesh_inst.transform
+				var parent: Node = mesh_inst.get_parent()
+				while parent != null and parent != model:
+					if parent is Node3D:
+						local_transform = (parent as Node3D).transform * local_transform
+					parent = parent.get_parent()
+				mesh_aabb = local_transform * mesh_aabb
+				if first:
+					combined_aabb = mesh_aabb
+					first = false
+				else:
+					combined_aabb = combined_aabb.merge(mesh_aabb)
+			
+			var object_height: float = obj_data.target_height if obj_data.target_height > 0 else 1.0
+			var aabb_size := combined_aabb.size
+			var aabb_center := combined_aabb.get_center()
+			
+			if aabb_size.length() > 0.01:
+				object_height = maxf(maxf(aabb_size.x, aabb_size.y), aabb_size.z)
+			
+			var half_fov := deg_to_rad(camera.fov / 2.0)
+			var distance := (object_height / 2.0) / tan(half_fov) * 1.4
+			distance = clampf(distance, 0.5, 50.0)
+			
+			if aabb_size.length() > 0.01:
+				holder.position.y = -aabb_center.y
+			
+			camera.position = Vector3(0, 0, distance)
+			
+			if kill_count == 0:
+				_apply_silhouette_material(model)
+	
+	return container
+
+
+func _find_all_mesh_instances(node: Node) -> Array[MeshInstance3D]:
+	var result: Array[MeshInstance3D] = []
+	if node is MeshInstance3D:
+		result.append(node as MeshInstance3D)
+	for child in node.get_children():
+		result.append_array(_find_all_mesh_instances(child))
+	return result
+
+
+func _apply_silhouette_material(node: Node) -> void:
+	var silhouette_mat := StandardMaterial3D.new()
+	silhouette_mat.albedo_color = Color(0.15, 0.18, 0.25, 1.0)
+	silhouette_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	
+	for mesh_inst: MeshInstance3D in _find_all_mesh_instances(node):
+		mesh_inst.material_override = silhouette_mat
+
+
+func _create_stats_card() -> PanelContainer:
+	var card := PanelContainer.new()
+	
+	var style := StyleBoxFlat.new()
+	style.bg_color = COLOR_BG_DARK
+	style.set_corner_radius_all(16)
+	style.set_border_width_all(1)
+	style.border_color = COLOR_BORDER
+	style.set_content_margin_all(15)
+	card.add_theme_stylebox_override("panel", style)
+	
+	return card
+
+
+func _create_nav_button(text: String) -> Button:
+	var btn := Button.new()
+	btn.text = text
+	btn.custom_minimum_size = Vector2(50, 44)
+	btn.add_theme_font_size_override("font_size", 26)
+	
+	var normal := StyleBoxFlat.new()
+	normal.bg_color = COLOR_BG_LIGHT
+	normal.set_corner_radius_all(12)
+	normal.set_border_width_all(2)
+	normal.border_color = COLOR_BORDER
+	
+	var hover := StyleBoxFlat.new()
+	hover.bg_color = COLOR_ACCENT_PRIMARY.darkened(0.3)
+	hover.set_corner_radius_all(12)
+	hover.set_border_width_all(2)
+	hover.border_color = COLOR_ACCENT_PRIMARY
+	
+	btn.add_theme_stylebox_override("normal", normal)
+	btn.add_theme_stylebox_override("hover", hover)
+	btn.add_theme_stylebox_override("pressed", hover)
+	btn.add_theme_color_override("font_color", COLOR_TEXT_PRIMARY)
+	btn.add_theme_color_override("font_hover_color", COLOR_ACCENT_PRIMARY)
+	
+	return btn
+
+
+func _style_secondary_button(button: Button) -> void:
+	var normal := StyleBoxFlat.new()
+	normal.bg_color = COLOR_BG_LIGHT
+	normal.set_corner_radius_all(14)
+	normal.set_border_width_all(2)
+	normal.border_color = COLOR_BORDER
+	
+	var hover := StyleBoxFlat.new()
+	hover.bg_color = COLOR_BG_LIGHT.lightened(0.1)
+	hover.set_corner_radius_all(14)
+	hover.set_border_width_all(2)
+	hover.border_color = COLOR_ACCENT_PRIMARY
+	
+	button.add_theme_stylebox_override("normal", normal)
+	button.add_theme_stylebox_override("hover", hover)
+	button.add_theme_stylebox_override("pressed", hover)
+	button.add_theme_stylebox_override("focus", hover)
+	button.add_theme_color_override("font_color", COLOR_TEXT_PRIMARY)
+	button.add_theme_color_override("font_hover_color", COLOR_ACCENT_PRIMARY)

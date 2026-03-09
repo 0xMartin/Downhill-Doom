@@ -113,8 +113,13 @@ func _pool_reset() -> void:
 	add_to_group("large_buildings")
 	# Reconnect signal (critical for collision to work after pooling)
 	_connect_detect_area()
-	# Re-cache GameManager reference
-	gm = get_node_or_null("/root/GameManager")
+	# Re-cache GameManager reference (use Engine.get_main_loop() when outside scene tree)
+	if is_inside_tree():
+		gm = get_node_or_null("/root/GameManager")
+	else:
+		var tree := Engine.get_main_loop() as SceneTree
+		if tree:
+			gm = tree.root.get_node_or_null("GameManager")
 	# Reset state
 	is_destroyed = false
 	freeze = true

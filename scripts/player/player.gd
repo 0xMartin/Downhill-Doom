@@ -115,14 +115,15 @@ func _ready() -> void:
 	# Load selected skin from ShopManager
 	_load_selected_skin()
 	
-	# Get visual model for manual rotation
-	player_model = get_node_or_null("PlayerModel")
-	if player_model:
-		# Make top-level so it doesn't inherit RigidBody rotation
-		player_model.top_level = true
-		player_model.global_position = global_position
-		# Disable shadows and make unshaded
-		_setup_unshaded_materials(player_model)
+	# Fallback: if _load_selected_skin() didn't set player_model, try to get it from scene
+	if not player_model:
+		player_model = get_node_or_null("PlayerModel")
+		if player_model:
+			# Make top-level so it doesn't inherit RigidBody rotation
+			player_model.top_level = true
+			player_model.global_position = global_position
+			# Disable shadows and make unshaded
+			_setup_unshaded_materials(player_model)
 	
 	# Setup dust particles (under ball when on ground)
 	_setup_dust_particles()
@@ -653,7 +654,7 @@ func _setup_unshaded_materials(node: Node) -> void:
 		var mesh_instance := node as MeshInstance3D
 		mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		
-		# Make material unshaded
+		# Make existing override materials unshaded (preserves textures)
 		for i in range(mesh_instance.get_surface_override_material_count()):
 			var mat := mesh_instance.get_surface_override_material(i)
 			if mat and mat is StandardMaterial3D:
@@ -661,9 +662,12 @@ func _setup_unshaded_materials(node: Node) -> void:
 				new_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 				mesh_instance.set_surface_override_material(i, new_mat)
 		
-		# Also check mesh resource materials
+		# Also check mesh resource materials (only if no override exists)
 		if mesh_instance.mesh:
 			for i in range(mesh_instance.mesh.get_surface_count()):
+				# Skip if there's already an override material (e.g., from texture skin)
+				if mesh_instance.get_surface_override_material(i) != null:
+					continue
 				var mat := mesh_instance.mesh.surface_get_material(i)
 				if mat and mat is StandardMaterial3D:
 					var new_mat := mat.duplicate() as StandardMaterial3D
@@ -690,10 +694,12 @@ func _load_selected_skin() -> void:
 		push_warning("Skin model not found: %s" % model_path)
 		return
 	
-	# Remove existing PlayerModel
+	# Remove existing PlayerModel immediately (free, not queue_free)
+	# to avoid name conflicts when adding new model
 	var old_model := get_node_or_null("PlayerModel")
 	if old_model:
-		old_model.queue_free()
+		remove_child(old_model)
+		old_model.free()
 	
 	# Load and instance new model
 	var model_scene: PackedScene = load(model_path)
@@ -715,7 +721,12 @@ func _load_selected_skin() -> void:
 	# Always setup unshaded materials (disables shadows and reflections)
 	_setup_unshaded_materials(new_model)
 	
-	# Note: player_model reference and top_level setup is handled in _ready() after this call
+	# Update player_model reference and setup top_level for proper scale control
+	player_model = new_model
+	player_model.top_level = true
+	player_model.global_position = global_position
+	# Apply current supercharge scale if active
+	player_model.scale = Vector3.ONE * supercharge_current_scale
 
 
 ## Apply a texture to all mesh instances in a model

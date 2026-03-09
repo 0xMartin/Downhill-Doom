@@ -101,6 +101,10 @@ var shop_data := {
 func _ready() -> void:
 	_load_shop_data()
 	_scan_texture_skins()
+	
+	# DEBUG: Set balance to 1 million for testing
+	_set_coin_balance(1_000_000)
+	balance_changed.emit(1_000_000)
 
 func _scan_texture_skins() -> void:
 	# Scan for available texture skins in the skins folder

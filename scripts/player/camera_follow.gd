@@ -2,7 +2,7 @@ extends Camera3D
 ## Smooth follow camera - tracks the player from behind and above with shake support
 
 @export var target_path: NodePath  # Reference to the player
-@export var offset: Vector3 = Vector3(0, 7, 8)  # Position offset (above and behind) - normal mode
+@export var offset: Vector3 = Vector3(0, 9, 10)  # Position offset (above and behind) - normal mode
 @export var supercharge_offset: Vector3 = Vector3(0, 14, 16)  # Zoomed out for supercharge (2x)
 @export var follow_speed: float = 5.0  # Smoothing factor
 @export var look_ahead: float = 5.0  # How far ahead of player to look
