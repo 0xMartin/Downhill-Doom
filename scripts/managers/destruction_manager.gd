@@ -461,6 +461,21 @@ func fling_object(
 	if not is_instance_valid(target):
 		return
 	
+	# Defer to avoid physics callback issues (removing CollisionObject during physics)
+	call_deferred("_do_fling_object", target, killer, model_node, speed_min, speed_max, rotation_scale)
+
+## Internal deferred fling implementation
+func _do_fling_object(
+	target: Node3D,
+	killer: Node,
+	model_node: Node3D,
+	speed_min: float,
+	speed_max: float,
+	rotation_scale: float
+) -> void:
+	if not is_instance_valid(target):
+		return
+	
 	# Reparent to root to prevent chunk cleanup from removing the object mid-fling
 	var old_global_pos := target.global_position
 	var old_global_rot := target.global_rotation

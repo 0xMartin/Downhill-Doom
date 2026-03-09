@@ -43,8 +43,8 @@ var base_forward_force: float
 var base_jump_force: float
 const SUPERCHARGE_SCALE_MULTIPLIER: float = 2.0
 const SUPERCHARGE_SCALE_DURATION: float = 0.4
-const SUPERCHARGE_SPEED_BONUS: float = 1.375  # (+10%)
-const SUPERCHARGE_JUMP_BONUS: float = 1.25
+const SUPERCHARGE_SPEED_BONUS: float = 1.375 
+const SUPERCHARGE_JUMP_BONUS: float = 1.15
 
 func _ready() -> void:
 	# Get autoload references

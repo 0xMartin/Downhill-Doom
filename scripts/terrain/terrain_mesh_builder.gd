@@ -239,18 +239,68 @@ func create_terrain(chunk_index: int) -> StaticBody3D:
 			hole_mesh_instance.set_surface_override_material(0, hole_material)
 			static_body.add_child(hole_mesh_instance)
 			
-			# Deferred collision shape creation to spread work across frames
-			var hole_col_shape := CollisionShape3D.new()
-			hole_col_shape.shape = hole_mesh.create_trimesh_shape()
-			static_body.add_child.call_deferred(hole_col_shape)
+			# Hole walls collision - create async on background thread
+			_create_collision_async(hole_mesh, static_body)
 	
+	# Main terrain collision - create async on background thread
 	if mesh.get_surface_count() > 0:
-		# Deferred collision shape creation - reduces frame stutter on mobile
-		var col_shape := CollisionShape3D.new()
-		col_shape.shape = mesh.create_trimesh_shape()
-		static_body.add_child.call_deferred(col_shape)
+		_create_collision_async(mesh, static_body)
 	
 	return static_body
+
+## Create collision shape on background thread to avoid main thread stutter
+## Shared mutex for thread-safe result passing
+static var _collision_mutex: Mutex = Mutex.new()
+
+func _create_collision_async(mesh: ArrayMesh, target_body: StaticBody3D) -> void:
+	# Container to pass result from worker thread to main thread
+	var result_container := {"shape": null, "done": false}
+	
+	var task_id := WorkerThreadPool.add_task(
+		func():
+			# This runs on background thread - create trimesh shape
+			var shape := mesh.create_trimesh_shape()
+			_collision_mutex.lock()
+			result_container["shape"] = shape
+			result_container["done"] = true
+			_collision_mutex.unlock()
+	)
+	
+	# Poll for completion (doesn't block main thread)
+	_poll_collision_task(task_id, result_container, target_body)
+
+## Poll for task completion and add collision when ready
+func _poll_collision_task(task_id: int, result_container: Dictionary, target_body: StaticBody3D) -> void:
+	var scene_tree := Engine.get_main_loop() as SceneTree
+	if not scene_tree:
+		# Fallback: wait synchronously
+		WorkerThreadPool.wait_for_task_completion(task_id)
+		_collision_mutex.lock()
+		var shape: ConcavePolygonShape3D = result_container["shape"] as ConcavePolygonShape3D
+		_collision_mutex.unlock()
+		if shape and is_instance_valid(target_body):
+			var col_shape := CollisionShape3D.new()
+			col_shape.shape = shape
+			target_body.add_child(col_shape)
+		return
+	
+	# Poll via timer (~1 frame delay)
+	var timer := scene_tree.create_timer(0.016)
+	timer.timeout.connect(func():
+		_collision_mutex.lock()
+		var is_done: bool = result_container["done"]
+		var shape: ConcavePolygonShape3D = result_container["shape"] as ConcavePolygonShape3D
+		_collision_mutex.unlock()
+		
+		if is_done:
+			if shape and is_instance_valid(target_body) and target_body.is_inside_tree():
+				var col_shape := CollisionShape3D.new()
+				col_shape.shape = shape
+				target_body.add_child.call_deferred(col_shape)
+		else:
+			# Not done yet, poll again
+			_poll_collision_task(task_id, result_container, target_body)
+	, CONNECT_ONE_SHOT)
 
 func get_cross_section_height(world_x: float, world_z: float) -> float:
 	var half_terrain := terrain_width / 2.0
