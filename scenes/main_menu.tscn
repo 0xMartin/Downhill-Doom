@@ -23,22 +23,6 @@ background_color = Color(0.1, 0.15, 0.2, 1)
 ambient_light_source = 2
 ambient_light_color = Color(1, 1, 1, 1)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button"]
-bg_color = Color(0.12, 0.16, 0.24, 0.9)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.25, 0.35, 0.5, 1)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_hover"]
-bg_color = Color(0.16, 0.22, 0.32, 0.95)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.35, 0.5, 0.7, 1)
-
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_play_button"]
 bg_color = Color(0.15, 0.35, 0.55, 0.95)
 border_width_left = 3
@@ -59,13 +43,29 @@ border_width_left = 3
 border_width_top = 3
 border_width_right = 3
 border_width_bottom = 3
-border_color = Color(0.4, 0.7, 1.0, 1)
+border_color = Color(0.4, 0.7, 1, 1)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 shadow_color = Color(0.3, 0.6, 0.9, 0.5)
 shadow_size = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button"]
+bg_color = Color(0.12, 0.16, 0.24, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.25, 0.35, 0.5, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_hover"]
+bg_color = Color(0.16, 0.22, 0.32, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.35, 0.5, 0.7, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_shop_button"]
 bg_color = Color(0.35, 0.3, 0.15, 0.9)
@@ -115,7 +115,7 @@ expand_mode = 1
 stretch_mode = 6
 
 [node name="PlayerViewport" type="SubViewportContainer" parent="." unique_id=844224676]
-z_index = 10
+z_index = 5
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -123,9 +123,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -150.0
-offset_top = -350.0
+offset_top = -450.0
 offset_right = 150.0
-offset_bottom = -50.0
+offset_bottom = -150.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
@@ -182,7 +182,7 @@ theme_override_colors/font_outline_color = Color(0.5, 0.3, 0.1, 1)
 theme_override_constants/shadow_offset_x = 3
 theme_override_constants/shadow_offset_y = 3
 theme_override_constants/outline_size = 2
-theme_override_font_sizes/font_size = 52
+theme_override_font_sizes/font_size = 64
 text = "DOWNHILL DOOM"
 horizontal_alignment = 1
 
@@ -201,7 +201,7 @@ theme_override_colors/font_color = Color(0.61528784, 0.7575195, 0.909668, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.5)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 1
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 28
 text = "Roll. Destroy. Survive."
 horizontal_alignment = 1
 
@@ -212,12 +212,12 @@ layout_mode = 2
 [node name="ButtonGrid" type="GridContainer" parent="MainContent" unique_id=1104802805]
 layout_mode = 2
 size_flags_horizontal = 4
-theme_override_constants/h_separation = 20
-theme_override_constants/v_separation = 20
+theme_override_constants/h_separation = 30
+theme_override_constants/v_separation = 30
 columns = 3
 
 [node name="PlayButton" type="Button" parent="MainContent/ButtonGrid" unique_id=690824987]
-custom_minimum_size = Vector2(130, 130)
+custom_minimum_size = Vector2(200, 200)
 layout_mode = 2
 theme_override_styles/normal = SubResource("StyleBoxFlat_play_button")
 theme_override_styles/hover = SubResource("StyleBoxFlat_play_button_hover")
@@ -236,7 +236,7 @@ theme_override_constants/separation = 5
 alignment = 1
 
 [node name="Icon" type="TextureRect" parent="MainContent/ButtonGrid/PlayButton/VBox" unique_id=544036105]
-custom_minimum_size = Vector2(48, 48)
+custom_minimum_size = Vector2(96, 96)
 layout_mode = 2
 size_flags_horizontal = 4
 texture = ExtResource("7_play")
@@ -247,12 +247,12 @@ stretch_mode = 5
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 32
 text = "PLAY"
 horizontal_alignment = 1
 
 [node name="StatsButton" type="Button" parent="MainContent/ButtonGrid" unique_id=605584356]
-custom_minimum_size = Vector2(130, 130)
+custom_minimum_size = Vector2(200, 200)
 layout_mode = 2
 theme_override_styles/normal = SubResource("StyleBoxFlat_button")
 theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
@@ -271,7 +271,7 @@ theme_override_constants/separation = 5
 alignment = 1
 
 [node name="Icon" type="TextureRect" parent="MainContent/ButtonGrid/StatsButton/VBox" unique_id=682557443]
-custom_minimum_size = Vector2(48, 48)
+custom_minimum_size = Vector2(96, 96)
 layout_mode = 2
 size_flags_horizontal = 4
 texture = ExtResource("8_stats")
@@ -282,12 +282,12 @@ stretch_mode = 5
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 32
 text = "STATS"
 horizontal_alignment = 1
 
 [node name="ShopButton" type="Button" parent="MainContent/ButtonGrid" unique_id=572709658]
-custom_minimum_size = Vector2(130, 130)
+custom_minimum_size = Vector2(200, 200)
 layout_mode = 2
 theme_override_styles/normal = SubResource("StyleBoxFlat_shop_button")
 theme_override_styles/hover = SubResource("StyleBoxFlat_shop_button_hover")
@@ -306,7 +306,7 @@ theme_override_constants/separation = 5
 alignment = 1
 
 [node name="Icon" type="TextureRect" parent="MainContent/ButtonGrid/ShopButton/VBox" unique_id=121875131]
-custom_minimum_size = Vector2(48, 48)
+custom_minimum_size = Vector2(96, 96)
 layout_mode = 2
 size_flags_horizontal = 4
 texture = ExtResource("11_shop")
@@ -317,12 +317,12 @@ stretch_mode = 5
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 32
 text = "SHOP"
 horizontal_alignment = 1
 
 [node name="SettingsButton" type="Button" parent="MainContent/ButtonGrid" unique_id=455693802]
-custom_minimum_size = Vector2(130, 130)
+custom_minimum_size = Vector2(200, 200)
 layout_mode = 2
 theme_override_styles/normal = SubResource("StyleBoxFlat_button")
 theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
@@ -341,7 +341,7 @@ theme_override_constants/separation = 5
 alignment = 1
 
 [node name="Icon" type="TextureRect" parent="MainContent/ButtonGrid/SettingsButton/VBox" unique_id=1463423817]
-custom_minimum_size = Vector2(48, 48)
+custom_minimum_size = Vector2(96, 96)
 layout_mode = 2
 size_flags_horizontal = 4
 texture = ExtResource("9_settings")
@@ -352,12 +352,12 @@ stretch_mode = 5
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 30
 text = "SETTINGS"
 horizontal_alignment = 1
 
 [node name="QuitButton" type="Button" parent="MainContent/ButtonGrid" unique_id=1709877593]
-custom_minimum_size = Vector2(130, 130)
+custom_minimum_size = Vector2(200, 200)
 layout_mode = 2
 theme_override_styles/normal = SubResource("StyleBoxFlat_button")
 theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
@@ -376,7 +376,7 @@ theme_override_constants/separation = 5
 alignment = 1
 
 [node name="Icon" type="TextureRect" parent="MainContent/ButtonGrid/QuitButton/VBox" unique_id=347143178]
-custom_minimum_size = Vector2(48, 48)
+custom_minimum_size = Vector2(96, 96)
 layout_mode = 2
 size_flags_horizontal = 4
 texture = ExtResource("10_quit")
@@ -387,7 +387,7 @@ stretch_mode = 5
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 32
 text = "QUIT"
 horizontal_alignment = 1
 
@@ -402,7 +402,7 @@ offset_right = 220.0
 offset_bottom = -29.0
 grow_vertical = 0
 theme_override_colors/font_color = Color(0.6, 0.65, 0.7, 0.7)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 26
 text = "v0.1.0"
 
 [node name="AuthorLabel" type="RichTextLabel" parent="." unique_id=1143964675]
@@ -419,7 +419,7 @@ offset_bottom = -29.0
 grow_horizontal = 0
 grow_vertical = 0
 theme_override_colors/default_color = Color(0.6, 0.65, 0.7, 0.7)
-theme_override_font_sizes/normal_font_size = 18
+theme_override_font_sizes/normal_font_size = 26
 bbcode_enabled = true
 text = "[right]Made by [url=https://github.com/0xMartin]0xM4R71N[/url][/right]"
 fit_content = true

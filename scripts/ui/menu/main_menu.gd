@@ -237,13 +237,19 @@ func _apply_unshaded_material(node: Node) -> void:
 
 func _setup_balance_display() -> void:
 	balance_container = HBoxContainer.new()
-	balance_container.add_theme_constant_override("separation", 10)
+	balance_container.add_theme_constant_override("separation", 12)
 	
 	var screen_size := get_viewport().get_visible_rect().size
-	balance_container.position = Vector2(screen_size.x - 200, 20)
+	var viewport_size := get_viewport().get_visible_rect().size
+	
+	# Calculate safe area offset (same approach as HUD)
+	var safe_area := DisplayServer.get_display_safe_area()
+	var physical_screen := Vector2(DisplayServer.screen_get_size())
+	var scale_y: float = viewport_size.y / physical_screen.y
+	var top_inset: float = safe_area.position.y * scale_y
 	
 	var coin_icon := TextureRect.new()
-	coin_icon.custom_minimum_size = Vector2(32, 32)
+	coin_icon.custom_minimum_size = Vector2(48, 48)
 	coin_icon.texture = load("res://assets/svg/coin.svg")
 	coin_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	coin_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
@@ -252,7 +258,7 @@ func _setup_balance_display() -> void:
 	
 	balance_label = Label.new()
 	balance_label.text = _format_balance(stats.get("coin_balance", 0))
-	balance_label.add_theme_font_size_override("font_size", 28)
+	balance_label.add_theme_font_size_override("font_size", 44)
 	balance_label.add_theme_color_override("font_color", COLOR_ACCENT_GOLD)
 	balance_label.add_theme_color_override("font_outline_color", Color(0.1, 0.1, 0.15, 0.8))
 	balance_label.add_theme_constant_override("outline_size", 3)
@@ -261,13 +267,14 @@ func _setup_balance_display() -> void:
 	var card := PanelContainer.new()
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.08, 0.1, 0.15, 0.85)
-	style.set_corner_radius_all(14)
+	style.set_corner_radius_all(18)
 	style.set_border_width_all(2)
 	style.border_color = COLOR_ACCENT_GOLD.darkened(0.3)
-	style.set_content_margin_all(12)
+	style.set_content_margin_all(16)
 	card.add_theme_stylebox_override("panel", style)
 	
-	card.position = Vector2(screen_size.x - 200, 20)
+	# Position with safe area offset
+	card.position = Vector2(screen_size.x - 250, 20 + top_inset)
 	card.add_child(balance_container)
 	balance_container.position = Vector2.ZERO
 	

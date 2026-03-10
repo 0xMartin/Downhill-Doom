@@ -150,40 +150,161 @@ corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_supercharge_panel"]
-content_margin_left = 12.0
-content_margin_top = 16.0
-content_margin_right = 12.0
-content_margin_bottom = 16.0
+content_margin_left = 8.0
+content_margin_top = 8.0
+content_margin_right = 8.0
+content_margin_bottom = 8.0
 bg_color = Color(0.08, 0.06, 0.14, 0.75)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
 border_color = Color(0.91, 0.27, 0.38, 0.6)
-corner_radius_top_left = 42
-corner_radius_top_right = 42
-corner_radius_bottom_right = 42
-corner_radius_bottom_left = 42
+corner_radius_top_left = 63
+corner_radius_top_right = 63
+corner_radius_bottom_right = 63
+corner_radius_bottom_left = 63
 shadow_color = Color(0, 0, 0, 0.5)
 shadow_size = 8
 shadow_offset = Vector2(0, 4)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_supercharge_bar_bg"]
 bg_color = Color(0.05, 0.03, 0.08, 0.9)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
 border_color = Color(0.3, 0.2, 0.4, 0.5)
-corner_radius_top_left = 26
-corner_radius_top_right = 26
-corner_radius_bottom_right = 26
-corner_radius_bottom_left = 26
+corner_radius_top_left = 70
+corner_radius_top_right = 70
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_supercharge_bar_fill"]
-bg_color = Color(1, 0.5, 0.15, 1)
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
+bg_color = Color(0.9622491, 0.33953175, 0.3340835, 1)
+corner_radius_top_left = 70
+corner_radius_top_right = 70
+
+[sub_resource type="FontFile" id="FontFile_hd3ao"]
+cache/0/variation_coordinates = {}
+cache/0/face_index = 0
+cache/0/embolden = 0.0
+cache/0/transform = Transform2D(1, 0, 0, 1, 0, 0)
+cache/0/spacing_top = 0
+cache/0/spacing_bottom = 0
+cache/0/spacing_space = 0
+cache/0/spacing_glyph = 0
+cache/0/baseline_offset = 0.0
+cache/0/16/0/ascent = 0.0
+cache/0/16/0/descent = 0.0
+cache/0/16/0/underline_position = 0.0
+cache/0/16/0/underline_thickness = 0.0
+cache/0/16/0/scale = 1.0
+cache/0/22/0/ascent = 0.0
+cache/0/22/0/descent = 0.0
+cache/0/22/0/underline_position = 0.0
+cache/0/22/0/underline_thickness = 0.0
+cache/0/22/0/scale = 1.0
+cache/0/23/0/ascent = 0.0
+cache/0/23/0/descent = 0.0
+cache/0/23/0/underline_position = 0.0
+cache/0/23/0/underline_thickness = 0.0
+cache/0/23/0/scale = 1.0
+cache/0/24/0/ascent = 0.0
+cache/0/24/0/descent = 0.0
+cache/0/24/0/underline_position = 0.0
+cache/0/24/0/underline_thickness = 0.0
+cache/0/24/0/scale = 1.0
+cache/0/25/0/ascent = 0.0
+cache/0/25/0/descent = 0.0
+cache/0/25/0/underline_position = 0.0
+cache/0/25/0/underline_thickness = 0.0
+cache/0/25/0/scale = 1.0
+cache/0/26/0/ascent = 0.0
+cache/0/26/0/descent = 0.0
+cache/0/26/0/underline_position = 0.0
+cache/0/26/0/underline_thickness = 0.0
+cache/0/26/0/scale = 1.0
+cache/0/27/0/ascent = 0.0
+cache/0/27/0/descent = 0.0
+cache/0/27/0/underline_position = 0.0
+cache/0/27/0/underline_thickness = 0.0
+cache/0/27/0/scale = 1.0
+cache/0/28/0/ascent = 0.0
+cache/0/28/0/descent = 0.0
+cache/0/28/0/underline_position = 0.0
+cache/0/28/0/underline_thickness = 0.0
+cache/0/28/0/scale = 1.0
+cache/0/29/0/ascent = 0.0
+cache/0/29/0/descent = 0.0
+cache/0/29/0/underline_position = 0.0
+cache/0/29/0/underline_thickness = 0.0
+cache/0/29/0/scale = 1.0
+cache/0/30/0/ascent = 0.0
+cache/0/30/0/descent = 0.0
+cache/0/30/0/underline_position = 0.0
+cache/0/30/0/underline_thickness = 0.0
+cache/0/30/0/scale = 1.0
+cache/0/31/0/ascent = 0.0
+cache/0/31/0/descent = 0.0
+cache/0/31/0/underline_position = 0.0
+cache/0/31/0/underline_thickness = 0.0
+cache/0/31/0/scale = 1.0
+cache/0/32/0/ascent = 0.0
+cache/0/32/0/descent = 0.0
+cache/0/32/0/underline_position = 0.0
+cache/0/32/0/underline_thickness = 0.0
+cache/0/32/0/scale = 1.0
+cache/0/33/0/ascent = 0.0
+cache/0/33/0/descent = 0.0
+cache/0/33/0/underline_position = 0.0
+cache/0/33/0/underline_thickness = 0.0
+cache/0/33/0/scale = 1.0
+cache/0/34/0/ascent = 0.0
+cache/0/34/0/descent = 0.0
+cache/0/34/0/underline_position = 0.0
+cache/0/34/0/underline_thickness = 0.0
+cache/0/34/0/scale = 1.0
+cache/0/35/0/ascent = 0.0
+cache/0/35/0/descent = 0.0
+cache/0/35/0/underline_position = 0.0
+cache/0/35/0/underline_thickness = 0.0
+cache/0/35/0/scale = 1.0
+cache/0/36/0/ascent = 0.0
+cache/0/36/0/descent = 0.0
+cache/0/36/0/underline_position = 0.0
+cache/0/36/0/underline_thickness = 0.0
+cache/0/36/0/scale = 1.0
+cache/0/37/0/ascent = 0.0
+cache/0/37/0/descent = 0.0
+cache/0/37/0/underline_position = 0.0
+cache/0/37/0/underline_thickness = 0.0
+cache/0/37/0/scale = 1.0
+cache/0/38/0/ascent = 0.0
+cache/0/38/0/descent = 0.0
+cache/0/38/0/underline_position = 0.0
+cache/0/38/0/underline_thickness = 0.0
+cache/0/38/0/scale = 1.0
+cache/0/39/0/ascent = 0.0
+cache/0/39/0/descent = 0.0
+cache/0/39/0/underline_position = 0.0
+cache/0/39/0/underline_thickness = 0.0
+cache/0/39/0/scale = 1.0
+cache/0/50/0/ascent = 0.0
+cache/0/50/0/descent = 0.0
+cache/0/50/0/underline_position = 0.0
+cache/0/50/0/underline_thickness = 0.0
+cache/0/50/0/scale = 1.0
+cache/0/45/0/ascent = 0.0
+cache/0/45/0/descent = 0.0
+cache/0/45/0/underline_position = 0.0
+cache/0/45/0/underline_thickness = 0.0
+cache/0/45/0/scale = 1.0
+cache/0/47/0/ascent = 0.0
+cache/0/47/0/descent = 0.0
+cache/0/47/0/underline_position = 0.0
+cache/0/47/0/underline_thickness = 0.0
+cache/0/47/0/scale = 1.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_right_panel_bg"]
 bg_color = Color(0.12, 0.12, 0.14, 0.92)
@@ -192,10 +313,10 @@ border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
 border_color = Color(0.91, 0.27, 0.38, 0.6)
-corner_radius_top_left = 42
-corner_radius_top_right = 42
-corner_radius_bottom_right = 42
-corner_radius_bottom_left = 42
+corner_radius_top_left = 70
+corner_radius_top_right = 70
+corner_radius_bottom_right = 70
+corner_radius_bottom_left = 70
 shadow_color = Color(0, 0, 0, 0.5)
 shadow_size = 6
 shadow_offset = Vector2(0, 3)
@@ -209,7 +330,7 @@ anchor_right = 1.0
 offset_left = 20.0
 offset_top = 20.0
 offset_right = -20.0
-offset_bottom = 97.0
+offset_bottom = 130.0
 grow_horizontal = 2
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
@@ -233,7 +354,7 @@ theme_override_constants/separation = 8
 
 [node name="CoinIcon" type="TextureRect" parent="TopBar/MarginContainer/HBoxContainer/CoinsContainer" unique_id=128081865]
 modulate = Color(1, 0.85, 0.2, 1)
-custom_minimum_size = Vector2(44, 44)
+custom_minimum_size = Vector2(64, 64)
 layout_mode = 2
 texture = ExtResource("2_coin_icon")
 expand_mode = 1
@@ -265,8 +386,9 @@ theme_override_colors/font_color = Color(1, 0.9, 0.3, 1)
 theme_override_colors/font_shadow_color = Color(0.2, 0.1, 0, 0.6)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 2
-theme_override_font_sizes/font_size = 34
+theme_override_font_sizes/font_size = 48
 text = "0"
+vertical_alignment = 1
 
 [node name="Separator1" type="VSeparator" parent="TopBar/MarginContainer/HBoxContainer" unique_id=1805106782]
 modulate = Color(1, 1, 1, 0.3)
@@ -279,14 +401,14 @@ theme_override_constants/separation = 8
 
 [node name="HealthIcon" type="TextureRect" parent="TopBar/MarginContainer/HBoxContainer/HealthContainer" unique_id=442324254]
 modulate = Color(1, 0.4, 0.5, 1)
-custom_minimum_size = Vector2(38, 38)
+custom_minimum_size = Vector2(56, 56)
 layout_mode = 2
 texture = ExtResource("4_heart_icon")
 expand_mode = 1
 stretch_mode = 5
 
 [node name="HealthBar" type="ProgressBar" parent="TopBar/MarginContainer/HBoxContainer/HealthContainer" unique_id=855289037]
-custom_minimum_size = Vector2(120, 31)
+custom_minimum_size = Vector2(180, 46)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 1
@@ -307,7 +429,7 @@ theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 1
 theme_override_constants/outline_size = 2
-theme_override_font_sizes/font_size = 29
+theme_override_font_sizes/font_size = 42
 text = "100/100"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -323,7 +445,7 @@ theme_override_constants/separation = 8
 
 [node name="DistanceIcon" type="TextureRect" parent="TopBar/MarginContainer/HBoxContainer/DistanceContainer" unique_id=612579531]
 modulate = Color(0.7, 0.85, 1, 1)
-custom_minimum_size = Vector2(38, 38)
+custom_minimum_size = Vector2(56, 56)
 layout_mode = 2
 texture = ExtResource("3_distance_icon")
 expand_mode = 1
@@ -336,23 +458,24 @@ theme_override_colors/font_color = Color(0.85, 0.95, 1, 1)
 theme_override_colors/font_shadow_color = Color(0, 0.1, 0.2, 0.5)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 2
-theme_override_font_sizes/font_size = 34
+theme_override_font_sizes/font_size = 48
 text = "0 m"
+vertical_alignment = 1
 
 [node name="TimerLabel" type="Label" parent="." unique_id=1304192667]
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -60.0
-offset_top = 114.0
+offset_top = 135.0
 offset_right = 60.0
-offset_bottom = 146.0
+offset_bottom = 167.0
 grow_horizontal = 2
 theme_override_colors/font_color = Color(1, 1, 1, 0.9)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.7)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 2
-theme_override_font_sizes/font_size = 26
+theme_override_font_sizes/font_size = 38
 text = "00:00:00"
 horizontal_alignment = 1
 
@@ -401,10 +524,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -190.0
-offset_top = -245.0
-offset_right = 190.0
-offset_bottom = 245.0
+offset_left = -350.0
+offset_top = -450.0
+offset_right = 350.0
+offset_bottom = 450.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_pause_panel")
@@ -416,7 +539,7 @@ theme_override_constants/separation = 8
 [node name="Title" type="Label" parent="PauseMenu/PanelContainer/VBoxContainer" unique_id=2054909385]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 32
+theme_override_font_sizes/font_size = 52
 text = "PAUSED"
 horizontal_alignment = 1
 
@@ -425,36 +548,36 @@ custom_minimum_size = Vector2(0, 2)
 layout_mode = 2
 
 [node name="ResumeButton" type="Button" parent="PauseMenu/PanelContainer/VBoxContainer" unique_id=1589495864]
-custom_minimum_size = Vector2(260, 46)
+custom_minimum_size = Vector2(480, 108)
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_colors/font_color = Color(1, 1, 1, 0.9)
 theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 48
 theme_override_styles/normal = SubResource("StyleBoxFlat_button")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_button_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
 text = "Resume"
 
 [node name="RestartButton" type="Button" parent="PauseMenu/PanelContainer/VBoxContainer" unique_id=1679294168]
-custom_minimum_size = Vector2(260, 46)
+custom_minimum_size = Vector2(480, 108)
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_colors/font_color = Color(1, 1, 1, 0.9)
 theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 48
 theme_override_styles/normal = SubResource("StyleBoxFlat_button")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_button_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
 text = "Restart"
 
 [node name="MenuButton" type="Button" parent="PauseMenu/PanelContainer/VBoxContainer" unique_id=900883753]
-custom_minimum_size = Vector2(260, 46)
+custom_minimum_size = Vector2(480, 108)
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_colors/font_color = Color(1, 1, 1, 0.9)
 theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 48
 theme_override_styles/normal = SubResource("StyleBoxFlat_button")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_button_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
@@ -475,7 +598,7 @@ theme_override_constants/separation = 6
 [node name="AudioLabel" type="Label" parent="PauseMenu/PanelContainer/VBoxContainer/AudioSection/AudioVBox" unique_id=1358462832]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 0.5)
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 24
 text = "AUDIO"
 
 [node name="MusicRow" type="HBoxContainer" parent="PauseMenu/PanelContainer/VBoxContainer/AudioSection/AudioVBox" unique_id=1096603342]
@@ -483,14 +606,14 @@ layout_mode = 2
 theme_override_constants/separation = 12
 
 [node name="MusicLabel" type="Label" parent="PauseMenu/PanelContainer/VBoxContainer/AudioSection/AudioVBox/MusicRow" unique_id=868770555]
-custom_minimum_size = Vector2(80, 0)
+custom_minimum_size = Vector2(120, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 0.8)
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 32
 text = "Music"
 
 [node name="MusicSlider" type="HSlider" parent="PauseMenu/PanelContainer/VBoxContainer/AudioSection/AudioVBox/MusicRow" unique_id=286828278]
-custom_minimum_size = Vector2(160, 20)
+custom_minimum_size = Vector2(300, 100)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_styles/slider = SubResource("StyleBoxFlat_slider_bg")
@@ -505,14 +628,14 @@ layout_mode = 2
 theme_override_constants/separation = 12
 
 [node name="SFXLabel" type="Label" parent="PauseMenu/PanelContainer/VBoxContainer/AudioSection/AudioVBox/SFXRow" unique_id=65503028]
-custom_minimum_size = Vector2(80, 0)
+custom_minimum_size = Vector2(120, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 0.8)
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 32
 text = "Effects"
 
 [node name="SFXSlider" type="HSlider" parent="PauseMenu/PanelContainer/VBoxContainer/AudioSection/AudioVBox/SFXRow" unique_id=1384883902]
-custom_minimum_size = Vector2(160, 20)
+custom_minimum_size = Vector2(300, 100)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_styles/slider = SubResource("StyleBoxFlat_slider_bg")
@@ -528,32 +651,35 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_section")
 
 [node name="DisplayVBox" type="VBoxContainer" parent="PauseMenu/PanelContainer/VBoxContainer/DisplaySection" unique_id=1187854490]
 layout_mode = 2
-theme_override_constants/separation = 4
+theme_override_constants/separation = 12
 
 [node name="DisplayLabel" type="Label" parent="PauseMenu/PanelContainer/VBoxContainer/DisplaySection/DisplayVBox" unique_id=2049912056]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 0.5)
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 24
 text = "DISPLAY"
 
 [node name="PopupCheck" type="CheckButton" parent="PauseMenu/PanelContainer/VBoxContainer/DisplaySection/DisplayVBox" unique_id=121308334]
+custom_minimum_size = Vector2(0, 96)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 0.8)
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 44
 button_pressed = true
 text = "Pickup Popups"
 
 [node name="DamageCheck" type="CheckButton" parent="PauseMenu/PanelContainer/VBoxContainer/DisplaySection/DisplayVBox" unique_id=871497496]
+custom_minimum_size = Vector2(0, 96)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 0.8)
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 44
 button_pressed = true
 text = "Damage Numbers"
 
 [node name="HapticCheck" type="CheckButton" parent="PauseMenu/PanelContainer/VBoxContainer/DisplaySection/DisplayVBox" unique_id=507690234]
+custom_minimum_size = Vector2(0, 96)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 0.8)
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 44
 button_pressed = true
 text = "Vibration"
 
@@ -563,23 +689,26 @@ anchor_left = 1.0
 anchor_top = 0.5
 anchor_right = 1.0
 anchor_bottom = 0.5
-offset_left = -96.0
-offset_top = -168.0
-offset_right = -12.0
-offset_bottom = 168.0
+offset_left = -163.0
+offset_top = -177.0
+offset_right = -38.0
+offset_bottom = 443.0
 grow_horizontal = 0
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_supercharge_panel")
+metadata/_edit_use_anchors_ = true
 
 [node name="SuperchargeContainer" type="VBoxContainer" parent="SuperchargePanel" unique_id=1653555539]
 layout_mode = 2
-theme_override_constants/separation = 14
+size_flags_vertical = 3
+theme_override_constants/separation = 6
 alignment = 1
 
 [node name="SuperchargeBar" type="Control" parent="SuperchargePanel/SuperchargeContainer" unique_id=2138306708]
-custom_minimum_size = Vector2(52, 200)
+custom_minimum_size = Vector2(102, 0)
 layout_mode = 2
 size_flags_horizontal = 4
+size_flags_vertical = 3
 
 [node name="BarBackground" type="PanelContainer" parent="SuperchargePanel/SuperchargeContainer/SuperchargeBar" unique_id=97867081]
 clip_children = 2
@@ -587,6 +716,8 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_top = 1.0
+offset_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_supercharge_bar_bg")
@@ -611,7 +742,8 @@ grow_vertical = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 0.95)
 theme_override_constants/outline_size = 5
-theme_override_font_sizes/font_size = 22
+theme_override_fonts/font = SubResource("FontFile_hd3ao")
+theme_override_font_sizes/font_size = 47
 text = "0
 ━
 10"
@@ -620,9 +752,10 @@ vertical_alignment = 1
 
 [node name="SuperchargeButton" type="TextureButton" parent="SuperchargePanel/SuperchargeContainer" unique_id=803117474]
 modulate = Color(0.5, 0.5, 0.5, 0.6)
-custom_minimum_size = Vector2(60, 60)
+custom_minimum_size = Vector2(99, 99)
 layout_mode = 2
 size_flags_horizontal = 4
+size_flags_vertical = 4
 texture_normal = ExtResource("8_fire_button")
 ignore_texture_size = true
 stretch_mode = 4
@@ -634,13 +767,13 @@ anchor_left = 1.0
 anchor_top = 0.5
 anchor_right = 1.0
 anchor_bottom = 0.5
-offset_left = -96.0
-offset_top = -364.0
-offset_right = -12.0
-offset_bottom = -280.0
+offset_left = -163.0
+offset_top = -487.0
+offset_right = -38.0
+offset_bottom = -362.0
 grow_horizontal = 0
 grow_vertical = 2
-pivot_offset = Vector2(42, 42)
+pivot_offset = Vector2(63, 42)
 
 [node name="ButtonBackground" type="PanelContainer" parent="SettingsButtonPanel" unique_id=153768116]
 layout_mode = 1
@@ -657,10 +790,10 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 24.0
-offset_top = 24.0
-offset_right = -24.0
-offset_bottom = -24.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = -20.0
 grow_horizontal = 2
 grow_vertical = 2
 texture_normal = ExtResource("10_settings")
@@ -674,22 +807,13 @@ anchor_left = 1.0
 anchor_top = 0.5
 anchor_right = 1.0
 anchor_bottom = 0.5
-offset_left = -96.0
-offset_top = -264.0
-offset_right = -12.0
-offset_bottom = -180.0
+offset_left = -163.0
+offset_top = -337.0
+offset_right = -38.0
+offset_bottom = -212.0
 grow_horizontal = 0
 grow_vertical = 2
-pivot_offset = Vector2(42, 42)
-
-[node name="ShadowBackground" type="PanelContainer" parent="MultiplierPanel" unique_id=1847501464]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_right_panel_bg")
+pivot_offset = Vector2(63, 42)
 
 [node name="CoinFrame" type="TextureRect" parent="MultiplierPanel" unique_id=1788210684]
 layout_mode = 1
@@ -715,7 +839,7 @@ theme_override_colors/font_outline_color = Color(0.5, 0.3, 0, 1)
 theme_override_constants/shadow_offset_x = 0
 theme_override_constants/shadow_offset_y = 1
 theme_override_constants/outline_size = 4
-theme_override_font_sizes/font_size = 32
+theme_override_font_sizes/font_size = 38
 text = "x1"
 horizontal_alignment = 1
 vertical_alignment = 1

@@ -1,0 +1,192 @@
+[gd_scene format=3 uid="uid://ijqd1d2habdl"]
+
+[ext_resource type="Texture2D" uid="uid://dgjqf24dn1qar" path="res://assets/svg/coin.svg" id="1_coin"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_header"]
+bg_color = Color(0.05, 0.07, 0.1, 1)
+content_margin_left = 24.0
+content_margin_top = 12.0
+content_margin_right = 24.0
+content_margin_bottom = 12.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_back_button_normal"]
+bg_color = Color(1, 1, 1, 0.1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+content_margin_left = 24.0
+content_margin_top = 12.0
+content_margin_right = 24.0
+content_margin_bottom = 12.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_back_button_hover"]
+bg_color = Color(1, 1, 1, 0.2)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+content_margin_left = 24.0
+content_margin_top = 12.0
+content_margin_right = 24.0
+content_margin_bottom = 12.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_back_button_pressed"]
+bg_color = Color(0.8, 0.66, 0.2, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+content_margin_left = 24.0
+content_margin_top = 12.0
+content_margin_right = 24.0
+content_margin_bottom = 12.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_nav_button"]
+bg_color = Color(0.14, 0.18, 0.26, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 0.82, 0.25, 0.6)
+
+[node name="ShopPanelContent" type="VBoxContainer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 0
+
+[node name="Header" type="PanelContainer" parent="."]
+custom_minimum_size = Vector2(0, 140)
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_header")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Header"]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+theme_override_constants/separation = 24
+alignment = 1
+
+[node name="HeaderIcon" type="TextureRect" parent="Header/HBoxContainer"]
+custom_minimum_size = Vector2(56, 56)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("1_coin")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="HeaderTitle" type="Label" parent="Header/HBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.82, 0.25, 1)
+theme_override_font_sizes/font_size = 56
+text = "SHOP"
+
+[node name="Spacer" type="Control" parent="Header/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="BackButton" type="Button" parent="Header/HBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(180, 80)
+layout_mode = 2
+size_flags_vertical = 1
+focus_mode = 0
+mouse_filter = 0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 40
+theme_override_styles/normal = SubResource("StyleBoxFlat_back_button_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_back_button_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_back_button_pressed")
+theme_override_styles/focus = SubResource("StyleBoxFlat_back_button_hover")
+text = "←  Back"
+
+[node name="ContentMargin" type="MarginContainer" parent="."]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/margin_left = 36
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 36
+theme_override_constants/margin_bottom = 24
+
+[node name="ContentVBox" type="VBoxContainer" parent="ContentMargin"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 24
+
+[node name="BalanceRow" type="HBoxContainer" parent="ContentMargin/ContentVBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="CoinIcon" type="TextureRect" parent="ContentMargin/ContentVBox/BalanceRow"]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+texture = ExtResource("1_coin")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ShopBalanceLabel" type="Label" parent="ContentMargin/ContentVBox/BalanceRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.82, 0.25, 1)
+theme_override_font_sizes/font_size = 48
+text = "0"
+
+[node name="NavigationContainer" type="HBoxContainer" parent="ContentMargin/ContentVBox"]
+layout_mode = 2
+theme_override_constants/separation = 24
+alignment = 1
+
+[node name="PrevButton" type="Button" parent="ContentMargin/ContentVBox/NavigationContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 72)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.82, 0.25, 1)
+theme_override_font_sizes/font_size = 40
+theme_override_styles/normal = SubResource("StyleBoxFlat_nav_button")
+text = "<"
+
+[node name="SectionLabel" type="Label" parent="ContentMargin/ContentVBox/NavigationContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(280, 60)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.82, 0.25, 1)
+theme_override_font_sizes/font_size = 48
+text = "SKINS"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="NextButton" type="Button" parent="ContentMargin/ContentVBox/NavigationContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 72)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.82, 0.25, 1)
+theme_override_font_sizes/font_size = 40
+theme_override_styles/normal = SubResource("StyleBoxFlat_nav_button")
+text = ">"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="ContentMargin/ContentVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="ShopContentContainer" type="VBoxContainer" parent="ContentMargin/ContentVBox/ScrollContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 24

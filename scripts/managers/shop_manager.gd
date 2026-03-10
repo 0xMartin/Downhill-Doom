@@ -89,14 +89,37 @@ const CRATE_ICONS := {
 	"legendary": "res://assets/svg/crate_legendary.svg",
 }
 
-# Available texture skins from crates
+# Available texture skins from crates (hardcoded for mobile export compatibility)
 var available_texture_skins := [
-	"emerald_basilisk",
-	"steampunk",
+	"aethelgard_refractor",
+	"ancient_forest",
+	"biomech-xeno_fusion",
+	"circuit_master",
+	"color_splash",
 	"crystallized_abyssal",
 	"cybernetic_overgrowth",
+	"desert_sunstone",
+	"eldritch_obsidian",
+	"eldritch_void",
+	"emerald_basilisk",
+	"entropic_chaos",
 	"fossilized_leviathan",
+	"fox",
+	"fractured_glass",
+	"frozen_nebula",
+	"glacial_cybernetica",
+	"hydraulic_power",
+	"infernal_magma",
+	"mycelial_fracture",
+	"mycelial_neural",
+	"obsidian_quake",
+	"solar_arcanum",
+	"steampunk",
+	"sub-zero_cryo-plating",
+	"toxic_hazard",
+	"venomous_scales",
 	"vestige_VIX",
+	"xeno-flora_spore_pod",
 ]
 
 # ========== SHOP DATA ==========
@@ -111,22 +134,7 @@ var shop_data := {
 
 func _ready() -> void:
 	_load_shop_data()
-	_scan_texture_skins()
 
-
-func _scan_texture_skins() -> void:
-	# Scan for available texture skins in the skins folder
-	var dir := DirAccess.open("res://assets/skins")
-	if dir:
-		dir.list_dir_begin()
-		var file_name := dir.get_next()
-		while file_name != "":
-			if not dir.current_is_dir() and file_name.ends_with(".png") and file_name != "mask.png":
-				var skin_name := file_name.replace(".png", "")
-				if skin_name not in available_texture_skins:
-					available_texture_skins.append(skin_name)
-			file_name = dir.get_next()
-		dir.list_dir_end()
 
 # ========== GETTERS ==========
 

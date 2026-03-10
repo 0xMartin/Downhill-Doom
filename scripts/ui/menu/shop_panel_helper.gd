@@ -1,61 +1,64 @@
 class_name ShopPanelHelper
 extends RefCounted
-## Helper class for building and managing the shop panel UI
+## Scene-based shop panel helper that loads static UI from scene file
+## and handles dynamic content generation (skin cards, boost cards, crate cards, roulette)
 
-# Signals for communication with main menu
+const CONTENT_SCENE := preload("res://scenes/ui/shop_panel_content.tscn")
+const UIConstants := preload("res://scripts/ui/ui_constants.gd")
+const ModelRenderer := preload("res://scripts/utils/model_renderer.gd")
+
+# Colors
+const COLOR_ACCENT_PRIMARY := Color(0.28, 0.76, 0.70, 1.0)
+const COLOR_ACCENT_SECONDARY := Color(0.62, 0.32, 0.82, 1.0)
+const COLOR_ACCENT_GOLD := Color(1.0, 0.82, 0.25, 1.0)
+const COLOR_TEXT_PRIMARY := Color(1.0, 1.0, 1.0, 1.0)
+const COLOR_TEXT_SECONDARY := Color(0.8, 0.85, 0.9, 1.0)
+const COLOR_TEXT_MUTED := Color(0.5, 0.55, 0.6, 1.0)
+const COLOR_BG_DARK := Color(0.08, 0.1, 0.14, 1.0)
+const COLOR_BG_LIGHT := Color(0.14, 0.18, 0.26, 1.0)
+const COLOR_BORDER := Color(0.3, 0.35, 0.5, 0.6)
+
+const SHOP_SECTIONS := ["SKINS", "BOOSTS", "CRATES"]
+
+# Signals for main menu communication
 signal balance_update_needed
 signal stats_reload_needed
 signal player_model_refresh_needed
 
-# Color palette
-const COLOR_BG_DARK := Color(0.06, 0.08, 0.12, 1.0)
-const COLOR_BG_MEDIUM := Color(0.10, 0.14, 0.20, 1.0)
-const COLOR_BG_LIGHT := Color(0.14, 0.18, 0.26, 1.0)
-const COLOR_ACCENT_PRIMARY := Color(0.25, 0.65, 0.96, 1.0)
-const COLOR_ACCENT_SECONDARY := Color(0.30, 0.85, 0.55, 1.0)
-const COLOR_ACCENT_GOLD := Color(1.0, 0.82, 0.25, 1.0)
-const COLOR_TEXT_PRIMARY := Color(1.0, 1.0, 1.0, 1.0)
-const COLOR_TEXT_SECONDARY := Color(0.7, 0.75, 0.85, 1.0)
-const COLOR_TEXT_MUTED := Color(0.5, 0.55, 0.65, 1.0)
-const COLOR_BORDER := Color(0.25, 0.32, 0.45, 0.8)
-
-const SHOP_SECTIONS := ["SKINS", "BOOSTS", "CRATES"]
-
+# References
 var shop_panel: Control
+var content_instance: Control
+var shop_section_label: Label
+var shop_content_container: VBoxContainer
 var shop_manager: Node
 var audio_manager: Node
 var stats: Dictionary
-
-var shop_section_index: int = 0
-var shop_content_container: Control
-var shop_section_label: Label
 
 # Roulette state
 var roulette_container: Control
 var roulette_hbox: HBoxContainer
 var roulette_tween: Tween
-var roulette_items: Array = []
-var roulette_result: Dictionary = {}
-var roulette_crate_type: String = ""
+var roulette_result: Dictionary
+var roulette_crate_type: String
+var roulette_items: Array
 var roulette_last_item_index: int = -1
+var roulette_looping_tweens: Array[Tween] = []
 var roulette_click_sound: AudioStreamPlayer
 var roulette_speed_lines: TextureRect
-var roulette_looping_tweens: Array[Tween] = []  # Track looping tweens for cleanup
+
+# Shop state
+var shop_section_index: int = 0
 
 
-func _init(panel: Control, shop_mgr: Node, audio_mgr: Node, stats_dict: Dictionary) -> void:
+func _init(panel: Control, p_shop_manager: Node, p_audio_manager: Node, p_stats: Dictionary) -> void:
 	shop_panel = panel
-	shop_manager = shop_mgr
-	audio_manager = audio_mgr
-	stats = stats_dict
-
-
-func update_stats(new_stats: Dictionary) -> void:
-	stats = new_stats
+	shop_manager = p_shop_manager
+	audio_manager = p_audio_manager
+	stats = p_stats
 
 
 func rebuild() -> void:
-	# Clear existing content (except Background) - use free() for immediate removal
+	# Clear existing content except Background
 	var children_to_remove: Array[Node] = []
 	for child in shop_panel.get_children():
 		if child.name != "Background":
@@ -65,135 +68,98 @@ func rebuild() -> void:
 		child.free()
 	
 	# Update background
-	var bg: ColorRect = shop_panel.get_node("Background")
-	bg.color = Color(0, 0, 0, 0.95)
+	var bg: ColorRect = shop_panel.get_node_or_null("Background")
+	if bg:
+		bg.color = Color(0.04, 0.05, 0.08, 1.0)
 	
+	# Calculate safe area offset
+	var safe_area := DisplayServer.get_display_safe_area()
 	var screen_size: Vector2 = shop_panel.get_viewport().get_visible_rect().size
-	var panel_width: float = minf(720.0, screen_size.x * 0.95)
-	var panel_height: float = minf(screen_size.y * 0.92, screen_size.y - 40)
+	var physical_screen := Vector2(DisplayServer.screen_get_size())
+	var scale_y: float = screen_size.y / physical_screen.y if physical_screen.y > 0 else 1.0
+	var top_inset: float = safe_area.position.y * scale_y
 	
-	# Create centered VBox for positioning
-	var center_vbox := VBoxContainer.new()
-	center_vbox.anchors_preset = Control.PRESET_CENTER
-	center_vbox.anchor_left = 0.5
-	center_vbox.anchor_top = 0.5
-	center_vbox.anchor_right = 0.5
-	center_vbox.anchor_bottom = 0.5
-	center_vbox.offset_left = -panel_width / 2
-	center_vbox.offset_right = panel_width / 2
-	center_vbox.offset_top = -panel_height / 2
-	center_vbox.offset_bottom = panel_height / 2
-	center_vbox.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	center_vbox.grow_vertical = Control.GROW_DIRECTION_BOTH
-	shop_panel.add_child(center_vbox)
+	# Instantiate the scene
+	content_instance = CONTENT_SCENE.instantiate()
+	content_instance.set_anchors_preset(Control.PRESET_FULL_RECT)
+	content_instance.offset_top = top_inset
+	shop_panel.add_child(content_instance)
 	
-	# Create main card container
-	var card := PanelContainer.new()
-	card.custom_minimum_size = Vector2(panel_width, panel_height)
+	# Find UI references
+	_find_ui_references()
 	
-	var card_style := StyleBoxFlat.new()
-	card_style.bg_color = COLOR_BG_MEDIUM
-	card_style.set_corner_radius_all(24)
-	card_style.set_border_width_all(2)
-	card_style.border_color = COLOR_ACCENT_GOLD.darkened(0.3)
-	card_style.shadow_color = Color(0, 0, 0, 0.5)
-	card_style.shadow_size = 20
-	card_style.set_content_margin_all(20)
-	card.add_theme_stylebox_override("panel", card_style)
-	center_vbox.add_child(card)
+	# Connect signals
+	_connect_signals()
 	
-	var inner_vbox := VBoxContainer.new()
-	inner_vbox.add_theme_constant_override("separation", 10)
-	card.add_child(inner_vbox)
+	# Apply dynamic styles
+	_apply_dynamic_styles()
 	
-	# Title with gold glow
-	var title := Label.new()
-	title.text = "SHOP"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 38)
-	title.add_theme_color_override("font_color", COLOR_ACCENT_GOLD)
-	title.add_theme_color_override("font_outline_color", COLOR_ACCENT_GOLD.darkened(0.3))
-	title.add_theme_constant_override("outline_size", 2)
-	inner_vbox.add_child(title)
-	
-	# Balance display in shop
-	var balance_row := HBoxContainer.new()
-	balance_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	balance_row.add_theme_constant_override("separation", 10)
-	inner_vbox.add_child(balance_row)
-	
-	var coin_icon := TextureRect.new()
-	coin_icon.texture = load("res://assets/svg/coin.svg")
-	coin_icon.custom_minimum_size = Vector2(28, 28)
-	coin_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	coin_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	coin_icon.modulate = COLOR_ACCENT_GOLD
-	balance_row.add_child(coin_icon)
-	
-	var shop_balance_label := Label.new()
-	shop_balance_label.name = "ShopBalanceLabel"
-	shop_balance_label.text = _format_balance(stats.get("coin_balance", 0))
-	shop_balance_label.add_theme_font_size_override("font_size", 28)
-	shop_balance_label.add_theme_color_override("font_color", COLOR_ACCENT_GOLD)
-	balance_row.add_child(shop_balance_label)
-	
-	# Section Navigation
-	var nav_container := HBoxContainer.new()
-	nav_container.alignment = BoxContainer.ALIGNMENT_CENTER
-	nav_container.add_theme_constant_override("separation", 15)
-	inner_vbox.add_child(nav_container)
-	
-	var prev_btn := _create_nav_button("<")
-	prev_btn.name = "PrevButton"
-	prev_btn.pressed.connect(_on_section_prev)
-	nav_container.add_child(prev_btn)
-	
-	shop_section_label = Label.new()
-	shop_section_label.text = SHOP_SECTIONS[shop_section_index]
-	shop_section_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	shop_section_label.custom_minimum_size = Vector2(140, 40)
-	shop_section_label.add_theme_font_size_override("font_size", 24)
-	shop_section_label.add_theme_color_override("font_color", COLOR_ACCENT_GOLD)
-	nav_container.add_child(shop_section_label)
-	
-	var next_btn := _create_nav_button(">")
-	next_btn.name = "NextButton"
-	next_btn.pressed.connect(_on_section_next)
-	nav_container.add_child(next_btn)
-	
-	# Content area
-	var scroll := ScrollContainer.new()
-	var scroll_height: float = maxf(400.0, screen_size.y * 0.55)
-	scroll.custom_minimum_size = Vector2(panel_width - 50, scroll_height)
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	inner_vbox.add_child(scroll)
-	
-	shop_content_container = VBoxContainer.new()
-	shop_content_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	shop_content_container.add_theme_constant_override("separation", 12)
-	scroll.add_child(shop_content_container)
-	
+	# Populate initial section
+	update_balance()
 	_populate_section()
+
+
+func _find_ui_references() -> void:
+	shop_section_label = content_instance.get_node("%SectionLabel") as Label
+	shop_content_container = content_instance.get_node("%ShopContentContainer") as VBoxContainer
+
+
+func _connect_signals() -> void:
+	var back_button := content_instance.get_node("%BackButton") as Button
+	# Back button signal connected in main_menu.gd
 	
-	# Back Button
-	var back_btn := Button.new()
-	back_btn.name = "BackButton"
-	back_btn.text = "BACK"
-	back_btn.custom_minimum_size = Vector2(180, 50)
-	back_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	back_btn.add_theme_font_size_override("font_size", 20)
-	_style_secondary_button(back_btn)
-	inner_vbox.add_child(back_btn)
+	var prev_button := content_instance.get_node("%PrevButton") as Button
+	var next_button := content_instance.get_node("%NextButton") as Button
+	
+	if prev_button:
+		prev_button.pressed.connect(_on_section_prev)
+	if next_button:
+		next_button.pressed.connect(_on_section_next)
+
+
+func _apply_dynamic_styles() -> void:
+	# Style nav buttons
+	var prev_button := content_instance.get_node("%PrevButton") as Button
+	var next_button := content_instance.get_node("%NextButton") as Button
+	
+	for btn in [prev_button, next_button]:
+		if btn:
+			_style_nav_button(btn)
+
+
+func _style_nav_button(btn: Button) -> void:
+	var normal := StyleBoxFlat.new()
+	normal.bg_color = COLOR_BG_LIGHT
+	normal.set_corner_radius_all(16)
+	normal.set_border_width_all(3)
+	normal.border_color = COLOR_BORDER
+	
+	var hover := StyleBoxFlat.new()
+	hover.bg_color = COLOR_ACCENT_GOLD.darkened(0.3)
+	hover.set_corner_radius_all(16)
+	hover.set_border_width_all(3)
+	hover.border_color = COLOR_ACCENT_GOLD
+	
+	btn.add_theme_stylebox_override("normal", normal)
+	btn.add_theme_stylebox_override("hover", hover)
+	btn.add_theme_stylebox_override("pressed", hover)
+	btn.add_theme_color_override("font_color", COLOR_TEXT_PRIMARY)
+	btn.add_theme_color_override("font_hover_color", COLOR_ACCENT_GOLD)
 
 
 func get_back_button() -> Button:
-	return shop_panel.find_child("BackButton", true, false) as Button
+	if content_instance:
+		return content_instance.get_node("%BackButton") as Button
+	return null
+
+
+func update_stats(new_stats: Dictionary) -> void:
+	stats = new_stats
 
 
 func update_balance() -> void:
-	var label := shop_panel.find_child("ShopBalanceLabel", true, false)
-	if label and label is Label:
+	var label := content_instance.get_node("%ShopBalanceLabel") as Label
+	if label:
 		label.text = _format_balance(stats.get("coin_balance", 0))
 
 
@@ -236,7 +202,7 @@ func _populate_skins_section() -> void:
 	# Model-based skins
 	var model_header := Label.new()
 	model_header.text = "MODEL SKINS"
-	model_header.add_theme_font_size_override("font_size", 20)
+	model_header.add_theme_font_size_override("font_size", 34)
 	model_header.add_theme_color_override("font_color", COLOR_TEXT_SECONDARY)
 	shop_content_container.add_child(model_header)
 	
@@ -248,7 +214,7 @@ func _populate_skins_section() -> void:
 	# Texture skins from crates
 	var texture_header := Label.new()
 	texture_header.text = "SPECIAL SKINS (from crates)"
-	texture_header.add_theme_font_size_override("font_size", 20)
+	texture_header.add_theme_font_size_override("font_size", 34)
 	texture_header.add_theme_color_override("font_color", COLOR_TEXT_SECONDARY)
 	shop_content_container.add_child(texture_header)
 	
@@ -256,7 +222,7 @@ func _populate_skins_section() -> void:
 	if texture_skins.is_empty():
 		var empty_label := Label.new()
 		empty_label.text = "No special skins available yet"
-		empty_label.add_theme_font_size_override("font_size", 16)
+		empty_label.add_theme_font_size_override("font_size", 28)
 		empty_label.add_theme_color_override("font_color", COLOR_TEXT_MUTED)
 		shop_content_container.add_child(empty_label)
 	else:
@@ -267,7 +233,8 @@ func _populate_skins_section() -> void:
 
 func _create_skin_card(skin_id: String, is_texture: bool) -> PanelContainer:
 	var card := PanelContainer.new()
-	card.custom_minimum_size = Vector2(0, 80)
+	card.custom_minimum_size = Vector2(0, UIConstants.LIST_ITEM_HEIGHT)
+	card.mouse_filter = Control.MOUSE_FILTER_PASS
 	
 	var is_owned: bool = shop_manager.is_skin_owned(skin_id)
 	var is_selected: bool = shop_manager.get_selected_skin() == skin_id
@@ -275,50 +242,51 @@ func _create_skin_card(skin_id: String, is_texture: bool) -> PanelContainer:
 	
 	var style := StyleBoxFlat.new()
 	style.bg_color = COLOR_BG_DARK
-	style.set_corner_radius_all(14)
-	style.set_border_width_all(2)
+	style.set_corner_radius_all(16)
+	style.set_border_width_all(3)
 	if is_selected:
 		style.border_color = COLOR_ACCENT_SECONDARY
 	elif is_owned:
 		style.border_color = COLOR_ACCENT_PRIMARY.darkened(0.3)
 	else:
 		style.border_color = COLOR_BORDER
-	style.set_content_margin_all(12)
+	style.set_content_margin_all(16)
 	card.add_theme_stylebox_override("panel", style)
 	
 	var hbox := HBoxContainer.new()
-	hbox.add_theme_constant_override("separation", 15)
+	hbox.add_theme_constant_override("separation", 20)
+	hbox.mouse_filter = Control.MOUSE_FILTER_PASS
 	card.add_child(hbox)
 	
-	# Texture preview for texture skins (clipped, enlarged 250%)
+	# Texture preview for texture skins
 	if is_texture:
 		var clip_container := Control.new()
 		clip_container.clip_contents = true
-		clip_container.custom_minimum_size = Vector2(56, 56)
+		clip_container.custom_minimum_size = Vector2(160, 80)
+		clip_container.mouse_filter = Control.MOUSE_FILTER_PASS
 		hbox.add_child(clip_container)
 		
 		if is_owned:
-			# Show texture preview for owned skins
 			var texture_path := "res://assets/skins/%s.png" % skin_id
 			if ResourceLoader.exists(texture_path):
 				var preview := TextureRect.new()
 				preview.texture = load(texture_path)
-				# 250% of container size
-				var enlarged_size := 140.0
-				var offset := (enlarged_size - 56.0) / 2.0
+				var enlarged_size := 200.0
+				var offset_x := (enlarged_size - 160.0) / 2.0
+				var offset_y := (enlarged_size - 80.0) / 2.0
 				preview.custom_minimum_size = Vector2(enlarged_size, enlarged_size)
 				preview.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 				preview.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-				preview.position = Vector2(-offset, -offset)
+				preview.position = Vector2(-offset_x, -offset_y)
+				preview.mouse_filter = Control.MOUSE_FILTER_PASS
 				clip_container.add_child(preview)
 		else:
-			# Show black square with lock for locked skins
 			var locked_bg := ColorRect.new()
 			locked_bg.color = Color(0.05, 0.05, 0.08, 1.0)
 			locked_bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+			locked_bg.mouse_filter = Control.MOUSE_FILTER_PASS
 			clip_container.add_child(locked_bg)
 			
-			# Question mark or lock indicator
 			var lock_label := Label.new()
 			lock_label.text = "?"
 			lock_label.add_theme_font_size_override("font_size", 28)
@@ -331,6 +299,7 @@ func _create_skin_card(skin_id: String, is_texture: bool) -> PanelContainer:
 	# Skin name
 	var name_vbox := VBoxContainer.new()
 	name_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	name_vbox.mouse_filter = Control.MOUSE_FILTER_PASS
 	hbox.add_child(name_vbox)
 	
 	var display_name := skin_id.replace("_", " ").capitalize()
@@ -339,8 +308,9 @@ func _create_skin_card(skin_id: String, is_texture: bool) -> PanelContainer:
 	
 	var name_label := Label.new()
 	name_label.text = display_name
-	name_label.add_theme_font_size_override("font_size", 20)
+	name_label.add_theme_font_size_override("font_size", 44)
 	name_label.add_theme_color_override("font_color", COLOR_TEXT_PRIMARY if is_owned else COLOR_TEXT_MUTED)
+	name_label.mouse_filter = Control.MOUSE_FILTER_PASS
 	name_vbox.add_child(name_label)
 	
 	# Status or price
@@ -357,12 +327,14 @@ func _create_skin_card(skin_id: String, is_texture: bool) -> PanelContainer:
 	else:
 		status_label.text = "%s coins" % _format_balance(price)
 		status_label.add_theme_color_override("font_color", COLOR_ACCENT_GOLD)
-	status_label.add_theme_font_size_override("font_size", 14)
+	status_label.add_theme_font_size_override("font_size", 36)
+	status_label.mouse_filter = Control.MOUSE_FILTER_PASS
 	name_vbox.add_child(status_label)
 	
 	# Action button
 	var action_btn := Button.new()
-	action_btn.custom_minimum_size = Vector2(100, 40)
+	action_btn.custom_minimum_size = Vector2(160, 88)
+	action_btn.add_theme_font_size_override("font_size", 36)
 	
 	if is_selected:
 		action_btn.text = "SELECTED"
@@ -391,7 +363,7 @@ func _populate_boosts_section() -> void:
 	var selected: Array = shop_manager.get_selected_boosts()
 	var selected_label := Label.new()
 	selected_label.text = "Selected for next game: %d/2" % selected.size()
-	selected_label.add_theme_font_size_override("font_size", 18)
+	selected_label.add_theme_font_size_override("font_size", 32)
 	selected_label.add_theme_color_override("font_color", COLOR_TEXT_SECONDARY)
 	selected_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	shop_content_container.add_child(selected_label)
@@ -405,7 +377,8 @@ func _populate_boosts_section() -> void:
 
 func _create_boost_card(boost_id: String) -> PanelContainer:
 	var card := PanelContainer.new()
-	card.custom_minimum_size = Vector2(0, 90)
+	card.custom_minimum_size = Vector2(0, UIConstants.LIST_ITEM_HEIGHT)
+	card.mouse_filter = Control.MOUSE_FILTER_PASS
 	
 	var owned_count: int = shop_manager.get_boost_count(boost_id)
 	var is_selected: bool = shop_manager.is_boost_selected(boost_id)
@@ -415,61 +388,78 @@ func _create_boost_card(boost_id: String) -> PanelContainer:
 	
 	var style := StyleBoxFlat.new()
 	style.bg_color = COLOR_BG_DARK
-	style.set_corner_radius_all(14)
-	style.set_border_width_all(2)
+	style.set_corner_radius_all(16)
+	style.set_border_width_all(3)
 	if is_selected:
 		style.border_color = COLOR_ACCENT_SECONDARY
 	elif owned_count > 0:
 		style.border_color = COLOR_ACCENT_PRIMARY.darkened(0.3)
 	else:
 		style.border_color = COLOR_BORDER
-	style.set_content_margin_all(12)
+	style.set_content_margin_all(16)
 	card.add_theme_stylebox_override("panel", style)
 	
 	var hbox := HBoxContainer.new()
-	hbox.add_theme_constant_override("separation", 12)
+	hbox.add_theme_constant_override("separation", 20)
+	hbox.mouse_filter = Control.MOUSE_FILTER_PASS
 	card.add_child(hbox)
 	
 	# Icon
 	if icon_path and ResourceLoader.exists(icon_path):
+		var icon_container := Control.new()
+		icon_container.custom_minimum_size = Vector2(230, 115)
+		icon_container.mouse_filter = Control.MOUSE_FILTER_PASS
+		hbox.add_child(icon_container)
+		
 		var icon := TextureRect.new()
 		icon.texture = load(icon_path)
-		icon.custom_minimum_size = Vector2(72, 72)
+		icon.custom_minimum_size = Vector2(115, 115)
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		hbox.add_child(icon)
+		icon.set_anchors_preset(Control.PRESET_CENTER)
+		icon.offset_left = -57
+		icon.offset_right = 57
+		icon.offset_top = -57
+		icon.offset_bottom = 57
+		icon.mouse_filter = Control.MOUSE_FILTER_PASS
+		icon_container.add_child(icon)
 	
 	# Info
 	var info_vbox := VBoxContainer.new()
 	info_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	info_vbox.mouse_filter = Control.MOUSE_FILTER_PASS
 	hbox.add_child(info_vbox)
 	
 	var name_label := Label.new()
 	name_label.text = display_name
-	name_label.add_theme_font_size_override("font_size", 18)
+	name_label.add_theme_font_size_override("font_size", 44)
 	name_label.add_theme_color_override("font_color", COLOR_TEXT_PRIMARY)
+	name_label.mouse_filter = Control.MOUSE_FILTER_PASS
 	info_vbox.add_child(name_label)
 	
 	var owned_label := Label.new()
 	owned_label.text = "Owned: %d" % owned_count
-	owned_label.add_theme_font_size_override("font_size", 14)
+	owned_label.add_theme_font_size_override("font_size", 36)
 	owned_label.add_theme_color_override("font_color", COLOR_TEXT_SECONDARY if owned_count > 0 else COLOR_TEXT_MUTED)
+	owned_label.mouse_filter = Control.MOUSE_FILTER_PASS
 	info_vbox.add_child(owned_label)
 	
 	var price_label := Label.new()
 	price_label.text = "%s coins" % _format_balance(price)
-	price_label.add_theme_font_size_override("font_size", 14)
+	price_label.add_theme_font_size_override("font_size", 36)
 	price_label.add_theme_color_override("font_color", COLOR_ACCENT_GOLD)
+	price_label.mouse_filter = Control.MOUSE_FILTER_PASS
 	info_vbox.add_child(price_label)
 	
 	# Buttons
 	var btn_vbox := VBoxContainer.new()
-	btn_vbox.add_theme_constant_override("separation", 6)
+	btn_vbox.add_theme_constant_override("separation", 12)
 	hbox.add_child(btn_vbox)
 	
 	# Select/deselect button
 	var select_btn := Button.new()
-	select_btn.custom_minimum_size = Vector2(90, 32)
+	select_btn.custom_minimum_size = Vector2(150, 72)
+	select_btn.add_theme_font_size_override("font_size", 32)
 	if is_selected:
 		select_btn.text = "REMOVE"
 		select_btn.pressed.connect(_on_boost_toggle.bind(boost_id))
@@ -485,7 +475,8 @@ func _create_boost_card(boost_id: String) -> PanelContainer:
 	# Buy button
 	var buy_btn := Button.new()
 	buy_btn.text = "BUY"
-	buy_btn.custom_minimum_size = Vector2(90, 32)
+	buy_btn.custom_minimum_size = Vector2(150, 72)
+	buy_btn.add_theme_font_size_override("font_size", 32)
 	buy_btn.pressed.connect(_on_boost_buy.bind(boost_id))
 	_style_shop_button(buy_btn, false)
 	btn_vbox.add_child(buy_btn)
@@ -505,7 +496,8 @@ func _populate_crates_section() -> void:
 
 func _create_crate_card(crate_type: String) -> PanelContainer:
 	var card := PanelContainer.new()
-	card.custom_minimum_size = Vector2(0, 120)
+	card.custom_minimum_size = Vector2(0, UIConstants.LIST_ITEM_HEIGHT_LARGE)
+	card.mouse_filter = Control.MOUSE_FILTER_PASS
 	
 	var owned_count: int = shop_manager.get_crate_count(crate_type)
 	var price: int = shop_manager.CRATE_PRICES.get(crate_type, 0)
@@ -524,40 +516,55 @@ func _create_crate_card(crate_type: String) -> PanelContainer:
 	
 	var style := StyleBoxFlat.new()
 	style.bg_color = COLOR_BG_DARK
-	style.set_corner_radius_all(14)
-	style.set_border_width_all(2)
+	style.set_corner_radius_all(16)
+	style.set_border_width_all(3)
 	style.border_color = accent_color.darkened(0.3)
-	style.set_content_margin_all(12)
+	style.set_content_margin_all(16)
 	card.add_theme_stylebox_override("panel", style)
 	
 	var hbox := HBoxContainer.new()
-	hbox.add_theme_constant_override("separation", 15)
+	hbox.add_theme_constant_override("separation", 20)
+	hbox.mouse_filter = Control.MOUSE_FILTER_PASS
 	card.add_child(hbox)
 	
-	# Icon
+	# Icon - same size as boost icons
 	if icon_path and ResourceLoader.exists(icon_path):
+		var icon_container := Control.new()
+		icon_container.custom_minimum_size = Vector2(230, 115)
+		icon_container.mouse_filter = Control.MOUSE_FILTER_PASS
+		hbox.add_child(icon_container)
+		
 		var icon := TextureRect.new()
 		icon.texture = load(icon_path)
-		icon.custom_minimum_size = Vector2(64, 64)
+		icon.custom_minimum_size = Vector2(115, 115)
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		hbox.add_child(icon)
+		icon.set_anchors_preset(Control.PRESET_CENTER)
+		icon.offset_left = -57
+		icon.offset_right = 57
+		icon.offset_top = -57
+		icon.offset_bottom = 57
+		icon.mouse_filter = Control.MOUSE_FILTER_PASS
+		icon_container.add_child(icon)
 	
 	# Info
 	var info_vbox := VBoxContainer.new()
 	info_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	info_vbox.mouse_filter = Control.MOUSE_FILTER_PASS
 	hbox.add_child(info_vbox)
 	
 	var name_label := Label.new()
 	name_label.text = display_name
-	name_label.add_theme_font_size_override("font_size", 20)
+	name_label.add_theme_font_size_override("font_size", 34)
 	name_label.add_theme_color_override("font_color", accent_color)
+	name_label.mouse_filter = Control.MOUSE_FILTER_PASS
 	info_vbox.add_child(name_label)
 	
 	var owned_label := Label.new()
 	owned_label.text = "Owned: %d" % owned_count
-	owned_label.add_theme_font_size_override("font_size", 14)
+	owned_label.add_theme_font_size_override("font_size", 26)
 	owned_label.add_theme_color_override("font_color", COLOR_TEXT_SECONDARY)
+	owned_label.mouse_filter = Control.MOUSE_FILTER_PASS
 	info_vbox.add_child(owned_label)
 	
 	# Drop chances
@@ -567,25 +574,27 @@ func _create_crate_card(crate_type: String) -> PanelContainer:
 		chances.get("crate", 0) * 100,
 		chances.get("skin", 0) * 100
 	]
-	chances_label.add_theme_font_size_override("font_size", 12)
+	chances_label.add_theme_font_size_override("font_size", 22)
 	chances_label.add_theme_color_override("font_color", COLOR_TEXT_MUTED)
+	chances_label.mouse_filter = Control.MOUSE_FILTER_PASS
 	info_vbox.add_child(chances_label)
 	
 	var price_label := Label.new()
 	price_label.text = "%s coins" % _format_balance(price)
-	price_label.add_theme_font_size_override("font_size", 14)
+	price_label.add_theme_font_size_override("font_size", 26)
 	price_label.add_theme_color_override("font_color", COLOR_ACCENT_GOLD)
+	price_label.mouse_filter = Control.MOUSE_FILTER_PASS
 	info_vbox.add_child(price_label)
 	
 	# Buttons
 	var btn_vbox := VBoxContainer.new()
-	btn_vbox.add_theme_constant_override("separation", 6)
+	btn_vbox.add_theme_constant_override("separation", 10)
 	hbox.add_child(btn_vbox)
 	
 	# Open button
 	var open_btn := Button.new()
 	open_btn.text = "OPEN"
-	open_btn.custom_minimum_size = Vector2(90, 36)
+	open_btn.custom_minimum_size = Vector2(130, 56)
 	open_btn.disabled = owned_count <= 0
 	open_btn.pressed.connect(_on_crate_open.bind(crate_type))
 	_style_shop_button(open_btn, owned_count > 0)
@@ -594,7 +603,7 @@ func _create_crate_card(crate_type: String) -> PanelContainer:
 	# Buy button
 	var buy_btn := Button.new()
 	buy_btn.text = "BUY"
-	buy_btn.custom_minimum_size = Vector2(90, 36)
+	buy_btn.custom_minimum_size = Vector2(130, 56)
 	buy_btn.pressed.connect(_on_crate_buy.bind(crate_type))
 	_style_shop_button(buy_btn, false)
 	btn_vbox.add_child(buy_btn)
@@ -626,10 +635,10 @@ func show_roulette(crate_type: String) -> void:
 	center.anchor_right = 0.5
 	center.anchor_top = 0.5
 	center.anchor_bottom = 0.5
-	center.offset_left = -300
-	center.offset_right = 300
-	center.offset_top = -150
-	center.offset_bottom = 150
+	center.offset_left = -500
+	center.offset_right = 500
+	center.offset_top = -200
+	center.offset_bottom = 200
 	center.add_theme_constant_override("separation", 20)
 	center.alignment = BoxContainer.ALIGNMENT_CENTER
 	roulette_container.add_child(center)
@@ -638,16 +647,16 @@ func show_roulette(crate_type: String) -> void:
 	var title := Label.new()
 	title.text = "OPENING %s" % shop_manager.CRATE_NAMES.get(crate_type, "Crate").to_upper()
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 28)
+	title.add_theme_font_size_override("font_size", 42)
 	title.add_theme_color_override("font_color", COLOR_ACCENT_GOLD)
 	center.add_child(title)
 	
-	# Roulette window with mask - fixed width, centered in VBox
+	# Roulette window with mask
 	var window_wrapper := CenterContainer.new()
 	center.add_child(window_wrapper)
 	
 	var window_container := Control.new()
-	window_container.custom_minimum_size = Vector2(520, 160)
+	window_container.custom_minimum_size = Vector2(UIConstants.ROULETTE_WINDOW_WIDTH, UIConstants.ROULETTE_WINDOW_HEIGHT)
 	window_container.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	window_container.clip_contents = true
 	window_wrapper.add_child(window_container)
@@ -668,13 +677,13 @@ func show_roulette(crate_type: String) -> void:
 	frame_texture.z_index = 5
 	window_container.add_child(frame_texture)
 	
-	# Items container - centered vertically
+	# Items container
 	roulette_hbox = HBoxContainer.new()
-	roulette_hbox.add_theme_constant_override("separation", 10)
-	roulette_hbox.position = Vector2(0, 28)
+	roulette_hbox.add_theme_constant_override("separation", UIConstants.ROULETTE_ITEM_SPACING)
+	roulette_hbox.position = Vector2(0, (UIConstants.ROULETTE_WINDOW_HEIGHT - UIConstants.ROULETTE_ITEM_HEIGHT) / 2)
 	window_container.add_child(roulette_hbox)
 	
-	# Center marker - fancy gold crystal pointer (on top)
+	# Center marker
 	var marker_container := Control.new()
 	marker_container.set_anchors_preset(Control.PRESET_CENTER_TOP)
 	marker_container.anchor_left = 0.5
@@ -686,7 +695,7 @@ func show_roulette(crate_type: String) -> void:
 	marker_container.z_index = 15
 	window_container.add_child(marker_container)
 	
-	# Marker glow (pulsing)
+	# Marker glow
 	var marker_glow := TextureRect.new()
 	if ResourceLoader.exists("res://assets/svg/roulette_glow.svg"):
 		marker_glow.texture = load("res://assets/svg/roulette_glow.svg")
@@ -705,7 +714,7 @@ func show_roulette(crate_type: String) -> void:
 	marker_texture.set_anchors_preset(Control.PRESET_FULL_RECT)
 	marker_container.add_child(marker_texture)
 	
-	# Speed lines effect (visible during fast phase)
+	# Speed lines effect
 	roulette_speed_lines = TextureRect.new()
 	if ResourceLoader.exists("res://assets/svg/roulette_speed_lines.svg"):
 		roulette_speed_lines.texture = load("res://assets/svg/roulette_speed_lines.svg")
@@ -727,8 +736,7 @@ func show_roulette(crate_type: String) -> void:
 
 func _create_roulette_item(item_data: Dictionary) -> PanelContainer:
 	var panel := PanelContainer.new()
-	# Fixed size for all items - MUST be consistent
-	panel.custom_minimum_size = Vector2(90, 100)
+	panel.custom_minimum_size = Vector2(UIConstants.ROULETTE_ITEM_WIDTH, UIConstants.ROULETTE_ITEM_HEIGHT)
 	panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	
@@ -736,7 +744,6 @@ func _create_roulette_item(item_data: Dictionary) -> PanelContainer:
 	var border_color := COLOR_BORDER
 	var bg_color := COLOR_BG_DARK
 	
-	# Set colors based on rarity/type
 	match item_data.get("type", ""):
 		"boost":
 			border_color = COLOR_ACCENT_PRIMARY
@@ -755,12 +762,11 @@ func _create_roulette_item(item_data: Dictionary) -> PanelContainer:
 	style.set_content_margin_all(6)
 	panel.add_theme_stylebox_override("panel", style)
 	
-	# Use Control for fixed layout instead of VBoxContainer
 	var content := Control.new()
 	content.set_anchors_preset(Control.PRESET_FULL_RECT)
 	panel.add_child(content)
 	
-	# Icon - fixed position in top area
+	# Icon
 	var icon_path := ""
 	var is_texture_skin := false
 	match item_data.get("type", ""):
@@ -773,42 +779,43 @@ func _create_roulette_item(item_data: Dictionary) -> PanelContainer:
 			is_texture_skin = ResourceLoader.exists(icon_path)
 	
 	if is_texture_skin:
-		# Clipped container for texture skins (130% enlarged, clipped)
+		var icon_size := UIConstants.ROULETTE_ICON_SIZE
+		var half_icon := icon_size / 2
 		var clip_container := Control.new()
 		clip_container.clip_contents = true
 		clip_container.set_anchors_preset(Control.PRESET_CENTER_TOP)
-		clip_container.offset_left = -24
-		clip_container.offset_right = 24
-		clip_container.offset_top = 4
-		clip_container.offset_bottom = 52
+		clip_container.offset_left = -half_icon
+		clip_container.offset_right = half_icon
+		clip_container.offset_top = 6
+		clip_container.offset_bottom = 6 + icon_size
 		content.add_child(clip_container)
 		
 		var icon := TextureRect.new()
 		icon.texture = load(icon_path)
-		# 250% of container size (48 * 2.5 = 120)
-		var enlarged_size := 120.0
-		var offset := (enlarged_size - 48.0) / 2.0
+		var enlarged_size := icon_size * 2.5
+		var offset := (enlarged_size - icon_size) / 2.0
 		icon.custom_minimum_size = Vector2(enlarged_size, enlarged_size)
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 		icon.position = Vector2(-offset, -offset)
 		clip_container.add_child(icon)
 	else:
+		var icon_size := UIConstants.ROULETTE_ICON_SIZE
+		var half_icon := icon_size / 2
 		var icon := TextureRect.new()
 		if icon_path and ResourceLoader.exists(icon_path):
 			icon.texture = load(icon_path)
-		icon.custom_minimum_size = Vector2(48, 48)
+		icon.custom_minimum_size = Vector2(icon_size, icon_size)
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		# Center icon horizontally, place at top
 		icon.set_anchors_preset(Control.PRESET_CENTER_TOP)
-		icon.offset_left = -24
-		icon.offset_right = 24
-		icon.offset_top = 4
-		icon.offset_bottom = 52
+		icon.offset_left = -half_icon
+		icon.offset_right = half_icon
+		icon.offset_top = 6
+		icon.offset_bottom = 6 + icon_size
 		content.add_child(icon)
 	
-	# Name label - fixed position at bottom
+	# Name label
 	var name_label := Label.new()
 	var item_name := ""
 	match item_data.get("type", ""):
@@ -819,18 +826,16 @@ func _create_roulette_item(item_data: Dictionary) -> PanelContainer:
 		"skin":
 			item_name = item_data.get("id", "Skin").replace("_", " ").capitalize()
 	
-	# Truncate long names
 	if item_name.length() > 12:
 		item_name = item_name.substr(0, 10) + ".."
 	
 	name_label.text = item_name
-	name_label.add_theme_font_size_override("font_size", 9)
+	name_label.add_theme_font_size_override("font_size", 20)
 	name_label.add_theme_color_override("font_color", COLOR_TEXT_SECONDARY)
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	# Position at bottom
 	name_label.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
-	name_label.offset_top = -28
+	name_label.offset_top = -42
 	name_label.offset_bottom = 0
 	name_label.offset_left = 2
 	name_label.offset_right = -2
@@ -840,7 +845,6 @@ func _create_roulette_item(item_data: Dictionary) -> PanelContainer:
 
 
 func _animate_marker_glow(glow: TextureRect) -> void:
-	# Create pulsing glow animation
 	var tween := shop_panel.create_tween()
 	tween.set_loops()
 	tween.tween_property(glow, "modulate:a", 0.9, 0.8).set_trans(Tween.TRANS_SINE)
@@ -849,7 +853,6 @@ func _animate_marker_glow(glow: TextureRect) -> void:
 
 
 func _add_win_sparkles(container: Control) -> void:
-	# Add floating sparkle particles
 	var sparkle_positions := [
 		Vector2(-150, -100), Vector2(150, -100),
 		Vector2(-180, 50), Vector2(180, 50),
@@ -877,7 +880,6 @@ func _add_win_sparkles(container: Control) -> void:
 		sparkle.pivot_offset = Vector2(12, 12)
 		container.add_child(sparkle)
 		
-		# Animate each sparkle with delay - fade in, rotate, fade out
 		var delay := float(i) * 0.15
 		var sparkle_tween := shop_panel.create_tween()
 		sparkle_tween.tween_interval(delay)
@@ -885,16 +887,14 @@ func _add_win_sparkles(container: Control) -> void:
 		sparkle_tween.tween_property(sparkle, "modulate:a", 0.0, 0.5)
 		sparkle_tween.tween_callback(sparkle.queue_free)
 		
-		# Rotation animation (different speeds for variety)
-		var rotation_speed := 1.5 + randf() * 1.5  # 1.5-3.0 seconds per rotation
-		var rotation_dir := 1.0 if i % 2 == 0 else -1.0  # Alternate direction
+		var rotation_speed := 1.5 + randf() * 1.5
+		var rotation_dir := 1.0 if i % 2 == 0 else -1.0
 		var rotate_tween := shop_panel.create_tween()
 		rotate_tween.tween_interval(delay)
 		rotate_tween.tween_property(sparkle, "rotation", rotation_dir * TAU, rotation_speed).from(0.0)
 
 
 func _animate_win_label(label: Label) -> void:
-	# Bounce and scale animation for win label
 	label.pivot_offset = label.size / 2
 	label.scale = Vector2(0.3, 0.3)
 	label.modulate.a = 0.0
@@ -905,10 +905,9 @@ func _animate_win_label(label: Label) -> void:
 	tween.tween_property(label, "modulate:a", 1.0, 0.2)
 	tween.chain().tween_property(label, "scale", Vector2(1.0, 1.0), 0.2).set_trans(Tween.TRANS_SINE)
 	
-	# Continuous subtle pulse
 	var pulse_tween := shop_panel.create_tween()
 	pulse_tween.set_loops()
-	pulse_tween.tween_interval(0.5)  # Delay before pulse starts
+	pulse_tween.tween_interval(0.5)
 	pulse_tween.tween_property(label, "scale", Vector2(1.05, 1.05), 0.6).set_trans(Tween.TRANS_SINE)
 	pulse_tween.tween_property(label, "scale", Vector2(1.0, 1.0), 0.6).set_trans(Tween.TRANS_SINE)
 	roulette_looping_tweens.append(pulse_tween)
@@ -916,63 +915,50 @@ func _animate_win_label(label: Label) -> void:
 
 func _animate_roulette() -> void:
 	var winning_index := 25
-	var window_width := 520.0
+	var window_width := float(UIConstants.ROULETTE_WINDOW_WIDTH)
 	var window_center := window_width / 2.0
 	
 	roulette_hbox.position.x = window_width
 	roulette_last_item_index = -1
 	
-	# Setup click sound
 	_setup_roulette_click_sound()
 	
-	# Get the actual result
 	roulette_result = shop_manager.open_crate(roulette_crate_type)
 	
-	# Update winning item with result
 	if roulette_hbox.get_child_count() > winning_index:
 		var winning_panel_update: PanelContainer = roulette_hbox.get_child(winning_index)
 		_update_roulette_item(winning_panel_update, roulette_result)
 	
-	# Wait for layout to be fully calculated
 	await shop_panel.get_tree().process_frame
 	await shop_panel.get_tree().process_frame
 	await shop_panel.get_tree().process_frame
 	
-	# Calculate target position using precise item geometry
-	# Each item: 90px wide + 10px separation = 100px step
-	# Item N center = N * 100 + 45
-	var item_size := 90.0
-	var separation := 10.0
+	var item_size := float(UIConstants.ROULETTE_ITEM_WIDTH)
+	var separation := float(UIConstants.ROULETTE_ITEM_SPACING)
 	var item_step := item_size + separation
 	var item_center := float(winning_index) * item_step + (item_size / 2.0)
 	var target_x := window_center - item_center
 	
-	# Connect to process for click sounds
 	if not shop_panel.get_tree().process_frame.is_connected(_on_roulette_process):
 		shop_panel.get_tree().process_frame.connect(_on_roulette_process)
 	
-	# Speed lines animation - show during fast phase, fade out during slow phase
 	if roulette_speed_lines:
 		var speed_tween := shop_panel.create_tween()
 		speed_tween.tween_property(roulette_speed_lines, "modulate:a", 0.7, 0.3)
 		speed_tween.tween_interval(0.9)
 		speed_tween.tween_property(roulette_speed_lines, "modulate:a", 0.0, 1.5)
 	
-	# Animate with multiple phases for more dynamic feel
 	roulette_tween = shop_panel.create_tween()
 	
-	# Phase 1: Fast acceleration
 	roulette_tween.set_ease(Tween.EASE_IN)
 	roulette_tween.set_trans(Tween.TRANS_QUAD)
 	var midpoint := (window_width + target_x) * 0.4
 	roulette_tween.tween_property(roulette_hbox, "position:x", midpoint, 1.2)
 	
-	# Phase 2: Slow deceleration to final position
 	roulette_tween.set_ease(Tween.EASE_OUT)
 	roulette_tween.set_trans(Tween.TRANS_QUINT)
 	roulette_tween.tween_property(roulette_hbox, "position:x", target_x, 2.8)
 	
-	# Highlight winning item at the end
 	roulette_tween.tween_callback(_highlight_winning_item.bind(winning_index))
 	roulette_tween.tween_interval(0.8)
 	roulette_tween.tween_callback(_on_roulette_finished)
@@ -984,7 +970,6 @@ func _highlight_winning_item(index: int) -> void:
 	
 	var winning_item: PanelContainer = roulette_hbox.get_child(index)
 	
-	# Add golden highlight overlay
 	var highlight := TextureRect.new()
 	if ResourceLoader.exists("res://assets/svg/roulette_item_highlight.svg"):
 		highlight.texture = load("res://assets/svg/roulette_item_highlight.svg")
@@ -999,7 +984,6 @@ func _highlight_winning_item(index: int) -> void:
 	winning_item.add_child(highlight)
 	highlight.show_behind_parent = false
 	
-	# Pulse and scale animation
 	winning_item.pivot_offset = winning_item.size / 2
 	
 	var tween := shop_panel.create_tween()
@@ -1009,7 +993,6 @@ func _highlight_winning_item(index: int) -> void:
 	
 	tween.chain().tween_property(winning_item, "scale", Vector2(1.1, 1.1), 0.15)
 	
-	# Continuous glow pulse
 	var glow_tween := shop_panel.create_tween()
 	glow_tween.set_loops(3)
 	glow_tween.tween_property(highlight, "modulate:a", 1.0, 0.3)
@@ -1040,12 +1023,10 @@ func _update_roulette_item(panel: PanelContainer, result: Dictionary) -> void:
 	style.set_border_width_all(3)
 	panel.add_theme_stylebox_override("panel", style)
 	
-	# Use Control for fixed layout
 	var content := Control.new()
 	content.set_anchors_preset(Control.PRESET_FULL_RECT)
 	panel.add_child(content)
 	
-	# Icon - fixed position
 	var icon_path := ""
 	var is_texture_skin := false
 	match result.get("type", ""):
@@ -1061,41 +1042,42 @@ func _update_roulette_item(panel: PanelContainer, result: Dictionary) -> void:
 				is_texture_skin = ResourceLoader.exists(icon_path)
 	
 	if is_texture_skin:
-		# Clipped container for texture skins (130% enlarged, clipped)
+		var icon_size := UIConstants.ROULETTE_ICON_SIZE
+		var half_icon := icon_size / 2
 		var clip_container := Control.new()
 		clip_container.clip_contents = true
 		clip_container.set_anchors_preset(Control.PRESET_CENTER_TOP)
-		clip_container.offset_left = -24
-		clip_container.offset_right = 24
-		clip_container.offset_top = 4
-		clip_container.offset_bottom = 52
+		clip_container.offset_left = -half_icon
+		clip_container.offset_right = half_icon
+		clip_container.offset_top = 6
+		clip_container.offset_bottom = 6 + icon_size
 		content.add_child(clip_container)
 		
 		var icon := TextureRect.new()
 		icon.texture = load(icon_path)
-		# 250% of container size
-		var enlarged_size := 120.0
-		var offset := (enlarged_size - 48.0) / 2.0
+		var enlarged_size := icon_size * 2.5
+		var offset := (enlarged_size - icon_size) / 2.0
 		icon.custom_minimum_size = Vector2(enlarged_size, enlarged_size)
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 		icon.position = Vector2(-offset, -offset)
 		clip_container.add_child(icon)
 	else:
+		var icon_size := UIConstants.ROULETTE_ICON_SIZE
+		var half_icon := icon_size / 2
 		var icon := TextureRect.new()
 		if icon_path and ResourceLoader.exists(icon_path):
 			icon.texture = load(icon_path)
-		icon.custom_minimum_size = Vector2(48, 48)
+		icon.custom_minimum_size = Vector2(icon_size, icon_size)
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		icon.set_anchors_preset(Control.PRESET_CENTER_TOP)
-		icon.offset_left = -24
-		icon.offset_right = 24
-		icon.offset_top = 4
-		icon.offset_bottom = 52
+		icon.offset_left = -half_icon
+		icon.offset_right = half_icon
+		icon.offset_top = 6
+		icon.offset_bottom = 6 + icon_size
 		content.add_child(icon)
 	
-	# Name label - fixed at bottom
 	var name_label := Label.new()
 	var item_name := ""
 	match result.get("type", ""):
@@ -1113,12 +1095,12 @@ func _update_roulette_item(panel: PanelContainer, result: Dictionary) -> void:
 		item_name = item_name.substr(0, 10) + ".."
 	
 	name_label.text = item_name
-	name_label.add_theme_font_size_override("font_size", 9)
+	name_label.add_theme_font_size_override("font_size", 20)
 	name_label.add_theme_color_override("font_color", COLOR_TEXT_SECONDARY)
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	name_label.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
-	name_label.offset_top = -28
+	name_label.offset_top = -42
 	name_label.offset_bottom = 0
 	name_label.offset_left = 2
 	name_label.offset_right = -2
@@ -1126,11 +1108,9 @@ func _update_roulette_item(panel: PanelContainer, result: Dictionary) -> void:
 
 
 func _on_roulette_finished() -> void:
-	# Stop click sound tracking
 	if shop_panel.get_tree().process_frame.is_connected(_on_roulette_process):
 		shop_panel.get_tree().process_frame.disconnect(_on_roulette_process)
 	
-	# Wait and show result
 	var timer := shop_panel.get_tree().create_timer(1.0)
 	await timer.timeout
 	
@@ -1162,18 +1142,15 @@ func _on_roulette_finished() -> void:
 		burst_texture.modulate.a = 0.0
 		burst_container.add_child(burst_texture)
 		
-		# Animate burst - fade in and rotate
 		var burst_tween := shop_panel.create_tween()
 		burst_tween.set_parallel(true)
 		burst_tween.tween_property(burst_texture, "modulate:a", 0.8, 0.5)
 		
-		# Continuous rotation for burst
 		var burst_rotate_tween := shop_panel.create_tween()
 		burst_rotate_tween.set_loops()
 		burst_rotate_tween.tween_property(burst_texture, "rotation", TAU, 8.0).from(0.0)
 		roulette_looping_tweens.append(burst_rotate_tween)
 		
-		# Add sparkles
 		_add_win_sparkles(roulette_container)
 		
 		# Result display
@@ -1183,27 +1160,28 @@ func _on_roulette_finished() -> void:
 		result_vbox.anchor_right = 0.5
 		result_vbox.anchor_top = 0.5
 		result_vbox.anchor_bottom = 0.5
-		result_vbox.offset_left = -180
-		result_vbox.offset_right = 180
-		result_vbox.offset_top = -180
-		result_vbox.offset_bottom = 180
-		result_vbox.add_theme_constant_override("separation", 12)
+		result_vbox.offset_left = -350
+		result_vbox.offset_right = 350
+		result_vbox.offset_top = -450
+		result_vbox.offset_bottom = 450
+		result_vbox.add_theme_constant_override("separation", 8)
 		result_vbox.alignment = BoxContainer.ALIGNMENT_CENTER
 		roulette_container.add_child(result_vbox)
 		
 		var win_label := Label.new()
 		win_label.text = "YOU WON!"
 		win_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		win_label.add_theme_font_size_override("font_size", 32)
+		win_label.add_theme_font_size_override("font_size", 72)
 		win_label.add_theme_color_override("font_color", COLOR_ACCENT_GOLD)
+		win_label.add_theme_color_override("font_outline_color", Color(0.3, 0.15, 0.0, 1.0))
+		win_label.add_theme_constant_override("outline_size", 4)
 		result_vbox.add_child(win_label)
 		
-		# Animate win label (needs to be called after adding to tree)
 		win_label.ready.connect(_animate_win_label.bind(win_label))
 		
-		# Show preview icon/image of the won item
+		# Preview container
 		var preview_container := CenterContainer.new()
-		preview_container.custom_minimum_size = Vector2(240, 240)  # Larger for skin preview
+		preview_container.custom_minimum_size = Vector2(600, 600)
 		result_vbox.add_child(preview_container)
 		
 		var result_text := ""
@@ -1224,46 +1202,40 @@ func _on_roulette_finished() -> void:
 				else:
 					var skin_id: String = roulette_result.get("id", "")
 					result_text = "%s Skin!" % skin_id.replace("_", " ").capitalize()
-					# For texture skins, show the texture image
 					preview_icon_path = "res://assets/skins/%s.png" % skin_id
 		
 		# Create preview visual
 		if is_skin and not roulette_result.get("is_duplicate", false):
-			# For skins, render model snapshot with texture
 			var skin_id: String = roulette_result.get("id", "")
 			var texture_path := "res://assets/skins/%s.png" % skin_id
 			var has_texture := ResourceLoader.exists(texture_path)
 			
-			# Use player_skin.blend for texture skins (it's the UV-mapped version)
 			var model_path := "res://assets/models/players/player_skin.blend"
 			
-			# Check if this skin is a model skin (has its own .blend file)
 			var specific_model := "res://assets/models/players/%s.blend" % skin_id
 			if ResourceLoader.exists(specific_model):
 				model_path = specific_model
-				has_texture = false  # Model skins don't use texture overlay
+				has_texture = false
 			
-			# Use ModelRenderer utility to create snapshot preview (larger for win screen)
 			var preview_control := ModelRenderer.create_model_preview_control(
 				model_path,
 				texture_path if has_texture else "",
-				Vector2(240, 240),  # Larger size for win screen
-				0.3  # Slight rotation for better view
+				Vector2(600, 600),
+				0.3
 			)
 			preview_container.add_child(preview_control)
 		elif is_skin and roulette_result.get("is_duplicate", false):
-			# Duplicate skin - show coin icon
 			var preview_icon := TextureRect.new()
 			if ResourceLoader.exists("res://assets/svg/coin.svg"):
 				preview_icon.texture = load("res://assets/svg/coin.svg")
-			preview_icon.custom_minimum_size = Vector2(100, 100)
+			preview_icon.custom_minimum_size = Vector2(400, 400)
 			preview_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 			preview_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 			preview_container.add_child(preview_icon)
 		elif preview_icon_path and ResourceLoader.exists(preview_icon_path):
 			var preview_icon := TextureRect.new()
 			preview_icon.texture = load(preview_icon_path)
-			preview_icon.custom_minimum_size = Vector2(100, 100)
+			preview_icon.custom_minimum_size = Vector2(400, 400)
 			preview_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 			preview_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 			preview_container.add_child(preview_icon)
@@ -1271,92 +1243,80 @@ func _on_roulette_finished() -> void:
 		var item_label := Label.new()
 		item_label.text = result_text
 		item_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		item_label.add_theme_font_size_override("font_size", 24)
+		item_label.add_theme_font_size_override("font_size", 44)
 		item_label.add_theme_color_override("font_color", COLOR_TEXT_PRIMARY)
 		result_vbox.add_child(item_label)
 		
-		# Close button
+		var spacer := Control.new()
+		spacer.custom_minimum_size = Vector2(0, 32)
+		result_vbox.add_child(spacer)
+		
 		var close_btn := Button.new()
 		close_btn.text = "CLOSE"
-		close_btn.custom_minimum_size = Vector2(150, 50)
+		close_btn.custom_minimum_size = Vector2(200, 88)
 		close_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-		close_btn.add_theme_font_size_override("font_size", 18)
 		_style_secondary_button(close_btn)
 		close_btn.pressed.connect(_on_roulette_close)
 		result_vbox.add_child(close_btn)
 
 
 func _on_roulette_close() -> void:
-	# Kill all looping tweens first to prevent infinite loop errors
 	for tween in roulette_looping_tweens:
 		if tween and tween.is_valid():
 			tween.kill()
 	roulette_looping_tweens.clear()
 	
-	# Disconnect process frame if connected
 	if shop_panel.get_tree().process_frame.is_connected(_on_roulette_process):
 		shop_panel.get_tree().process_frame.disconnect(_on_roulette_process)
 	
-	# Cleanup click sound
 	if roulette_click_sound:
 		roulette_click_sound.queue_free()
 		roulette_click_sound = null
 	
-	# Cleanup speed lines reference
 	roulette_speed_lines = null
 	
 	if roulette_container:
 		roulette_container.queue_free()
 		roulette_container = null
 	
-	# Signal main menu to refresh
 	stats_reload_needed.emit()
 	balance_update_needed.emit()
 	_populate_section()
 
 
 func _setup_roulette_click_sound() -> void:
-	# Create dedicated audio player for click sounds
 	roulette_click_sound = AudioStreamPlayer.new()
 	var click_stream := load("res://assets/sounds/ui/click.mp3")
 	if click_stream:
 		roulette_click_sound.stream = click_stream
-		roulette_click_sound.volume_db = -5.0  # Slightly quieter
+		roulette_click_sound.volume_db = -5.0
 	shop_panel.add_child(roulette_click_sound)
 
 
 func _on_roulette_process() -> void:
 	if not roulette_hbox or not roulette_tween or not roulette_tween.is_running():
-		# Disconnect when animation done
 		if shop_panel.get_tree().process_frame.is_connected(_on_roulette_process):
 			shop_panel.get_tree().process_frame.disconnect(_on_roulette_process)
 		return
 	
-	# Calculate which item is currently under the indicator (center of 520px window = 260)
-	var window_center := 260.0
-	var item_size := 90.0
-	var separation := 10.0
+	var window_center := float(UIConstants.ROULETTE_WINDOW_WIDTH) / 2.0
+	var item_size := float(UIConstants.ROULETTE_ITEM_WIDTH)
+	var separation := float(UIConstants.ROULETTE_ITEM_SPACING)
 	var item_step := item_size + separation
 	
-	# Position in HBox coordinates = window_center - hbox.position.x
 	var pos_in_hbox := window_center - roulette_hbox.position.x
-	# Which item index contains this position
 	var current_item_index := int(pos_in_hbox / item_step)
 	
-	# Play click and add visual effect when crossing to new item
 	if current_item_index != roulette_last_item_index and current_item_index >= 0 and current_item_index < roulette_hbox.get_child_count():
-		# Reset previous item scale
 		if roulette_last_item_index >= 0 and roulette_last_item_index < roulette_hbox.get_child_count():
 			var prev_item: PanelContainer = roulette_hbox.get_child(roulette_last_item_index)
 			prev_item.scale = Vector2.ONE
 		
 		roulette_last_item_index = current_item_index
 		
-		# Play sound
 		if roulette_click_sound:
 			roulette_click_sound.play()
 		
-		# Bounce current item (quick pop effect)
 		var current_item: PanelContainer = roulette_hbox.get_child(current_item_index)
 		current_item.pivot_offset = current_item.size / 2
 		var item_tween := shop_panel.create_tween()
@@ -1418,45 +1378,25 @@ func _format_balance(amount: int) -> String:
 	return str(amount)
 
 
-func _create_nav_button(text: String) -> Button:
-	var btn := Button.new()
-	btn.text = text
-	btn.custom_minimum_size = Vector2(50, 44)
-	btn.add_theme_font_size_override("font_size", 26)
-	
-	var normal := StyleBoxFlat.new()
-	normal.bg_color = COLOR_BG_LIGHT
-	normal.set_corner_radius_all(12)
-	normal.set_border_width_all(2)
-	normal.border_color = COLOR_BORDER
-	
-	var hover := StyleBoxFlat.new()
-	hover.bg_color = COLOR_ACCENT_GOLD.darkened(0.3)
-	hover.set_corner_radius_all(12)
-	hover.set_border_width_all(2)
-	hover.border_color = COLOR_ACCENT_GOLD
-	
-	btn.add_theme_stylebox_override("normal", normal)
-	btn.add_theme_stylebox_override("hover", hover)
-	btn.add_theme_stylebox_override("pressed", hover)
-	btn.add_theme_color_override("font_color", COLOR_TEXT_PRIMARY)
-	btn.add_theme_color_override("font_hover_color", COLOR_ACCENT_GOLD)
-	
-	return btn
-
-
 func _style_secondary_button(button: Button) -> void:
+	button.custom_minimum_size = Vector2(200, 88)
+	button.add_theme_font_size_override("font_size", UIConstants.FONT_SIZE_NORMAL)
+	
 	var normal := StyleBoxFlat.new()
 	normal.bg_color = COLOR_BG_LIGHT
-	normal.set_corner_radius_all(14)
-	normal.set_border_width_all(2)
+	normal.set_corner_radius_all(16)
+	normal.set_border_width_all(3)
 	normal.border_color = COLOR_BORDER
+	normal.content_margin_left = 24
+	normal.content_margin_right = 24
 	
 	var hover := StyleBoxFlat.new()
 	hover.bg_color = COLOR_BG_LIGHT.lightened(0.1)
-	hover.set_corner_radius_all(14)
-	hover.set_border_width_all(2)
+	hover.set_corner_radius_all(16)
+	hover.set_border_width_all(3)
 	hover.border_color = COLOR_ACCENT_PRIMARY
+	hover.content_margin_left = 24
+	hover.content_margin_right = 24
 	
 	button.add_theme_stylebox_override("normal", normal)
 	button.add_theme_stylebox_override("hover", hover)
@@ -1467,6 +1407,8 @@ func _style_secondary_button(button: Button) -> void:
 
 
 func _style_shop_button(button: Button, is_active: bool) -> void:
+	button.custom_minimum_size = Vector2(140, 72)
+	
 	var normal := StyleBoxFlat.new()
 	var hover := StyleBoxFlat.new()
 	
@@ -1481,13 +1423,17 @@ func _style_shop_button(button: Button, is_active: bool) -> void:
 		hover.bg_color = COLOR_ACCENT_PRIMARY.darkened(0.3)
 		hover.border_color = COLOR_ACCENT_PRIMARY
 	
-	normal.set_corner_radius_all(8)
-	normal.set_border_width_all(2)
-	hover.set_corner_radius_all(8)
-	hover.set_border_width_all(2)
+	normal.set_corner_radius_all(12)
+	normal.set_border_width_all(3)
+	normal.content_margin_left = 16
+	normal.content_margin_right = 16
+	hover.set_corner_radius_all(12)
+	hover.set_border_width_all(3)
+	hover.content_margin_left = 16
+	hover.content_margin_right = 16
 	
 	button.add_theme_stylebox_override("normal", normal)
 	button.add_theme_stylebox_override("hover", hover)
 	button.add_theme_stylebox_override("pressed", hover)
-	button.add_theme_font_size_override("font_size", 14)
+	button.add_theme_font_size_override("font_size", 28)
 	button.add_theme_color_override("font_color", COLOR_TEXT_PRIMARY)

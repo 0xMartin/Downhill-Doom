@@ -120,51 +120,51 @@ theme_override_constants/separation = 25
 [node name="Title" type="Label" parent="Panel/VBoxContainer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.3, 0.3, 1)
-theme_override_font_sizes/font_size = 56
+theme_override_font_sizes/font_size = 72
 text = "GAME OVER"
 horizontal_alignment = 1
 
 [node name="StatsContainer" type="GridContainer" parent="Panel/VBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 4
-theme_override_constants/h_separation = 20
-theme_override_constants/v_separation = 10
+theme_override_constants/h_separation = 28
+theme_override_constants/v_separation = 16
 columns = 2
 
 [node name="DistanceText" type="Label" parent="Panel/VBoxContainer/StatsContainer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 36
 text = "Distance:"
 
 [node name="DistanceValue" type="Label" parent="Panel/VBoxContainer/StatsContainer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 36
 text = "0 m"
 
 [node name="CoinsText" type="Label" parent="Panel/VBoxContainer/StatsContainer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 36
 text = "Coins:"
 
 [node name="CoinsValue" type="Label" parent="Panel/VBoxContainer/StatsContainer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.85, 0, 1)
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 36
 text = "0"
 
 [node name="BestText" type="Label" parent="Panel/VBoxContainer/StatsContainer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 36
 text = "Best:"
 
 [node name="BestDistanceValue" type="Label" parent="Panel/VBoxContainer/StatsContainer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.5, 1, 0.5, 1)
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 36
 text = "0 m"
 
 [node name="Spacer" type="Control" parent="Panel/VBoxContainer"]
@@ -174,18 +174,18 @@ layout_mode = 2
 [node name="ButtonsContainer" type="VBoxContainer" parent="Panel/VBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 4
-theme_override_constants/separation = 15
+theme_override_constants/separation = 20
 
 [node name="RestartButton" type="Button" parent="Panel/VBoxContainer/ButtonsContainer"]
-custom_minimum_size = Vector2(250, 55)
+custom_minimum_size = Vector2(300, 88)
 layout_mode = 2
-theme_override_font_sizes/font_size = 26
+theme_override_font_sizes/font_size = 36
 text = "🔄 Try Again"
 
 [node name="MenuButton" type="Button" parent="Panel/VBoxContainer/ButtonsContainer"]
-custom_minimum_size = Vector2(250, 55)
+custom_minimum_size = Vector2(300, 88)
 layout_mode = 2
-theme_override_font_sizes/font_size = 26
+theme_override_font_sizes/font_size = 36
 text = "🏠 Main Menu"
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]

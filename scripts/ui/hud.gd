@@ -62,8 +62,8 @@ var joystick_touch_index: int = -1  # Track which finger is on joystick
 var jump_button_pressed: bool = false  # Track jump button state
 
 # Combo UI
-var combo_panel: Control
-var combo_label: Label
+@onready var combo_panel: Control = $ComboPanel
+@onready var combo_label: Label = $ComboPanel/ComboLabel
 var combo_tween: Tween
 var current_combo: int = 0
 var last_destroyed_id: String = ""
@@ -98,10 +98,8 @@ func _ready() -> void:
 	gm.supercharge_activated.connect(_on_supercharge_activated)
 	gm.supercharge_ended.connect(_on_supercharge_ended)
 	gm.game_started.connect(_on_game_started)
+	# Connect object destroyed signal for combo system
 	gm.object_destroyed.connect(_on_object_destroyed)
-	
-	# Create combo UI
-	_create_combo_ui()
 	
 	# Create touch controls (visible only if touch mode enabled)
 	_create_touch_controls()
@@ -330,37 +328,37 @@ func show_pickup_popup(amount: int, icon_texture: Texture2D) -> void:
 	# Create +N label - large, bold style with outline
 	var label := Label.new()
 	label.text = "+" + format_number(amount)
-	label.add_theme_font_size_override("font_size", 58)
+	label.add_theme_font_size_override("font_size", 116)
 	label.add_theme_color_override("font_color", Color(1, 0.9, 0.3, 1))  # Bright gold
 	label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
 	label.add_theme_color_override("font_outline_color", Color(0.4, 0.2, 0, 1))  # Dark outline
-	label.add_theme_constant_override("shadow_offset_x", 3)
-	label.add_theme_constant_override("shadow_offset_y", 3)
-	label.add_theme_constant_override("outline_size", 4)
+	label.add_theme_constant_override("shadow_offset_x", 4)
+	label.add_theme_constant_override("shadow_offset_y", 4)
+	label.add_theme_constant_override("outline_size", 6)
 	popup.add_child(label)
 	
 	# Create icon - larger
 	var icon := TextureRect.new()
 	icon.texture = icon_texture
-	icon.custom_minimum_size = Vector2(52, 52)
+	icon.custom_minimum_size = Vector2(104, 104)
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	icon.modulate = Color(1, 0.9, 0.3, 1)  # Bright gold tint
 	popup.add_child(icon)
 	
 	# Position at player area - use design resolution (720x1280 with stretch)
-	# Center horizontally, 67% from top vertically
+	# Center horizontally, 70% from top (30% from bottom)
 	var design_width: float = 720.0
 	var design_height: float = 1280.0
 	var base_x: float = design_width / 2.0
-	var base_y: float = design_height * 0.67
+	var base_y: float = design_height * 0.70
 	
 	# Larger random offset around spawn point for more spread
 	var offset_x := randf_range(-120, 120)
 	var offset_y := randf_range(-80, 80)
-	# Center the popup (estimate ~100px width for "+1" + icon)
-	popup.position = Vector2(base_x - 50 + offset_x, base_y + offset_y)
-	popup.pivot_offset = Vector2(60, 30)  # Center pivot for rotation
+	# Center the popup (estimate ~200px width for "+1" + icon at 2x size)
+	popup.position = Vector2(base_x - 100 + offset_x, base_y + offset_y)
+	popup.pivot_offset = Vector2(120, 60)  # Center pivot for rotation
 	popup_container.add_child(popup)  # Add to container so it's behind menus
 	
 	# Fall downward and off-screen
@@ -389,42 +387,42 @@ func show_combo_popup(amount: int, icon_texture: Texture2D) -> void:
 	
 	# Create popup container
 	var popup := HBoxContainer.new()
-	popup.add_theme_constant_override("separation", 12)
+	popup.add_theme_constant_override("separation", 16)
 	
 	# Create +N label - large, bold style with outline (cyan/turquoise for combo bonus)
 	var label := Label.new()
 	label.text = "+" + format_number(amount)
-	label.add_theme_font_size_override("font_size", 58)
+	label.add_theme_font_size_override("font_size", 116)
 	label.add_theme_color_override("font_color", Color(0.3, 1.0, 0.9, 1))  # Bright cyan/turquoise
 	label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
 	label.add_theme_color_override("font_outline_color", Color(0, 0.3, 0.3, 1))  # Dark teal outline
-	label.add_theme_constant_override("shadow_offset_x", 3)
-	label.add_theme_constant_override("shadow_offset_y", 3)
-	label.add_theme_constant_override("outline_size", 4)
+	label.add_theme_constant_override("shadow_offset_x", 4)
+	label.add_theme_constant_override("shadow_offset_y", 4)
+	label.add_theme_constant_override("outline_size", 6)
 	popup.add_child(label)
 	
 	# Create icon - larger
 	var icon := TextureRect.new()
 	icon.texture = icon_texture
-	icon.custom_minimum_size = Vector2(52, 52)
+	icon.custom_minimum_size = Vector2(104, 104)
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	icon.modulate = Color(0.3, 1.0, 0.9, 1)  # Cyan tint to match
 	popup.add_child(icon)
 	
 	# Position at player area - use design resolution (720x1280 with stretch)
-	# Center horizontally, 67% from top vertically
+	# Center horizontally, 70% from top (30% from bottom)
 	var design_width: float = 720.0
 	var design_height: float = 1280.0
 	var base_x: float = design_width / 2.0
-	var base_y: float = design_height * 0.67
+	var base_y: float = design_height * 0.70
 	
 	# Larger random offset around spawn point for more spread
 	var offset_x := randf_range(-120, 120)
 	var offset_y := randf_range(-80, 80)
-	# Center the popup (estimate ~100px width for "+1" + icon)
-	popup.position = Vector2(base_x - 50 + offset_x, base_y + offset_y)
-	popup.pivot_offset = Vector2(60, 30)  # Center pivot for rotation
+	# Center the combo popup (2x size = ~200px width)
+	popup.position = Vector2(base_x - 100 + offset_x, base_y + offset_y)
+	popup.pivot_offset = Vector2(120, 60)  # Center pivot for rotation
 	popup_container.add_child(popup)  # Add to container so it's behind menus
 	
 	# Fall downward and off-screen
@@ -453,43 +451,43 @@ func show_damage_popup(amount: int) -> void:
 	
 	# Create popup container
 	var popup := HBoxContainer.new()
-	popup.add_theme_constant_override("separation", 8)
+	popup.add_theme_constant_override("separation", 12)
 	
 	# Create -N label - large, bold style with outline (red theme)
 	var label := Label.new()
 	label.text = "-" + str(amount)
-	label.add_theme_font_size_override("font_size", 58)
+	label.add_theme_font_size_override("font_size", 116)
 	label.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3, 1))  # Bright red
 	label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
 	label.add_theme_color_override("font_outline_color", Color(0.5, 0, 0, 1))  # Dark red outline
-	label.add_theme_constant_override("shadow_offset_x", 3)
-	label.add_theme_constant_override("shadow_offset_y", 3)
-	label.add_theme_constant_override("outline_size", 4)
+	label.add_theme_constant_override("shadow_offset_x", 4)
+	label.add_theme_constant_override("shadow_offset_y", 4)
+	label.add_theme_constant_override("outline_size", 6)
 	popup.add_child(label)
 	
 	# Create heart icon
 	var icon := TextureRect.new()
 	if heart_icon_texture:
 		icon.texture = heart_icon_texture
-		icon.custom_minimum_size = Vector2(48, 48)
+		icon.custom_minimum_size = Vector2(96, 96)
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		icon.modulate = Color(1.0, 0.3, 0.3, 1)  # Red tint
 		popup.add_child(icon)
 	
 	# Position at player area - use design resolution (720x1280 with stretch)
-	# Center horizontally, 67% from top vertically
+	# Center horizontally, 70% from top (30% from bottom)
 	var design_width: float = 720.0
 	var design_height: float = 1280.0
 	var base_x: float = design_width / 2.0
-	var base_y: float = design_height * 0.67
+	var base_y: float = design_height * 0.70
 	
 	# Larger random offset around spawn point for more spread
 	var offset_x := randf_range(-120, 120)
 	var offset_y := randf_range(-80, 80)
-	# Center the popup
-	popup.position = Vector2(base_x - 50 + offset_x, base_y + offset_y)
-	popup.pivot_offset = Vector2(60, 30)  # Center pivot for rotation
+	# Center the damage popup (2x size = ~180px width)
+	popup.position = Vector2(base_x - 90 + offset_x, base_y + offset_y)
+	popup.pivot_offset = Vector2(100, 50)  # Center pivot for rotation
 	popup_container.add_child(popup)  # Add to container so it's behind menus
 	
 	# Fall downward and off-screen
@@ -529,69 +527,24 @@ func _apply_safe_area_offset() -> void:
 	
 	# On desktop or if no safe area, use a minimum margin
 	var min_top_offset: float = 20.0
-	var actual_top_offset: float = maxf(top_inset_viewport, min_top_offset)
+	var safe_area_offset: float = maxf(top_inset_viewport, min_top_offset)
 	
-	# TopBar height (increased by 20% from 64 to 77)
-	var top_bar_height: float = 77.0
-	var timer_gap: float = 26.0
-	var timer_height: float = 32.0
-	var combo_gap: float = 10.0
-	var combo_height: float = 50.0
-	
-	# Apply offset to top bar
+	# Apply offset to top bar (add to existing scene values)
 	if top_bar:
-		top_bar.offset_top = actual_top_offset
-		top_bar.offset_bottom = actual_top_offset + top_bar_height
+		top_bar.offset_top += safe_area_offset
+		top_bar.offset_bottom += safe_area_offset
 	
 	# Move TimerLabel together with TopBar
 	if timer_label:
-		timer_label.offset_top = actual_top_offset + top_bar_height + timer_gap
-		timer_label.offset_bottom = timer_label.offset_top + timer_height
+		timer_label.offset_top += safe_area_offset
+		timer_label.offset_bottom += safe_area_offset
 	
-	# Move ComboPanel together with TimerLabel (below timer with gap)
+	# Move ComboPanel together with TimerLabel
 	if combo_panel:
-		combo_panel.offset_top = actual_top_offset + top_bar_height + timer_gap + timer_height + combo_gap
-		combo_panel.offset_bottom = combo_panel.offset_top + combo_height
+		combo_panel.offset_top += safe_area_offset
+		combo_panel.offset_bottom += safe_area_offset
 
 # ========== Combo UI ==========
-
-func _create_combo_ui() -> void:
-	# Combo display - centered horizontally, below timer label
-	# Position will be adjusted by _apply_safe_area_offset()
-	combo_panel = Control.new()
-	combo_panel.name = "ComboPanel"
-	combo_panel.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	combo_panel.anchor_left = 0.5
-	combo_panel.anchor_right = 0.5
-	combo_panel.anchor_top = 0.0
-	combo_panel.anchor_bottom = 0.0
-	combo_panel.offset_left = -100
-	combo_panel.offset_right = 100
-	combo_panel.offset_top = 165  # Initial value, will be adjusted by safe area
-	combo_panel.offset_bottom = 215
-	combo_panel.pivot_offset = Vector2(100, 25)  # Center pivot
-	combo_panel.visible = false  # Hidden until combo starts
-	add_child(combo_panel)
-	
-	# Combo label with dramatic styling
-	combo_label = Label.new()
-	combo_label.name = "ComboLabel"
-	combo_label.text = "COMBO x2"
-	combo_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	combo_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	combo_label.add_theme_font_size_override("font_size", 38)  # +20% size
-	# Bold font
-	var bold_font := SystemFont.new()
-	bold_font.font_weight = 700  # Bold
-	combo_label.add_theme_font_override("font", bold_font)
-	combo_label.add_theme_color_override("font_color", Color(1.0, 0.6, 0.1, 1.0))  # Orange-gold
-	combo_label.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.9))
-	combo_label.add_theme_color_override("font_outline_color", Color(0.3, 0.1, 0.0, 1.0))
-	combo_label.add_theme_constant_override("shadow_offset_x", 2)
-	combo_label.add_theme_constant_override("shadow_offset_y", 2)
-	combo_label.add_theme_constant_override("outline_size", 5)
-	combo_label.set_anchors_preset(Control.PRESET_FULL_RECT)
-	combo_panel.add_child(combo_label)
 
 func _on_object_destroyed(object_id: String, _object_name: String, base_coins: int) -> void:
 	# Check if same object type as last destroyed
@@ -712,31 +665,8 @@ func _update_supercharge_bar_fill() -> void:
 		ratio = clampf(supercharge_bar_value / supercharge_bar_max, 0.0, 1.0)
 	
 	# Fill grows from bottom (anchor_top goes from 1.0 to 0.0)
-	# Since BarFill is child of BarBackground, anchors are relative to it
-	var bar_height := supercharge_bar.size.y - 12  # Total height minus top and bottom padding (6px each)
-	var fill_height := bar_height * ratio
-	
 	supercharge_bar_fill.anchor_top = 1.0 - ratio
 	supercharge_bar_fill.offset_top = 6 if ratio >= 1.0 else 0  # Top padding only when full
-	
-	# Dynamically adjust corner radii based on fill height
-	# Max radius is 16 (fits inside background's 26px radius with 6px margin)
-	var max_radius := 16
-	var actual_fill_height := fill_height + (6 if ratio >= 1.0 else 0)
-	var corner_radius := mini(max_radius, int(actual_fill_height / 2.0))
-	
-	# Top corners: only rounded when bar is nearly full (approaching the rounded top of container)
-	var top_radius := 0
-	if ratio > 0.85:
-		top_radius = int((ratio - 0.85) / 0.15 * max_radius)
-	
-	var fill_style := StyleBoxFlat.new()
-	fill_style.bg_color = Color(1.0, 0.5, 0.15, 1.0)
-	fill_style.corner_radius_top_left = top_radius
-	fill_style.corner_radius_top_right = top_radius
-	fill_style.corner_radius_bottom_left = corner_radius
-	fill_style.corner_radius_bottom_right = corner_radius
-	supercharge_bar_fill.add_theme_stylebox_override("panel", fill_style)
 
 func _start_supercharge_glow() -> void:
 	if not supercharge_button:
@@ -761,17 +691,6 @@ func _start_supercharge_glow() -> void:
 		supercharge_bar_glow_tween.set_loops()
 		supercharge_bar_glow_tween.tween_property(supercharge_bar_fill, "modulate", Color(1.8, 1.4, 1.0, 1.0), 0.3)
 		supercharge_bar_glow_tween.tween_property(supercharge_bar_fill, "modulate", Color(1.2, 1.0, 0.9, 1.0), 0.3)
-	
-	# Pulse the panel border too
-	if supercharge_panel:
-		var panel_style := supercharge_panel.get_theme_stylebox("panel").duplicate() as StyleBoxFlat
-		if panel_style:
-			panel_style.border_color = Color(1.0, 0.5, 0.2, 0.9)
-			panel_style.border_width_left = 3
-			panel_style.border_width_right = 3
-			panel_style.border_width_top = 3
-			panel_style.border_width_bottom = 3
-			supercharge_panel.add_theme_stylebox_override("panel", panel_style)
 
 func _stop_supercharge_glow() -> void:
 	if supercharge_glow_tween:
@@ -787,28 +706,6 @@ func _stop_supercharge_glow() -> void:
 	
 	if supercharge_bar_fill:
 		supercharge_bar_fill.modulate = Color(1.0, 1.0, 1.0, 1.0)
-	
-	# Reset panel border
-	if supercharge_panel:
-		var panel_style := StyleBoxFlat.new()
-		panel_style.bg_color = Color(0.08, 0.06, 0.14, 0.75)
-		panel_style.corner_radius_top_left = 42
-		panel_style.corner_radius_top_right = 42
-		panel_style.corner_radius_bottom_left = 42
-		panel_style.corner_radius_bottom_right = 42
-		panel_style.border_width_left = 2
-		panel_style.border_width_right = 2
-		panel_style.border_width_top = 2
-		panel_style.border_width_bottom = 2
-		panel_style.border_color = Color(0.91, 0.27, 0.38, 0.6)
-		panel_style.shadow_color = Color(0, 0, 0, 0.5)
-		panel_style.shadow_size = 8
-		panel_style.shadow_offset = Vector2(0, 4)
-		panel_style.content_margin_left = 12
-		panel_style.content_margin_right = 12
-		panel_style.content_margin_top = 16
-		panel_style.content_margin_bottom = 16
-		supercharge_panel.add_theme_stylebox_override("panel", panel_style)
 
 # ========== Touch Controls ==========
 
@@ -827,13 +724,11 @@ func _create_touch_controls() -> void:
 	touch_controls_container.visible = is_touch
 	add_child(touch_controls_container)
 	
-	# Use actual viewport size for positioning
-	var viewport_size := get_viewport().get_visible_rect().size
-	var bottom_padding: float = 65.0  # Padding from screen edge
+	var bottom_padding: float = 110.0
 	
 	# --- Jump Button (left side) ---
-	var jump_size := Vector2(140, 140)
-	var jump_margin_left: float = 40.0
+	var jump_size := Vector2(240, 240)
+	var jump_margin_left: float = 70.0
 	
 	touch_jump_button = TextureButton.new()
 	touch_jump_button.name = "TouchJumpButton"
@@ -842,7 +737,6 @@ func _create_touch_controls() -> void:
 	touch_jump_button.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
 	touch_jump_button.custom_minimum_size = jump_size
 	touch_jump_button.size = jump_size
-	# Use anchors to stick to bottom-left
 	touch_jump_button.anchor_left = 0.0
 	touch_jump_button.anchor_right = 0.0
 	touch_jump_button.anchor_top = 1.0
@@ -858,14 +752,13 @@ func _create_touch_controls() -> void:
 	touch_controls_container.add_child(touch_jump_button)
 	
 	# --- Joystick (center) ---
-	var joystick_base_size := Vector2(180, 180)
-	var joystick_knob_size := Vector2(70, 70)
+	var joystick_base_size := Vector2(305, 305)
+	var joystick_knob_size := Vector2(120, 120)
 	
 	touch_joystick_base = Control.new()
 	touch_joystick_base.name = "TouchJoystickBase"
 	touch_joystick_base.custom_minimum_size = joystick_base_size
 	touch_joystick_base.size = joystick_base_size
-	# Use anchors to stick to bottom-center
 	touch_joystick_base.anchor_left = 0.5
 	touch_joystick_base.anchor_right = 0.5
 	touch_joystick_base.anchor_top = 1.0
@@ -896,13 +789,12 @@ func _create_touch_controls() -> void:
 	touch_joystick_knob.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	touch_joystick_knob.custom_minimum_size = joystick_knob_size
 	touch_joystick_knob.size = joystick_knob_size
-	# Center the knob in the base
 	touch_joystick_knob.position = (joystick_base_size - joystick_knob_size) / 2.0
 	touch_joystick_knob.modulate = Color(1.0, 1.0, 1.0, 0.9)
 	touch_joystick_knob.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	touch_joystick_base.add_child(touch_joystick_knob)
 	
-	# Store joystick max distance (center is calculated dynamically in _handle_joystick_input)
+	# Store joystick max distance
 	joystick_max_distance = joystick_base_size.x / 2.0 - joystick_knob_size.x / 2.0
 
 func _handle_joystick_input(event: InputEvent) -> void:

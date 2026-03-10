@@ -19,8 +19,12 @@ var screen_shake_enabled: bool = true  # Screen shake effects on impact
 var control_mode: int = 0            # 0 = gyro, 1 = touch
 var tilt_sensitivity: float = 1.0    # 0.5 to 2.0 - how sensitive gyro controls are
 
+# ========== Performance Settings ==========
+var target_fps: int = 60             # 0 = unlimited, 30, 60, 120
+
 func _ready() -> void:
 	_load_settings()
+	_apply_fps_setting()
 
 # ========== Audio Getters/Setters ==========
 
@@ -100,6 +104,23 @@ func set_tilt_sensitivity(value: float) -> void:
 func get_tilt_sensitivity() -> float:
 	return tilt_sensitivity
 
+# ========== Performance Getters/Setters ==========
+
+func set_target_fps(value: int) -> void:
+	# Only allow specific values
+	if value in [0, 30, 60, 120]:
+		target_fps = value
+	else:
+		target_fps = 60  # Default to 60
+	_save_settings()
+	_apply_fps_setting()
+
+func get_target_fps() -> int:
+	return target_fps
+
+func _apply_fps_setting() -> void:
+	Engine.max_fps = target_fps
+
 # ========== Volume Helpers ==========
 
 ## Convert linear volume (0-1) to decibels
@@ -135,6 +156,8 @@ func _save_settings() -> void:
 	# Controls
 	config.set_value("controls", "control_mode", control_mode)
 	config.set_value("controls", "tilt_sensitivity", tilt_sensitivity)
+	# Performance
+	config.set_value("performance", "target_fps", target_fps)
 	config.save(SETTINGS_PATH)
 
 func _load_settings() -> void:
@@ -159,3 +182,5 @@ func _load_settings() -> void:
 		# Controls
 		control_mode = config.get_value("controls", "control_mode", 0)
 		tilt_sensitivity = config.get_value("controls", "tilt_sensitivity", 1.0)
+		# Performance
+		target_fps = config.get_value("performance", "target_fps", 60)
