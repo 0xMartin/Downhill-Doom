@@ -1,11 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
-  <!-- Enemy figure -->
-  <circle cx="24" cy="14" r="6" fill="#FF6B6B" stroke="#CC4444" stroke-width="2"/>
-  <path d="M16 42V30C16 26 20 24 24 24C28 24 32 26 32 30V42" fill="#FF6B6B" stroke="#CC4444" stroke-width="2"/>
-  <!-- Angry eyes -->
-  <line x1="20" y1="12" x2="22" y2="14" stroke="#880000" stroke-width="2" stroke-linecap="round"/>
-  <line x1="28" y1="12" x2="26" y2="14" stroke="#880000" stroke-width="2" stroke-linecap="round"/>
-  <!-- Ban circle -->
-  <circle cx="24" cy="24" r="18" fill="none" stroke="#FF0000" stroke-width="3"/>
-  <line x1="11" y1="37" x2="37" y2="11" stroke="#FF0000" stroke-width="3"/>
-</svg>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg width="100%" height="100%" viewBox="0 0 200 200" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;"><circle cx="100" cy="58.333" r="25" style="fill:#39007c;stroke:#6900f7;stroke-width:8.33px;"/><path d="M66.667,175l0,-50c0,-16.667 16.667,-25 33.333,-25c16.667,0 33.333,8.333 33.333,25l0,50" style="fill:#39007c;fill-rule:nonzero;stroke:#6900f7;stroke-width:8.33px;"/><path d="M83.333,50l8.333,8.333" style="fill:none;fill-rule:nonzero;stroke:#b60000;stroke-width:8.33px;stroke-linecap:round;"/><path d="M116.667,50l-8.333,8.333" style="fill:none;fill-rule:nonzero;stroke:#b60000;stroke-width:8.33px;stroke-linecap:round;"/><circle cx="100" cy="100" r="79.167" style="fill:none;stroke:#f00;stroke-width:13.19px;"/><path d="M42.824,157.176l114.352,-114.352" style="fill:none;fill-rule:nonzero;stroke:#f00;stroke-width:13.19px;"/></svg>

@@ -101,9 +101,6 @@ func _ready() -> void:
 	if shop_manager:
 		shop_manager.balance_changed.connect(_on_shop_balance_changed)
 	
-	if play_button:
-		play_button.grab_focus()
-	
 	if animation_player and animation_player.has_animation("enter"):
 		animation_player.play("enter")
 
@@ -582,8 +579,6 @@ func _animate_panel_out(panel: Control) -> void:
 	tween.tween_callback(func() -> void:
 		panel.visible = false
 		main_content.visible = true
-		if play_button:
-			play_button.grab_focus()
 	)
 
 

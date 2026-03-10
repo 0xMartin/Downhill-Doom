@@ -1,11 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
-  <!-- Shop bag -->
-  <path d="M10 16L6 44H42L38 16H10Z" fill="#4A9EFF" stroke="#2575CF" stroke-width="2"/>
-  <!-- Handle -->
-  <path d="M16 16V12C16 7.58 19.58 4 24 4C28.42 4 32 7.58 32 12V16" stroke="#2575CF" stroke-width="3" fill="none" stroke-linecap="round"/>
-  <!-- Shine -->
-  <path d="M12 22L14 38" stroke="#7FBFFF" stroke-width="2" stroke-linecap="round"/>
-  <!-- Coin accent -->
-  <circle cx="24" cy="30" r="6" fill="#FFD700" stroke="#CC9900" stroke-width="1.5"/>
-  <text x="24" y="34" text-anchor="middle" font-size="9" font-weight="bold" fill="#996600">$</text>
-</svg>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Uploaded to: SVG Repo, www.svgrepo.com, Transformed by: SVG Repo Mixer Tools -->
+<svg fill="#ffffff" height="800px" width="800px" version="1.1" id="XMLID_269_" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 24 24" xml:space="preserve">
+<g id="SVGRepo_bgCarrier" stroke-width="0"/>
+<g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"/>
+<g id="SVGRepo_iconCarrier"> <g id="shop-cart"> <g> <circle cx="9" cy="21" r="2"/> </g> <g> <circle cx="19" cy="21" r="2"/> </g> <g> <path d="M21,18H7.2l-4-16H0V0h4.8l0.8,3H24l-3.2,11H8.3l0.5,2H21V18z M7.8,12h11.5l2-7H6L7.8,12z"/> </g> </g> </g>
+</svg>

@@ -394,7 +394,7 @@ func _create_boost_card(boost_id: String) -> PanelContainer:
 	if icon_path and ResourceLoader.exists(icon_path):
 		var icon := TextureRect.new()
 		icon.texture = load(icon_path)
-		icon.custom_minimum_size = Vector2(48, 48)
+		icon.custom_minimum_size = Vector2(72, 72)
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		hbox.add_child(icon)
@@ -862,11 +862,11 @@ func _on_roulette_finished() -> void:
 		result_vbox.anchor_right = 0.5
 		result_vbox.anchor_top = 0.5
 		result_vbox.anchor_bottom = 0.5
-		result_vbox.offset_left = -150
-		result_vbox.offset_right = 150
-		result_vbox.offset_top = -120
-		result_vbox.offset_bottom = 120
-		result_vbox.add_theme_constant_override("separation", 15)
+		result_vbox.offset_left = -180
+		result_vbox.offset_right = 180
+		result_vbox.offset_top = -180
+		result_vbox.offset_bottom = 180
+		result_vbox.add_theme_constant_override("separation", 12)
 		result_vbox.alignment = BoxContainer.ALIGNMENT_CENTER
 		roulette_container.add_child(result_vbox)
 		
@@ -877,17 +877,48 @@ func _on_roulette_finished() -> void:
 		win_label.add_theme_color_override("font_color", COLOR_ACCENT_GOLD)
 		result_vbox.add_child(win_label)
 		
+		# Show preview icon/image of the won item
+		var preview_container := CenterContainer.new()
+		preview_container.custom_minimum_size = Vector2(120, 120)
+		result_vbox.add_child(preview_container)
+		
 		var result_text := ""
+		var preview_icon_path := ""
+		var is_skin := false
 		match roulette_result.get("type", ""):
 			"boost":
 				result_text = shop_manager.BOOST_NAMES.get(roulette_result.get("id", ""), "Boost")
+				preview_icon_path = shop_manager.BOOST_ICONS.get(roulette_result.get("id", ""), "")
 			"crate":
 				result_text = shop_manager.CRATE_NAMES.get(roulette_result.get("id", ""), "Crate")
+				preview_icon_path = shop_manager.CRATE_ICONS.get(roulette_result.get("id", ""), "")
 			"skin":
+				is_skin = true
 				if roulette_result.get("is_duplicate", false):
 					result_text = "Duplicate! Refund: %s coins" % _format_balance(roulette_result.get("refund", 0))
+					preview_icon_path = "res://assets/svg/coin.svg"
 				else:
-					result_text = "%s Skin!" % roulette_result.get("id", "").replace("_", " ").capitalize()
+					var skin_id: String = roulette_result.get("id", "")
+					result_text = "%s Skin!" % skin_id.replace("_", " ").capitalize()
+					# For texture skins, show the texture image
+					preview_icon_path = "res://assets/skins/%s.png" % skin_id
+		
+		# Create preview visual
+		if preview_icon_path and ResourceLoader.exists(preview_icon_path):
+			var preview_icon := TextureRect.new()
+			preview_icon.texture = load(preview_icon_path)
+			preview_icon.custom_minimum_size = Vector2(100, 100)
+			preview_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			preview_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			preview_container.add_child(preview_icon)
+		elif is_skin:
+			# For model skins without texture, create a 3D preview
+			var skin_id: String = roulette_result.get("id", "")
+			var model_path := "res://assets/models/players/%s.blend" % skin_id
+			if ResourceLoader.exists(model_path):
+				var preview_3d := _create_skin_preview_3d(model_path)
+				if preview_3d:
+					preview_container.add_child(preview_3d)
 		
 		var item_label := Label.new()
 		item_label.text = result_text
@@ -905,6 +936,47 @@ func _on_roulette_finished() -> void:
 		_style_secondary_button(close_btn)
 		close_btn.pressed.connect(_on_roulette_close)
 		result_vbox.add_child(close_btn)
+
+
+func _create_skin_preview_3d(model_path: String) -> SubViewportContainer:
+	# Create a SubViewport with 3D model preview
+	var container := SubViewportContainer.new()
+	container.custom_minimum_size = Vector2(100, 100)
+	container.stretch = true
+	
+	var viewport := SubViewport.new()
+	viewport.size = Vector2i(200, 200)
+	viewport.transparent_bg = true
+	viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	container.add_child(viewport)
+	
+	# Add camera
+	var camera := Camera3D.new()
+	camera.transform = Transform3D(Basis.IDENTITY, Vector3(0, 0.3, 1.2))
+	camera.look_at(Vector3(0, 0.1, 0), Vector3.UP)
+	camera.fov = 45
+	viewport.add_child(camera)
+	
+	# Add light
+	var light := DirectionalLight3D.new()
+	light.transform = Transform3D(Basis.looking_at(Vector3(-1, -1, -1)), Vector3(2, 2, 2))
+	light.light_energy = 1.5
+	viewport.add_child(light)
+	
+	# Load and add model
+	var model_scene: PackedScene = load(model_path)
+	if model_scene:
+		var model := model_scene.instantiate()
+		model.scale = Vector3(0.4, 0.4, 0.4)
+		model.position = Vector3(0, -0.2, 0)
+		viewport.add_child(model)
+		
+		# Rotate model slowly
+		var tween := container.create_tween()
+		tween.set_loops()
+		tween.tween_property(model, "rotation:y", TAU, 4.0).from(0.0)
+	
+	return container
 
 
 func _on_roulette_close() -> void:

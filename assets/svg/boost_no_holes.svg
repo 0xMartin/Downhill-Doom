@@ -1,13 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
-  <!-- Ground -->
-  <rect x="6" y="28" width="36" height="14" fill="#5D4037" stroke="#3E2723" stroke-width="2" rx="2"/>
-  <!-- Hole -->
-  <ellipse cx="24" cy="28" rx="10" ry="5" fill="#1A1A1A"/>
-  <ellipse cx="24" cy="28" rx="8" ry="3" fill="#0D0D0D"/>
-  <!-- Danger sign -->
-  <path d="M24 8L30 18H18L24 8Z" fill="#FFD700" stroke="#CC9900" stroke-width="1.5"/>
-  <text x="24" y="17" text-anchor="middle" font-size="8" font-weight="bold" fill="#000">!</text>
-  <!-- Ban circle -->
-  <circle cx="24" cy="28" r="16" fill="none" stroke="#FF0000" stroke-width="3"/>
-  <line x1="12" y1="40" x2="36" y2="16" stroke="#FF0000" stroke-width="3"/>
-</svg>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg width="100%" height="100%" viewBox="0 0 200 200" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;"><path d="M175,125l0,41.667c0,4.599 -3.734,8.333 -8.333,8.333l-133.333,0c-4.599,0 -8.333,-3.734 -8.333,-8.333l0,-41.667c0,-4.599 3.734,-8.333 8.333,-8.333l133.333,0c4.599,0 8.333,3.734 8.333,8.333Z" style="fill:#5d4037;stroke:#9e9e9e;stroke-width:8.33px;"/><ellipse cx="100" cy="116.667" rx="50" ry="25" style="fill:#1a1a1a;stroke:#9e9e9e;stroke-width:4.17px;stroke-linejoin:round;stroke-miterlimit:2;"/><circle cx="100" cy="100" r="79.167" style="fill:none;stroke:#f00;stroke-width:14.84px;"/><path d="M40.625,159.375l118.75,-118.75" style="fill:none;fill-rule:nonzero;stroke:#f00;stroke-width:14.84px;"/></svg>

@@ -1,6 +1,8 @@
 extends Node
 ## ShopManager - Handles shop data, purchases, and persistence
 
+const debug_mode := true  # Set to true to unlock all skins for testing
+
 signal balance_changed(new_balance: int)
 signal skin_changed(skin_id: String)
 signal boosts_changed
@@ -29,13 +31,13 @@ const TEXTURE_SKIN_VALUE := 400000  # Refund value calculation base
 
 # Boost prices
 const BOOST_PRICES := {
-	"double_hp": 25000,
-	"double_coins": 30000,
-	"no_enemy_npc": 35000,
-	"no_enemy_building": 40000,
-	"no_holes": 45000,
-	"half_supercharge": 20000,
-	"double_supercharge": 35000,
+	"double_hp": 50000,
+	"double_coins": 50000,
+	"no_enemy_npc": 100000,
+	"no_enemy_building": 85000,
+	"no_holes": 100000,
+	"half_supercharge": 40000,
+	"double_supercharge": 45000,
 }
 
 # Boost display names
@@ -102,9 +104,23 @@ func _ready() -> void:
 	_load_shop_data()
 	_scan_texture_skins()
 	
-	# DEBUG: Set balance to 1 million for testing
-	_set_coin_balance(1_000_000)
-	balance_changed.emit(1_000_000)
+	# DEBUG: Unlock all skins for testing
+	if debug_mode:
+		_debug_unlock_all_skins()
+
+
+func _debug_unlock_all_skins() -> void:
+	# Unlock all model skins (player_1 to player_9)
+	var model_skins: Array = []
+	for i in range(1, 10):
+		model_skins.append("player_%d" % i)
+	shop_data["owned_model_skins"] = model_skins
+	
+	# Unlock all texture skins
+	shop_data["owned_texture_skins"] = available_texture_skins.duplicate()
+	
+	_save_shop_data()
+
 
 func _scan_texture_skins() -> void:
 	# Scan for available texture skins in the skins folder
