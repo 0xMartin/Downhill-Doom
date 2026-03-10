@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <radialGradient id="burst_glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#FFD700;stop-opacity:0.9"/>
+      <stop offset="40%" style="stop-color:#FFA500;stop-opacity:0.5"/>
+      <stop offset="70%" style="stop-color:#FF6B00;stop-opacity:0.2"/>
+      <stop offset="100%" style="stop-color:#FF6B00;stop-opacity:0"/>
+    </radialGradient>
+    <linearGradient id="ray_grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#FFD700;stop-opacity:0.8"/>
+      <stop offset="50%" style="stop-color:#FFE066;stop-opacity:0.4"/>
+      <stop offset="100%" style="stop-color:#FFFFFF;stop-opacity:0"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Center glow -->
+  <circle cx="100" cy="100" r="100" fill="url(#burst_glow)"/>
+  
+  <!-- Light rays -->
+  <g fill="url(#ray_grad)">
+    <polygon points="100,100 100,0 120,0 100,100" opacity="0.6"/>
+    <polygon points="100,100 141,7 158,18 100,100" opacity="0.5"/>
+    <polygon points="100,100 182,41 193,59 100,100" opacity="0.6"/>
+    <polygon points="100,100 200,100 200,120 100,100" opacity="0.5"/>
+    <polygon points="100,100 193,141 182,159 100,100" opacity="0.6"/>
+    <polygon points="100,100 158,182 141,193 100,100" opacity="0.5"/>
+    <polygon points="100,100 100,200 80,200 100,100" opacity="0.6"/>
+    <polygon points="100,100 59,193 42,182 100,100" opacity="0.5"/>
+    <polygon points="100,100 18,159 7,141 100,100" opacity="0.6"/>
+    <polygon points="100,100 0,100 0,80 100,100" opacity="0.5"/>
+    <polygon points="100,100 7,59 18,42 100,100" opacity="0.6"/>
+    <polygon points="100,100 42,18 59,7 100,100" opacity="0.5"/>
+  </g>
+</svg>

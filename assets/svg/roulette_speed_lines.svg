@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 160">
+  <defs>
+    <linearGradient id="line_fade_left" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:0"/>
+      <stop offset="50%" style="stop-color:#FFFFFF;stop-opacity:0.6"/>
+      <stop offset="100%" style="stop-color:#FFFFFF;stop-opacity:0"/>
+    </linearGradient>
+    <linearGradient id="line_fade_gold" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#FFD700;stop-opacity:0"/>
+      <stop offset="50%" style="stop-color:#FFD700;stop-opacity:0.4"/>
+      <stop offset="100%" style="stop-color:#FFD700;stop-opacity:0"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Speed lines at various heights -->
+  <line x1="0" y1="20" x2="520" y2="20" stroke="url(#line_fade_left)" stroke-width="2"/>
+  <line x1="0" y1="40" x2="520" y2="40" stroke="url(#line_fade_gold)" stroke-width="1.5"/>
+  <line x1="0" y1="55" x2="520" y2="55" stroke="url(#line_fade_left)" stroke-width="1"/>
+  <line x1="0" y1="75" x2="520" y2="75" stroke="url(#line_fade_gold)" stroke-width="2"/>
+  <line x1="0" y1="90" x2="520" y2="90" stroke="url(#line_fade_left)" stroke-width="1.5"/>
+  <line x1="0" y1="105" x2="520" y2="105" stroke="url(#line_fade_gold)" stroke-width="1"/>
+  <line x1="0" y1="120" x2="520" y2="120" stroke="url(#line_fade_left)" stroke-width="2"/>
+  <line x1="0" y1="140" x2="520" y2="140" stroke="url(#line_fade_gold)" stroke-width="1.5"/>
+</svg>

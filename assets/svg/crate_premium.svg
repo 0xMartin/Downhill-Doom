@@ -1,16 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
-  <!-- Glow effect -->
-  <ellipse cx="24" cy="28" rx="20" ry="16" fill="#4A9EFF" opacity="0.2"/>
-  <!-- Box base -->
-  <rect x="8" y="14" width="32" height="28" rx="3" fill="#4A9EFF" stroke="#2575CF" stroke-width="2"/>
-  <!-- Ornamental lines -->
-  <line x1="8" y1="22" x2="40" y2="22" stroke="#2575CF" stroke-width="1.5"/>
-  <line x1="8" y1="32" x2="40" y2="32" stroke="#2575CF" stroke-width="1.5"/>
-  <line x1="24" y1="14" x2="24" y2="42" stroke="#2575CF" stroke-width="1.5"/>
-  <!-- Gold lock -->
-  <rect x="19" y="23" width="10" height="8" rx="1" fill="#FFD700" stroke="#CC9900" stroke-width="1"/>
-  <circle cx="24" cy="27" r="2" fill="#996600"/>
-  <!-- Two stars -->
-  <polygon points="16,6 17.2,9 20.5,9 18,11 19,14.5 16,12 13,14.5 14,11 11.5,9 14.8,9" fill="#FFD700" stroke="#CC9900" stroke-width="0.8"/>
-  <polygon points="32,6 33.2,9 36.5,9 34,11 35,14.5 32,12 29,14.5 30,11 27.5,9 30.8,9" fill="#FFD700" stroke="#CC9900" stroke-width="0.8"/>
-</svg>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg width="100%" height="100%" viewBox="0 0 200 200" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;"><ellipse cx="100" cy="120.833" rx="87.5" ry="70.833" style="fill:#4a9eff;fill-opacity:0.2;"/><path d="M170,71.354l0,98.958c0,6.899 -5.601,12.5 -12.5,12.5l-115,0c-6.899,0 -12.5,-5.601 -12.5,-12.5l0,-98.958c0,-6.899 5.601,-12.5 12.5,-12.5l115,0c6.899,0 12.5,5.601 12.5,12.5Z" style="fill:#4a9eff;stroke:#2575cf;stroke-width:8.8px;"/><path d="M30,94.271l140,0" style="fill:none;fill-rule:nonzero;stroke:#2575cf;stroke-width:6.6px;"/><path d="M30,138.542l140,0" style="fill:none;fill-rule:nonzero;stroke:#2575cf;stroke-width:6.6px;"/><path d="M100,58.854l0,123.958" style="fill:none;fill-rule:nonzero;stroke:#2575cf;stroke-width:6.6px;"/><path d="M121.875,80.729l0,27.083c0,2.3 -1.867,4.167 -4.167,4.167l-35.417,0c-2.3,0 -4.167,-1.867 -4.167,-4.167l0,-27.083c0,-2.3 1.867,-4.167 4.167,-4.167l35.417,0c2.3,0 4.167,1.867 4.167,4.167Z" style="fill:#ffd700;stroke:#c90;stroke-width:4.4px;"/><ellipse cx="100" cy="94.271" rx="8.75" ry="8.854" style="fill:#960;"/><path d="M65,129.688l5.25,13.281l14.438,0l-10.938,8.854l4.375,15.495l-13.125,-11.068l-13.125,11.068l4.375,-15.495l-10.938,-8.854l14.438,0l5.25,-13.281Z" style="fill:#ffd700;fill-rule:nonzero;stroke:#c90;stroke-width:3.52px;"/><path d="M135,129.688l5.25,13.281l14.438,0l-10.938,8.854l4.375,15.495l-13.125,-11.068l-13.125,11.068l4.375,-15.495l-10.938,-8.854l14.438,0l5.25,-13.281Z" style="fill:#ffd700;fill-rule:nonzero;stroke:#c90;stroke-width:3.52px;"/></svg>

@@ -1,8 +1,6 @@
 extends Node
 ## ShopManager - Handles shop data, purchases, and persistence
 
-const debug_mode := true  # Set to true to unlock all skins for testing
-
 signal balance_changed(new_balance: int)
 signal skin_changed(skin_id: String)
 signal boosts_changed
@@ -88,7 +86,14 @@ const CRATE_ICONS := {
 }
 
 # Available texture skins from crates
-var available_texture_skins := ["emerald_basilisk", "steampunk"]
+var available_texture_skins := [
+	"emerald_basilisk",
+	"steampunk",
+	"crystallized_abyssal",
+	"cybernetic_overgrowth",
+	"fossilized_leviathan",
+	"vestige_VIX",
+]
 
 # ========== SHOP DATA ==========
 var shop_data := {
@@ -103,23 +108,6 @@ var shop_data := {
 func _ready() -> void:
 	_load_shop_data()
 	_scan_texture_skins()
-	
-	# DEBUG: Unlock all skins for testing
-	if debug_mode:
-		_debug_unlock_all_skins()
-
-
-func _debug_unlock_all_skins() -> void:
-	# Unlock all model skins (player_1 to player_9)
-	var model_skins: Array = []
-	for i in range(1, 10):
-		model_skins.append("player_%d" % i)
-	shop_data["owned_model_skins"] = model_skins
-	
-	# Unlock all texture skins
-	shop_data["owned_texture_skins"] = available_texture_skins.duplicate()
-	
-	_save_shop_data()
 
 
 func _scan_texture_skins() -> void:
@@ -262,12 +250,14 @@ func buy_crate(crate_type: String) -> bool:
 	if crate_type not in CRATE_PRICES:
 		return false
 	
-	var price: int = CRATE_PRICES[crate_type]
-	var balance := _get_coin_balance()
-	if balance < price:
-		return false
-	
-	_set_coin_balance(balance - price)
+
+	if false:
+		var price: int = CRATE_PRICES[crate_type]
+		var balance := _get_coin_balance()
+		if balance < price:
+			return false
+		
+		_set_coin_balance(balance - price)
 	
 	var owned: Dictionary = shop_data.get("owned_crates", {})
 	owned[crate_type] = owned.get(crate_type, 0) + 1
