@@ -40,6 +40,7 @@ var roulette_crate_type: String = ""
 var roulette_last_item_index: int = -1
 var roulette_click_sound: AudioStreamPlayer
 var roulette_speed_lines: TextureRect
+var roulette_looping_tweens: Array[Tween] = []  # Track looping tweens for cleanup
 
 
 func _init(panel: Control, shop_mgr: Node, audio_mgr: Node, stats_dict: Dictionary) -> void:
@@ -289,25 +290,43 @@ func _create_skin_card(skin_id: String, is_texture: bool) -> PanelContainer:
 	hbox.add_theme_constant_override("separation", 15)
 	card.add_child(hbox)
 	
-	# Texture preview for texture skins (clipped, enlarged 130%)
+	# Texture preview for texture skins (clipped, enlarged 250%)
 	if is_texture:
-		var texture_path := "res://assets/skins/%s.png" % skin_id
-		if ResourceLoader.exists(texture_path):
-			var clip_container := Control.new()
-			clip_container.clip_contents = true
-			clip_container.custom_minimum_size = Vector2(56, 56)
-			hbox.add_child(clip_container)
+		var clip_container := Control.new()
+		clip_container.clip_contents = true
+		clip_container.custom_minimum_size = Vector2(56, 56)
+		hbox.add_child(clip_container)
+		
+		if is_owned:
+			# Show texture preview for owned skins
+			var texture_path := "res://assets/skins/%s.png" % skin_id
+			if ResourceLoader.exists(texture_path):
+				var preview := TextureRect.new()
+				preview.texture = load(texture_path)
+				# 250% of container size
+				var enlarged_size := 140.0
+				var offset := (enlarged_size - 56.0) / 2.0
+				preview.custom_minimum_size = Vector2(enlarged_size, enlarged_size)
+				preview.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+				preview.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+				preview.position = Vector2(-offset, -offset)
+				clip_container.add_child(preview)
+		else:
+			# Show black square with lock for locked skins
+			var locked_bg := ColorRect.new()
+			locked_bg.color = Color(0.05, 0.05, 0.08, 1.0)
+			locked_bg.set_anchors_preset(Control.PRESET_FULL_RECT)
+			clip_container.add_child(locked_bg)
 			
-			var preview := TextureRect.new()
-			preview.texture = load(texture_path)
-			# 250% of container size
-			var enlarged_size := 140.0
-			var offset := (enlarged_size - 56.0) / 2.0
-			preview.custom_minimum_size = Vector2(enlarged_size, enlarged_size)
-			preview.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-			preview.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-			preview.position = Vector2(-offset, -offset)
-			clip_container.add_child(preview)
+			# Question mark or lock indicator
+			var lock_label := Label.new()
+			lock_label.text = "?"
+			lock_label.add_theme_font_size_override("font_size", 28)
+			lock_label.add_theme_color_override("font_color", COLOR_TEXT_MUTED)
+			lock_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			lock_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+			lock_label.set_anchors_preset(Control.PRESET_FULL_RECT)
+			clip_container.add_child(lock_label)
 	
 	# Skin name
 	var name_vbox := VBoxContainer.new()
@@ -826,6 +845,7 @@ func _animate_marker_glow(glow: TextureRect) -> void:
 	tween.set_loops()
 	tween.tween_property(glow, "modulate:a", 0.9, 0.8).set_trans(Tween.TRANS_SINE)
 	tween.tween_property(glow, "modulate:a", 0.4, 0.8).set_trans(Tween.TRANS_SINE)
+	roulette_looping_tweens.append(tween)
 
 
 func _add_win_sparkles(container: Control) -> void:
@@ -888,9 +908,10 @@ func _animate_win_label(label: Label) -> void:
 	# Continuous subtle pulse
 	var pulse_tween := shop_panel.create_tween()
 	pulse_tween.set_loops()
-	pulse_tween.set_delay(0.5)
+	pulse_tween.tween_interval(0.5)  # Delay before pulse starts
 	pulse_tween.tween_property(label, "scale", Vector2(1.05, 1.05), 0.6).set_trans(Tween.TRANS_SINE)
 	pulse_tween.tween_property(label, "scale", Vector2(1.0, 1.0), 0.6).set_trans(Tween.TRANS_SINE)
+	roulette_looping_tweens.append(pulse_tween)
 
 
 func _animate_roulette() -> void:
@@ -1150,6 +1171,7 @@ func _on_roulette_finished() -> void:
 		var burst_rotate_tween := shop_panel.create_tween()
 		burst_rotate_tween.set_loops()
 		burst_rotate_tween.tween_property(burst_texture, "rotation", TAU, 8.0).from(0.0)
+		roulette_looping_tweens.append(burst_rotate_tween)
 		
 		# Add sparkles
 		_add_win_sparkles(roulette_container)
@@ -1181,7 +1203,7 @@ func _on_roulette_finished() -> void:
 		
 		# Show preview icon/image of the won item
 		var preview_container := CenterContainer.new()
-		preview_container.custom_minimum_size = Vector2(120, 120)
+		preview_container.custom_minimum_size = Vector2(240, 240)  # Larger for skin preview
 		result_vbox.add_child(preview_container)
 		
 		var result_text := ""
@@ -1197,7 +1219,7 @@ func _on_roulette_finished() -> void:
 			"skin":
 				is_skin = true
 				if roulette_result.get("is_duplicate", false):
-					result_text = "Duplicate! Refund: %s coins" % _format_balance(roulette_result.get("refund", 0))
+					result_text = "Duplicate skin! Refund: %s coins" % _format_balance(roulette_result.get("refund", 0))
 					preview_icon_path = "res://assets/svg/coin.svg"
 				else:
 					var skin_id: String = roulette_result.get("id", "")
@@ -1207,20 +1229,37 @@ func _on_roulette_finished() -> void:
 		
 		# Create preview visual
 		if is_skin and not roulette_result.get("is_duplicate", false):
-			# For skins (both texture and model), create 3D preview
+			# For skins, render model snapshot with texture
 			var skin_id: String = roulette_result.get("id", "")
 			var texture_path := "res://assets/skins/%s.png" % skin_id
 			var has_texture := ResourceLoader.exists(texture_path)
 			
-			# Use default player model for texture skins, or specific model for model skins
-			var model_path := "res://assets/models/players/player_1.blend"
+			# Use player_skin.blend for texture skins (it's the UV-mapped version)
+			var model_path := "res://assets/models/players/player_skin.blend"
+			
+			# Check if this skin is a model skin (has its own .blend file)
 			var specific_model := "res://assets/models/players/%s.blend" % skin_id
 			if ResourceLoader.exists(specific_model):
 				model_path = specific_model
+				has_texture = false  # Model skins don't use texture overlay
 			
-			var preview_3d := _create_skin_preview_3d_with_texture(model_path, texture_path if has_texture else "")
-			if preview_3d:
-				preview_container.add_child(preview_3d)
+			# Use ModelRenderer utility to create snapshot preview (larger for win screen)
+			var preview_control := ModelRenderer.create_model_preview_control(
+				model_path,
+				texture_path if has_texture else "",
+				Vector2(240, 240),  # Larger size for win screen
+				0.3  # Slight rotation for better view
+			)
+			preview_container.add_child(preview_control)
+		elif is_skin and roulette_result.get("is_duplicate", false):
+			# Duplicate skin - show coin icon
+			var preview_icon := TextureRect.new()
+			if ResourceLoader.exists("res://assets/svg/coin.svg"):
+				preview_icon.texture = load("res://assets/svg/coin.svg")
+			preview_icon.custom_minimum_size = Vector2(100, 100)
+			preview_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			preview_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			preview_container.add_child(preview_icon)
 		elif preview_icon_path and ResourceLoader.exists(preview_icon_path):
 			var preview_icon := TextureRect.new()
 			preview_icon.texture = load(preview_icon_path)
@@ -1247,111 +1286,13 @@ func _on_roulette_finished() -> void:
 		result_vbox.add_child(close_btn)
 
 
-func _create_skin_preview_3d(model_path: String) -> SubViewportContainer:
-	return _create_skin_preview_3d_with_texture(model_path, "")
-
-
-func _create_skin_preview_3d_with_texture(model_path: String, texture_path: String) -> SubViewportContainer:
-	# Create a SubViewport with 3D model preview
-	var container := SubViewportContainer.new()
-	container.custom_minimum_size = Vector2(100, 100)
-	container.stretch = true
-	
-	var viewport := SubViewport.new()
-	viewport.size = Vector2i(200, 200)
-	viewport.transparent_bg = true
-	viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
-	container.add_child(viewport)
-	
-	# Add camera
-	var camera := Camera3D.new()
-	camera.transform = Transform3D(Basis.IDENTITY, Vector3(0, 0.3, 1.2))
-	camera.look_at(Vector3(0, 0.1, 0), Vector3.UP)
-	camera.fov = 45
-	viewport.add_child(camera)
-	
-	# Add light
-	var light := DirectionalLight3D.new()
-	light.transform = Transform3D(Basis.looking_at(Vector3(-1, -1, -1)), Vector3(2, 2, 2))
-	light.light_energy = 1.5
-	viewport.add_child(light)
-	
-	# Load and add model
-	var model_scene: PackedScene = load(model_path)
-	if model_scene:
-		var model := model_scene.instantiate()
-		model.scale = Vector3(0.4, 0.4, 0.4)
-		model.position = Vector3(0, -0.2, 0)
-		
-		# Apply texture if provided
-		if texture_path and ResourceLoader.exists(texture_path):
-			var texture: Texture2D = load(texture_path)
-			if texture:
-				_apply_texture_to_model(model, texture)
-		
-		_apply_unshaded_to_model(model)
-		viewport.add_child(model)
-		
-		# Rotate model slowly
-		var tween := container.create_tween()
-		tween.set_loops()
-		tween.tween_property(model, "rotation:y", TAU, 4.0).from(0.0)
-	
-	return container
-
-
-func _apply_texture_to_model(node: Node, texture: Texture2D) -> void:
-	# Find all mesh instances and apply texture
-	for child in node.get_children():
-		_apply_texture_to_model(child, texture)
-	
-	if node is MeshInstance3D:
-		var mesh_inst: MeshInstance3D = node as MeshInstance3D
-		var material := StandardMaterial3D.new()
-		material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		material.albedo_texture = texture
-		material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
-		
-		if mesh_inst.mesh:
-			for i in range(mesh_inst.mesh.get_surface_count()):
-				mesh_inst.set_surface_override_material(i, material)
-
-
-func _apply_unshaded_to_model(node: Node) -> void:
-	# Find all mesh instances and make them unshaded
-	for child in node.get_children():
-		_apply_unshaded_to_model(child)
-	
-	if node is MeshInstance3D:
-		var mesh_inst: MeshInstance3D = node as MeshInstance3D
-		# Skip if already has override material (texture was applied)
-		if mesh_inst.mesh:
-			for i in range(mesh_inst.mesh.get_surface_count()):
-				if mesh_inst.get_surface_override_material(i) != null:
-					return
-		
-		# Apply unshaded material
-		var original_mat: Material = null
-		if mesh_inst.mesh and mesh_inst.mesh.get_surface_count() > 0:
-			original_mat = mesh_inst.mesh.surface_get_material(0)
-		
-		var unshaded_mat := StandardMaterial3D.new()
-		unshaded_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		
-		if original_mat and original_mat is StandardMaterial3D:
-			var orig_std: StandardMaterial3D = original_mat as StandardMaterial3D
-			unshaded_mat.albedo_color = orig_std.albedo_color
-			if orig_std.albedo_texture:
-				unshaded_mat.albedo_texture = orig_std.albedo_texture
-		else:
-			unshaded_mat.albedo_color = Color.WHITE
-		
-		if mesh_inst.mesh:
-			for i in range(mesh_inst.mesh.get_surface_count()):
-				mesh_inst.set_surface_override_material(i, unshaded_mat)
-
-
 func _on_roulette_close() -> void:
+	# Kill all looping tweens first to prevent infinite loop errors
+	for tween in roulette_looping_tweens:
+		if tween and tween.is_valid():
+			tween.kill()
+	roulette_looping_tweens.clear()
+	
 	# Disconnect process frame if connected
 	if shop_panel.get_tree().process_frame.is_connected(_on_roulette_process):
 		shop_panel.get_tree().process_frame.disconnect(_on_roulette_process)

@@ -63,6 +63,7 @@ const SUPERCHARGE_SPEED_BONUS: float = 1.3
 const SUPERCHARGE_JUMP_BONUS: float = 1.6
 const SUPERCHARGE_PULSE_SPEED: float = 1.0  # 1Hz pulse
 const SUPERCHARGE_OUTLINE_SCALE: float = 1.12  # Outline scale (12% larger)
+const VISUAL_ROTATION_MULTIPLIER: float = 0.8  # Slow down visual rotation by 10%
 
 # Shock wave effect class
 const ShockWaveManager := preload("res://scripts/effects/shock_wave_manager.gd")
@@ -335,9 +336,9 @@ func _physics_process(delta: float) -> void:
 		# Calculate proper angular velocity: omega = v / r (physically accurate)
 		var effective_radius := sphere_radius * supercharge_current_scale
 		# Forward movement (negative Z) rotates around X axis
-		var forward_angular := linear_velocity.z / effective_radius
+		var forward_angular := linear_velocity.z / effective_radius * VISUAL_ROTATION_MULTIPLIER
 		# Sideways movement (X) rotates around Z axis (negated for correct direction)
-		var side_angular := -linear_velocity.x / effective_radius
+		var side_angular := -linear_velocity.x / effective_radius * VISUAL_ROTATION_MULTIPLIER
 		
 		# Apply rotation to visual model
 		player_model.rotate_x(forward_angular * delta)

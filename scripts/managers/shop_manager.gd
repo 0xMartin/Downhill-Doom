@@ -68,9 +68,13 @@ const CRATE_PRICES := {
 }
 
 const CRATE_DROP_CHANCES := {
-	"basic": {"boost": 0.60, "crate": 0.35, "skin": 0.05},
-	"premium": {"boost": 0.45, "crate": 0.45, "skin": 0.10},
-	"legendary": {"boost": 0.30, "crate": 0.50, "skin": 0.20},
+	# Target: ~60 min per skin average, legendary best value
+	# Basic: 4% skin → ~67 min/skin (worst ratio)
+	# Premium: 12% skin → ~56 min/skin
+	# Legendary: 35% skin → ~48 min/skin (best ratio)
+	"basic": {"boost": 0.61, "crate": 0.35, "skin": 0.04},
+	"premium": {"boost": 0.43, "crate": 0.45, "skin": 0.12},
+	"legendary": {"boost": 0.15, "crate": 0.50, "skin": 0.35},
 }
 
 const CRATE_NAMES := {
@@ -250,7 +254,6 @@ func buy_crate(crate_type: String) -> bool:
 	if crate_type not in CRATE_PRICES:
 		return false
 	
-
 	if false:
 		var price: int = CRATE_PRICES[crate_type]
 		var balance := _get_coin_balance()
@@ -320,25 +323,29 @@ func open_crate(crate_type: String) -> Dictionary:
 		reward = {"type": "crate", "id": reward_crate, "is_duplicate": false, "refund": 0}
 		
 	else:
-		# Skin reward
-		var unowned_skins: Array = []
-		for skin in available_texture_skins:
-			if skin not in get_owned_texture_skins():
-				unowned_skins.append(skin)
-		
-		if unowned_skins.is_empty():
-			# All skins owned - give refund (70% of crate price)
+		# Skin reward - truly random selection from all available skins
+		if available_texture_skins.is_empty():
+			# No skins available - give refund
 			var refund := int(CRATE_PRICES[crate_type] * 0.7)
 			_set_coin_balance(_get_coin_balance() + refund)
 			reward = {"type": "skin", "id": "", "is_duplicate": true, "refund": refund}
 		else:
-			# Give random unowned skin
-			var random_skin: String = unowned_skins[randi() % unowned_skins.size()]
-			var owned_skins: Array = shop_data.get("owned_texture_skins", [])
-			owned_skins.append(random_skin)
-			shop_data["owned_texture_skins"] = owned_skins
+			# Pick truly random skin from ALL available skins
+			var random_skin: String = available_texture_skins[randi() % available_texture_skins.size()]
 			
-			reward = {"type": "skin", "id": random_skin, "is_duplicate": false, "refund": 0}
+			# Check if already owned
+			if random_skin in get_owned_texture_skins():
+				# Duplicate - give refund (50% of crate price)
+				var refund := int(CRATE_PRICES[crate_type] * 0.5)
+				_set_coin_balance(_get_coin_balance() + refund)
+				reward = {"type": "skin", "id": random_skin, "is_duplicate": true, "refund": refund}
+			else:
+				# New skin - add to owned
+				var owned_skins: Array = shop_data.get("owned_texture_skins", [])
+				owned_skins.append(random_skin)
+				shop_data["owned_texture_skins"] = owned_skins
+				
+				reward = {"type": "skin", "id": random_skin, "is_duplicate": false, "refund": 0}
 	
 	_save_shop_data()
 	crates_changed.emit()
