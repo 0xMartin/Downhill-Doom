@@ -37,6 +37,8 @@ var current_multiplier: int = 1
 @onready var supercharge_count_label: Label = $SuperchargePanel/SuperchargeContainer/SuperchargeBar/SuperchargeCountLabel
 var supercharge_bar_value: float = 0.0
 var supercharge_bar_max: float = 100.0
+var supercharge_display_value: float = 0.0  # Smoothly animated display value
+var supercharge_fill_tween: Tween  # Tween for smooth fill animation
 var supercharge_glow_tween: Tween
 var supercharge_bar_glow_tween: Tween
 var supercharge_ready: bool = false
@@ -647,6 +649,9 @@ func _on_game_started() -> void:
 	last_destroyed_id = ""
 	if combo_panel:
 		combo_panel.visible = false
+	
+	# Reset supercharge bar animation
+	supercharge_display_value = 0.0
 
 func _on_supercharge_button_pressed() -> void:
 	if gm and gm.is_supercharge_ready():
@@ -659,10 +664,23 @@ func _update_supercharge_bar_fill() -> void:
 	if not supercharge_bar_fill or not supercharge_bar:
 		return
 	
-	# Calculate fill ratio (0 to 1)
-	var ratio := 0.0
+	# Calculate target fill ratio (0 to 1)
+	var target_ratio := 0.0
 	if supercharge_bar_max > 0:
-		ratio = clampf(supercharge_bar_value / supercharge_bar_max, 0.0, 1.0)
+		target_ratio = clampf(supercharge_bar_value / supercharge_bar_max, 0.0, 1.0)
+	
+	# Smoothly animate to target value
+	if supercharge_fill_tween:
+		supercharge_fill_tween.kill()
+	
+	supercharge_fill_tween = create_tween()
+	supercharge_fill_tween.tween_method(_set_supercharge_display, supercharge_display_value, target_ratio, 0.3).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+
+func _set_supercharge_display(ratio: float) -> void:
+	if not supercharge_bar_fill:
+		return
+	
+	supercharge_display_value = ratio
 	
 	# Fill grows from bottom (anchor_top goes from 1.0 to 0.0)
 	supercharge_bar_fill.anchor_top = 1.0 - ratio
