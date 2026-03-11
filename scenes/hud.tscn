@@ -8,18 +8,21 @@
 [ext_resource type="Texture2D" uid="uid://b215xp4d6g3do" path="res://assets/svg/ui_fire_button.svg" id="8_fire_button"]
 [ext_resource type="Texture2D" uid="uid://7xufw5fjlcpi" path="res://assets/svg/ui_coin_frame.svg" id="9_coin_frame"]
 [ext_resource type="Texture2D" uid="uid://dj64mjtua4avs" path="res://assets/svg/settings.svg" id="10_settings"]
+[ext_resource type="Texture2D" uid="uid://bcenbwyso2r4f" path="res://assets/svg/touch_jump_button.svg" id="11_touch_jump"]
+[ext_resource type="Texture2D" uid="uid://d2spsefjdj12j" path="res://assets/svg/touch_joystick_base.svg" id="12_touch_base"]
+[ext_resource type="Texture2D" uid="uid://c5m3rp7pundsq" path="res://assets/svg/touch_joystick_knob.svg" id="13_touch_knob"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
 bg_color = Color(0.1, 0.08, 0.18, 0.92)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
 border_color = Color(0.91, 0.27, 0.38, 0.6)
-corner_radius_top_left = 20
-corner_radius_top_right = 20
-corner_radius_bottom_right = 20
-corner_radius_bottom_left = 20
+corner_radius_top_left = 25
+corner_radius_top_right = 25
+corner_radius_bottom_right = 25
+corner_radius_bottom_left = 25
 shadow_color = Color(0, 0, 0, 0.4)
 shadow_size = 8
 shadow_offset = Vector2(0, 4)
@@ -31,19 +34,19 @@ border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
 border_color = Color(1, 1, 1, 0.1)
-corner_radius_top_left = 12
-corner_radius_top_right = 12
-corner_radius_bottom_right = 12
-corner_radius_bottom_left = 12
+corner_radius_top_left = 22
+corner_radius_top_right = 22
+corner_radius_bottom_right = 22
+corner_radius_bottom_left = 22
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fill"]
 bg_color = Color(0.91, 0.27, 0.38, 1)
 border_width_top = 1
 border_color = Color(1, 0.5, 0.6, 0.5)
-corner_radius_top_left = 12
-corner_radius_top_right = 12
-corner_radius_bottom_right = 12
-corner_radius_bottom_left = 12
+corner_radius_top_left = 22
+corner_radius_top_right = 22
+corner_radius_bottom_right = 22
+corner_radius_bottom_left = 22
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pause_panel"]
 content_margin_left = 24.0
@@ -155,15 +158,15 @@ content_margin_top = 8.0
 content_margin_right = 8.0
 content_margin_bottom = 8.0
 bg_color = Color(0.08, 0.06, 0.14, 0.75)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
 border_color = Color(0.91, 0.27, 0.38, 0.6)
-corner_radius_top_left = 63
-corner_radius_top_right = 63
-corner_radius_bottom_right = 63
-corner_radius_bottom_left = 63
+corner_radius_top_left = 100
+corner_radius_top_right = 100
+corner_radius_bottom_right = 100
+corner_radius_bottom_left = 100
 shadow_color = Color(0, 0, 0, 0.5)
 shadow_size = 8
 shadow_offset = Vector2(0, 4)
@@ -174,9 +177,9 @@ border_width_left = 4
 border_width_top = 4
 border_width_right = 4
 border_width_bottom = 4
-border_color = Color(0.3, 0.2, 0.4, 0.5)
-corner_radius_top_left = 70
-corner_radius_top_right = 70
+border_color = Color(0.4188523, 0.13993892, 0, 1)
+corner_radius_top_left = 100
+corner_radius_top_right = 100
 corner_radius_bottom_right = 5
 corner_radius_bottom_left = 5
 
@@ -188,8 +191,8 @@ border_width_right = 8
 border_width_bottom = 16
 border_color = Color(0.66, 0, 0, 1)
 border_blend = true
-corner_radius_top_left = 70
-corner_radius_top_right = 70
+corner_radius_top_left = 100
+corner_radius_top_right = 100
 
 [sub_resource type="FontFile" id="FontFile_hd3ao"]
 cache/0/variation_coordinates = {}
@@ -312,17 +315,27 @@ cache/0/47/0/underline_position = 0.0
 cache/0/47/0/underline_thickness = 0.0
 cache/0/47/0/scale = 1.0
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_0m4u7"]
+bg_color = Color(0.17254902, 0.10980392, 0.06666667, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.4188523, 0.13993892, 0, 1)
+corner_radius_bottom_right = 100
+corner_radius_bottom_left = 100
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_right_panel_bg"]
 bg_color = Color(0.12, 0.12, 0.14, 0.92)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
 border_color = Color(0.91, 0.27, 0.38, 0.6)
-corner_radius_top_left = 70
-corner_radius_top_right = 70
-corner_radius_bottom_right = 70
-corner_radius_bottom_left = 70
+corner_radius_top_left = 100
+corner_radius_top_right = 100
+corner_radius_bottom_right = 100
+corner_radius_bottom_left = 100
 shadow_color = Color(0, 0, 0, 0.5)
 shadow_size = 6
 shadow_offset = Vector2(0, 3)
@@ -435,7 +448,7 @@ theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 1
-theme_override_constants/outline_size = 16
+theme_override_constants/outline_size = 22
 theme_override_font_sizes/font_size = 42
 text = "100/100"
 horizontal_alignment = 1
@@ -474,30 +487,29 @@ vertical_alignment = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -60.0
-offset_top = 135.0
-offset_right = 60.0
-offset_bottom = 167.0
+offset_left = -75.0
+offset_top = 144.0
+offset_right = 76.0
+offset_bottom = 197.0
 grow_horizontal = 2
 theme_override_colors/font_color = Color(1, 1, 1, 0.9)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.7)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 2
-theme_override_constants/outline_size = 16
-theme_override_font_sizes/font_size = 38
+theme_override_constants/outline_size = 20
+theme_override_font_sizes/font_size = 44
 text = "00:00:00"
 horizontal_alignment = 1
 
 [node name="ComboPanel" type="Control" parent="." unique_id=1847293650]
-visible = false
 layout_mode = 3
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -100.0
-offset_top = 175.0
+offset_top = 231.0
 offset_right = 100.0
-offset_bottom = 225.0
+offset_bottom = 281.0
 grow_horizontal = 2
 pivot_offset = Vector2(100, 25)
 mouse_filter = 2
@@ -509,13 +521,13 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_colors/font_color = Color(1, 0.6, 0.1, 1)
+theme_override_colors/font_color = Color(0.8641714, 0.00015786887, 0.7325611, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
-theme_override_colors/font_outline_color = Color(0.3, 0.1, 0, 1)
+theme_override_colors/font_outline_color = Color(0.23487851, 0, 0.04996047, 1)
 theme_override_constants/shadow_offset_x = 2
 theme_override_constants/shadow_offset_y = 2
-theme_override_constants/outline_size = 5
-theme_override_font_sizes/font_size = 38
+theme_override_constants/outline_size = 26
+theme_override_font_sizes/font_size = 66
 text = "COMBO x2"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -730,12 +742,10 @@ text = "Vibration"
 
 [node name="SuperchargePanel" type="PanelContainer" parent="." unique_id=670504692]
 anchors_preset = -1
-anchor_left = 1.0
-anchor_top = 0.45
-anchor_right = 1.0
-anchor_bottom = 0.72
-offset_left = -145.0
-offset_right = -20.0
+anchor_left = 0.86
+anchor_top = 0.46
+anchor_right = 0.98
+anchor_bottom = 0.7
 grow_horizontal = 0
 theme_override_styles/panel = SubResource("StyleBoxFlat_supercharge_panel")
 
@@ -746,9 +756,7 @@ theme_override_constants/separation = 6
 alignment = 1
 
 [node name="SuperchargeBar" type="Control" parent="SuperchargePanel/SuperchargeContainer" unique_id=2138306708]
-custom_minimum_size = Vector2(102, 0)
 layout_mode = 2
-size_flags_horizontal = 4
 size_flags_vertical = 3
 
 [node name="BarBackground" type="PanelContainer" parent="SuperchargePanel/SuperchargeContainer/SuperchargeBar" unique_id=97867081]
@@ -782,7 +790,7 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 0.95)
-theme_override_constants/outline_size = 16
+theme_override_constants/outline_size = 20
 theme_override_fonts/font = SubResource("FontFile_hd3ao")
 theme_override_font_sizes/font_size = 47
 text = "0
@@ -791,93 +799,141 @@ text = "0
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="SuperchargeButton" type="TextureButton" parent="SuperchargePanel/SuperchargeContainer" unique_id=803117474]
-modulate = Color(0.5, 0.5, 0.5, 0.6)
-custom_minimum_size = Vector2(99, 101)
+[node name="ButtonContainer" type="PanelContainer" parent="SuperchargePanel/SuperchargeContainer" unique_id=2032769402]
+custom_minimum_size = Vector2(0, 100)
 layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_0m4u7")
+
+[node name="SuperchargeButton" type="TextureButton" parent="SuperchargePanel/SuperchargeContainer/ButtonContainer" unique_id=803117474]
+modulate = Color(0.5, 0.5, 0.5, 0.6)
+layout_mode = 2
 texture_normal = ExtResource("8_fire_button")
 ignore_texture_size = true
-stretch_mode = 4
+stretch_mode = 5
 
-[node name="SettingsButtonPanel" type="Control" parent="." unique_id=710118672]
-layout_mode = 3
-anchor_left = 1.0
+[node name="SettingsButtonPanel" type="AspectRatioContainer" parent="." unique_id=1190683243]
+anchors_preset = -1
+anchor_left = 0.86
 anchor_top = 0.31
-anchor_right = 1.0
-anchor_bottom = 0.31
-offset_left = -145.0
-offset_right = -20.0
-offset_bottom = 125.0
-grow_horizontal = 0
-pivot_offset = Vector2(62.5, 62.5)
+anchor_right = 0.98
+anchor_bottom = 0.37
 
 [node name="ButtonBackground" type="PanelContainer" parent="SettingsButtonPanel" unique_id=153768116]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_right_panel_bg")
 
-[node name="SettingsButton" type="TextureButton" parent="SettingsButtonPanel" unique_id=1966707883]
+[node name="ButtonContainer" type="MarginContainer" parent="SettingsButtonPanel" unique_id=858982899]
+layout_mode = 2
+theme_override_constants/margin_left = 15
+theme_override_constants/margin_top = 15
+theme_override_constants/margin_right = 15
+theme_override_constants/margin_bottom = 15
+
+[node name="SettingsButton" type="TextureButton" parent="SettingsButtonPanel/ButtonContainer" unique_id=1966707883]
 modulate = Color(0.6, 0.6, 0.65, 0.9)
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 20.0
-offset_top = 20.0
-offset_right = -20.0
-offset_bottom = -20.0
-grow_horizontal = 2
-grow_vertical = 2
+layout_mode = 2
 texture_normal = ExtResource("10_settings")
 ignore_texture_size = true
 stretch_mode = 4
 
-[node name="MultiplierPanel" type="Control" parent="." unique_id=1643211678]
-layout_mode = 3
-anchor_left = 1.0
+[node name="MultiplierPanel" type="AspectRatioContainer" parent="." unique_id=221905119]
+anchors_preset = -1
+anchor_left = 0.86
 anchor_top = 0.38
-anchor_right = 1.0
-anchor_bottom = 0.38
-offset_left = -145.0
-offset_right = -20.0
-offset_bottom = 125.0
-grow_horizontal = 0
-pivot_offset = Vector2(62.5, 62.5)
+anchor_right = 0.98
+anchor_bottom = 0.44
 
 [node name="CoinFrame" type="TextureRect" parent="MultiplierPanel" unique_id=1788210684]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+layout_mode = 2
 texture = ExtResource("9_coin_frame")
 expand_mode = 1
 stretch_mode = 6
 
 [node name="MultiplierLabel" type="Label" parent="MultiplierPanel" unique_id=2054911958]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(1, 0.85, 0.4, 0.8)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 0
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/outline_size = 20
+theme_override_font_sizes/font_size = 40
+text = "x1"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TouchControls" type="Control" parent="." unique_id=1983746521]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+
+[node name="TouchJumpButton" type="TextureButton" parent="TouchControls" unique_id=1983746522]
+modulate = Color(1, 1, 1, 0.85)
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 70.0
+offset_top = -350.0
+offset_right = 310.0
+offset_bottom = -110.0
+grow_vertical = 0
+texture_normal = ExtResource("11_touch_jump")
+ignore_texture_size = true
+stretch_mode = 4
+
+[node name="TouchJoystickBase" type="Control" parent="TouchControls" unique_id=1983746523]
+custom_minimum_size = Vector2(305, 305)
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -152.5
+offset_top = -415.0
+offset_right = 152.5
+offset_bottom = -110.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 1
+
+[node name="BaseTexture" type="TextureRect" parent="TouchControls/TouchJoystickBase" unique_id=1983746524]
+modulate = Color(1, 1, 1, 0.75)
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_shadow_color = Color(1, 0.85, 0.4, 0.8)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/shadow_offset_x = 0
-theme_override_constants/shadow_offset_y = 1
-theme_override_constants/outline_size = 16
-theme_override_font_sizes/font_size = 40
-text = "x1"
-horizontal_alignment = 1
-vertical_alignment = 1
+mouse_filter = 2
+texture = ExtResource("12_touch_base")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="JoystickKnob" type="TextureRect" parent="TouchControls/TouchJoystickBase" unique_id=1983746525]
+modulate = Color(1, 1, 1, 0.9)
+custom_minimum_size = Vector2(120, 120)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -60.0
+offset_top = -60.0
+offset_right = 60.0
+offset_bottom = 60.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("13_touch_knob")
+expand_mode = 1
+stretch_mode = 5
 
 [connection signal="pressed" from="PauseMenu/PanelContainer/VBoxContainer/HBoxContainer/RestartButton" to="." method="_on_restart_pressed"]
 [connection signal="pressed" from="PauseMenu/PanelContainer/VBoxContainer/HBoxContainer/ResumeButton" to="." method="_on_resume_pressed"]
@@ -887,5 +943,7 @@ vertical_alignment = 1
 [connection signal="toggled" from="PauseMenu/PanelContainer/VBoxContainer/DisplaySection/DisplayVBox/PopupCheck" to="." method="_on_popup_check_toggled"]
 [connection signal="toggled" from="PauseMenu/PanelContainer/VBoxContainer/DisplaySection/DisplayVBox/DamageCheck" to="." method="_on_damage_check_toggled"]
 [connection signal="toggled" from="PauseMenu/PanelContainer/VBoxContainer/DisplaySection/DisplayVBox/HapticCheck" to="." method="_on_haptic_check_toggled"]
-[connection signal="pressed" from="SuperchargePanel/SuperchargeContainer/SuperchargeButton" to="." method="_on_supercharge_button_pressed"]
-[connection signal="pressed" from="SettingsButtonPanel/SettingsButton" to="." method="_on_settings_pressed"]
+[connection signal="pressed" from="SuperchargePanel/SuperchargeContainer/ButtonContainer/SuperchargeButton" to="." method="_on_supercharge_button_pressed"]
+[connection signal="pressed" from="SettingsButtonPanel/ButtonContainer/SettingsButton" to="." method="_on_settings_pressed"]
+[connection signal="button_down" from="TouchControls/TouchJumpButton" to="." method="_on_jump_button_down"]
+[connection signal="button_up" from="TouchControls/TouchJumpButton" to="." method="_on_jump_button_up"]

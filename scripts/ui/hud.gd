@@ -33,7 +33,7 @@ var current_multiplier: int = 1
 @onready var supercharge_container: VBoxContainer = $SuperchargePanel/SuperchargeContainer
 @onready var supercharge_bar: Control = $SuperchargePanel/SuperchargeContainer/SuperchargeBar
 @onready var supercharge_bar_fill: PanelContainer = $SuperchargePanel/SuperchargeContainer/SuperchargeBar/BarBackground/BarFill
-@onready var supercharge_button: TextureButton = $SuperchargePanel/SuperchargeContainer/SuperchargeButton
+@onready var supercharge_button: TextureButton = $SuperchargePanel/SuperchargeContainer/ButtonContainer/SuperchargeButton
 @onready var supercharge_count_label: Label = $SuperchargePanel/SuperchargeContainer/SuperchargeBar/SuperchargeCountLabel
 var supercharge_bar_value: float = 0.0
 var supercharge_bar_max: float = 100.0
@@ -49,14 +49,13 @@ var supercharge_ready: bool = false
 var multiplier_tween: Tween
 
 # Settings button UI (floating)
-@onready var settings_button_panel: Control = $SettingsButtonPanel
-@onready var settings_button: TextureButton = $SettingsButtonPanel/SettingsButton
+@onready var settings_button: TextureButton = $SettingsButtonPanel/ButtonContainer/SettingsButton
 
 # Touch controls UI (visible in touch mode only)
-var touch_controls_container: Control
-var touch_jump_button: TextureButton
-var touch_joystick_base: Control
-var touch_joystick_knob: TextureRect
+@onready var touch_controls_container: Control = $TouchControls
+@onready var touch_jump_button: TextureButton = $TouchControls/TouchJumpButton
+@onready var touch_joystick_base: Control = $TouchControls/TouchJoystickBase
+@onready var touch_joystick_knob: TextureRect = $TouchControls/TouchJoystickBase/JoystickKnob
 var joystick_center: Vector2 = Vector2.ZERO  # Center of joystick base
 var joystick_max_distance: float = 60.0  # Max knob drag distance  
 var joystick_input: float = 0.0  # Current joystick X value (-1 to 1)
@@ -103,8 +102,8 @@ func _ready() -> void:
 	# Connect object destroyed signal for combo system
 	gm.object_destroyed.connect(_on_object_destroyed)
 	
-	# Create touch controls (visible only if touch mode enabled)
-	_create_touch_controls()
+	# Initialize touch controls (set visibility based on mode)
+	_init_touch_controls()
 	
 	# Adjust top bar position for mobile safe area (notch, status bar)
 	_apply_safe_area_offset()
@@ -727,93 +726,17 @@ func _stop_supercharge_glow() -> void:
 
 # ========== Touch Controls ==========
 
-func _create_touch_controls() -> void:
-	# Only create if AudioManager is available
-	if not audio:
+func _init_touch_controls() -> void:
+	# Only initialize if AudioManager and touch controls are available
+	if not audio or not touch_controls_container:
 		return
 	
-	var is_touch: bool = audio.is_touch_mode()
+	# Set visibility based on touch mode
+	touch_controls_container.visible = audio.is_touch_mode()
 	
-	# Create container for all touch controls - anchored to bottom
-	touch_controls_container = Control.new()
-	touch_controls_container.name = "TouchControls"
-	touch_controls_container.set_anchors_preset(Control.PRESET_FULL_RECT)
-	touch_controls_container.mouse_filter = Control.MOUSE_FILTER_PASS
-	touch_controls_container.visible = is_touch
-	add_child(touch_controls_container)
-	
-	var bottom_padding: float = 110.0
-	
-	# --- Jump Button (left side) ---
-	var jump_size := Vector2(240, 240)
-	var jump_margin_left: float = 70.0
-	
-	touch_jump_button = TextureButton.new()
-	touch_jump_button.name = "TouchJumpButton"
-	touch_jump_button.texture_normal = load("res://assets/svg/touch_jump_button.svg")
-	touch_jump_button.ignore_texture_size = true
-	touch_jump_button.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
-	touch_jump_button.custom_minimum_size = jump_size
-	touch_jump_button.size = jump_size
-	touch_jump_button.anchor_left = 0.0
-	touch_jump_button.anchor_right = 0.0
-	touch_jump_button.anchor_top = 1.0
-	touch_jump_button.anchor_bottom = 1.0
-	touch_jump_button.offset_left = jump_margin_left
-	touch_jump_button.offset_right = jump_margin_left + jump_size.x
-	touch_jump_button.offset_top = -bottom_padding - jump_size.y
-	touch_jump_button.offset_bottom = -bottom_padding
-	touch_jump_button.modulate = Color(1.0, 1.0, 1.0, 0.85)
-	touch_jump_button.mouse_filter = Control.MOUSE_FILTER_STOP
-	touch_jump_button.button_down.connect(_on_jump_button_down)
-	touch_jump_button.button_up.connect(_on_jump_button_up)
-	touch_controls_container.add_child(touch_jump_button)
-	
-	# --- Joystick (center) ---
-	var joystick_base_size := Vector2(305, 305)
-	var joystick_knob_size := Vector2(120, 120)
-	
-	touch_joystick_base = Control.new()
-	touch_joystick_base.name = "TouchJoystickBase"
-	touch_joystick_base.custom_minimum_size = joystick_base_size
-	touch_joystick_base.size = joystick_base_size
-	touch_joystick_base.anchor_left = 0.5
-	touch_joystick_base.anchor_right = 0.5
-	touch_joystick_base.anchor_top = 1.0
-	touch_joystick_base.anchor_bottom = 1.0
-	touch_joystick_base.offset_left = -joystick_base_size.x / 2.0
-	touch_joystick_base.offset_right = joystick_base_size.x / 2.0
-	touch_joystick_base.offset_top = -bottom_padding - joystick_base_size.y
-	touch_joystick_base.offset_bottom = -bottom_padding
-	touch_joystick_base.mouse_filter = Control.MOUSE_FILTER_PASS
-	touch_controls_container.add_child(touch_joystick_base)
-	
-	# Joystick base image
-	var base_texture := TextureRect.new()
-	base_texture.name = "BaseTexture"
-	base_texture.texture = load("res://assets/svg/touch_joystick_base.svg")
-	base_texture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	base_texture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	base_texture.set_anchors_preset(Control.PRESET_FULL_RECT)
-	base_texture.modulate = Color(1.0, 1.0, 1.0, 0.75)
-	base_texture.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	touch_joystick_base.add_child(base_texture)
-	
-	# Joystick knob (draggable thumb)
-	touch_joystick_knob = TextureRect.new()
-	touch_joystick_knob.name = "JoystickKnob"
-	touch_joystick_knob.texture = load("res://assets/svg/touch_joystick_knob.svg")
-	touch_joystick_knob.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	touch_joystick_knob.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	touch_joystick_knob.custom_minimum_size = joystick_knob_size
-	touch_joystick_knob.size = joystick_knob_size
-	touch_joystick_knob.position = (joystick_base_size - joystick_knob_size) / 2.0
-	touch_joystick_knob.modulate = Color(1.0, 1.0, 1.0, 0.9)
-	touch_joystick_knob.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	touch_joystick_base.add_child(touch_joystick_knob)
-	
-	# Store joystick max distance
-	joystick_max_distance = joystick_base_size.x / 2.0 - joystick_knob_size.x / 2.0
+	# Calculate joystick max distance from scene sizes
+	if touch_joystick_base and touch_joystick_knob:
+		joystick_max_distance = touch_joystick_base.size.x / 2.0 - touch_joystick_knob.size.x / 2.0
 
 func _handle_joystick_input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch:

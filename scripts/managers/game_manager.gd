@@ -222,25 +222,38 @@ func add_coin(amount: int = 1) -> void:
 	coins += multiplied_amount
 	coins_changed.emit(coins)
 
+## Calculate multiplied coin value (for display/recording before add_coin)
+func get_multiplied_coins(base_amount: int) -> int:
+	var result := base_amount * coin_multiplier
+	if has_boost("double_coins"):
+		result *= 2
+	return result
+
 ## Record a destroyed object for statistics
-func record_destroyed_object(object_id: String, object_name: String, coin_value: int) -> void:
+## base_coin_value: the base value before multiplier (for combo system)
+## actual_coins: the actual earned amount after multiplier (for stats)
+func record_destroyed_object(object_id: String, object_name: String, base_coin_value: int, actual_coins: int = -1) -> void:
+	# If actual_coins not provided, calculate it
+	if actual_coins < 0:
+		actual_coins = get_multiplied_coins(base_coin_value)
+	
 	# Update count
 	if destroyed_objects.has(object_id):
 		destroyed_objects[object_id] += 1
 	else:
 		destroyed_objects[object_id] = 1
 	
-	# Store details
+	# Store details with ACTUAL earned coins (after multiplier)
 	destroyed_objects_details.append({
 		"id": object_id,
 		"name": object_name,
-		"coins": coin_value,
+		"coins": actual_coins,
 		"distance": distance,
 		"timestamp": Time.get_ticks_msec(),
 	})
 	
-	# Emit signal for UI updates
-	object_destroyed.emit(object_id, object_name, coin_value)
+	# Emit signal with BASE coins (for combo system to calculate bonuses)
+	object_destroyed.emit(object_id, object_name, base_coin_value)
 	
 	# Add supercharge progress from destroying objects
 	add_supercharge_object()

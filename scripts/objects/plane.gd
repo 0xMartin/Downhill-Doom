@@ -385,12 +385,8 @@ func _die(player_velocity: Vector3 = Vector3.FORWARD * 20.0) -> void:
 	# Award coins and record stats BEFORE destruction
 	var gm: Node = get_node_or_null("/root/GameManager")
 	if gm:
-		if gm.has_method("add_coins"):
-			gm.add_coins(coin_value)
-		elif gm.has_method("add_coin"):
-			gm.add_coin(coin_value)
-		if gm.has_method("record_destroyed_object"):
-			gm.record_destroyed_object(object_id, object_name, coin_value)
+		gm.add_coin(coin_value)
+		gm.record_destroyed_object(object_id, object_name, coin_value)
 	
 	# Play death sound
 	if audio_manager and audio_manager.has_method("play_npc_death_sound"):
