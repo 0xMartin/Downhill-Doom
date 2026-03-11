@@ -772,20 +772,20 @@ func _update_joystick_knob(touch_pos: Vector2) -> void:
 	joystick_center = base_rect.position + base_rect.size / 2.0
 	
 	# Calculate offset from joystick center
-	var offset := touch_pos - joystick_center
-	var distance := offset.length()
+	var touch_offset := touch_pos - joystick_center
+	var distance := touch_offset.length()
 	
 	# Clamp to max distance
 	if distance > joystick_max_distance:
-		offset = offset.normalized() * joystick_max_distance
+		touch_offset = touch_offset.normalized() * joystick_max_distance
 	
 	# Update knob position (relative to base)
 	var base_size := touch_joystick_base.size
 	var knob_size := touch_joystick_knob.size
-	touch_joystick_knob.position = offset + (base_size - knob_size) / 2.0
+	touch_joystick_knob.position = touch_offset + (base_size - knob_size) / 2.0
 	
 	# Calculate joystick input (-1 to 1) - only X axis for left/right (0.9 = 10% less sensitive)
-	joystick_input = clampf(offset.x / joystick_max_distance, -1.0, 1.0) * 0.9
+	joystick_input = clampf(touch_offset.x / joystick_max_distance, -1.0, 1.0) * 0.9
 
 func _reset_joystick_knob() -> void:
 	if not touch_joystick_base or not touch_joystick_knob:

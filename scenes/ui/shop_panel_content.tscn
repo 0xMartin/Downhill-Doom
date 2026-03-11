@@ -1,60 +1,64 @@
 [gd_scene format=3 uid="uid://ijqd1d2habdl"]
 
-[ext_resource type="Texture2D" uid="uid://dgjqf24dn1qar" path="res://assets/svg/coin.svg" id="1_coin"]
+[ext_resource type="Texture2D" uid="uid://jepsdf0och2h" path="res://assets/svg/coin.svg" id="1_coin"]
+[ext_resource type="Texture2D" uid="uid://jknnhd7en14a" path="res://assets/svg/back_arrow.svg" id="2_back"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_header"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
 bg_color = Color(0.05, 0.07, 0.1, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_accent"]
+bg_color = Color(1, 0.82, 0.25, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_back_button_normal"]
 content_margin_left = 24.0
 content_margin_top = 12.0
 content_margin_right = 24.0
 content_margin_bottom = 12.0
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_back_button_normal"]
 bg_color = Color(1, 1, 1, 0.1)
 corner_radius_top_left = 20
 corner_radius_top_right = 20
 corner_radius_bottom_right = 20
 corner_radius_bottom_left = 20
-content_margin_left = 24.0
-content_margin_top = 12.0
-content_margin_right = 24.0
-content_margin_bottom = 12.0
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_back_button_hover"]
-bg_color = Color(1, 1, 1, 0.2)
-corner_radius_top_left = 20
-corner_radius_top_right = 20
-corner_radius_bottom_right = 20
-corner_radius_bottom_left = 20
-content_margin_left = 24.0
-content_margin_top = 12.0
-content_margin_right = 24.0
-content_margin_bottom = 12.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_back_button_pressed"]
+content_margin_left = 24.0
+content_margin_top = 12.0
+content_margin_right = 24.0
+content_margin_bottom = 12.0
 bg_color = Color(0.8, 0.66, 0.2, 1)
 corner_radius_top_left = 20
 corner_radius_top_right = 20
 corner_radius_bottom_right = 20
 corner_radius_bottom_left = 20
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_back_button_hover"]
 content_margin_left = 24.0
 content_margin_top = 12.0
 content_margin_right = 24.0
 content_margin_bottom = 12.0
+bg_color = Color(1, 1, 1, 0.2)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_nav_button"]
 bg_color = Color(0.14, 0.18, 0.26, 1)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
 border_width_left = 3
 border_width_top = 3
 border_width_right = 3
 border_width_bottom = 3
 border_color = Color(1, 0.82, 0.25, 0.6)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
 
-[node name="ShopPanelContent" type="VBoxContainer"]
+[node name="ShopPanelContent" type="VBoxContainer" unique_id=269934911]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -62,21 +66,30 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 0
 
-[node name="Header" type="PanelContainer" parent="."]
-custom_minimum_size = Vector2(0, 140)
+[node name="Header" type="PanelContainer" parent="." unique_id=166894587]
+custom_minimum_size = Vector2(0, 200)
 layout_mode = 2
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_header")
 
-[node name="HBoxContainer" type="HBoxContainer" parent="Header"]
+[node name="HBoxContainer" type="HBoxContainer" parent="Header" unique_id=1663009166]
 layout_mode = 2
-size_flags_vertical = 3
 mouse_filter = 2
 theme_override_constants/separation = 24
 alignment = 1
 
-[node name="HeaderIcon" type="TextureRect" parent="Header/HBoxContainer"]
-custom_minimum_size = Vector2(56, 56)
+[node name="Panel" type="Panel" parent="Header/HBoxContainer" unique_id=1641299323]
+custom_minimum_size = Vector2(30, 0)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_accent")
+
+[node name="empty1" type="Control" parent="Header/HBoxContainer" unique_id=1121858888]
+custom_minimum_size = Vector2(20, 0)
+layout_mode = 2
+
+[node name="HeaderIcon" type="TextureRect" parent="Header/HBoxContainer" unique_id=1288494558]
+modulate = Color(1, 0.81960785, 0.2509804, 1)
+custom_minimum_size = Vector2(85, 85)
 layout_mode = 2
 size_flags_vertical = 4
 mouse_filter = 2
@@ -84,35 +97,41 @@ texture = ExtResource("1_coin")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="HeaderTitle" type="Label" parent="Header/HBoxContainer"]
+[node name="HeaderTitle" type="Label" parent="Header/HBoxContainer" unique_id=2066065947]
 layout_mode = 2
-size_flags_vertical = 4
-mouse_filter = 2
-theme_override_colors/font_color = Color(1, 0.82, 0.25, 1)
-theme_override_font_sizes/font_size = 56
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.81960785, 0.2509804, 1)
+theme_override_font_sizes/font_size = 70
 text = "SHOP"
 
-[node name="Spacer" type="Control" parent="Header/HBoxContainer"]
+[node name="Spacer" type="Control" parent="Header/HBoxContainer" unique_id=1844056419]
 layout_mode = 2
 size_flags_horizontal = 3
 mouse_filter = 2
 
-[node name="BackButton" type="Button" parent="Header/HBoxContainer"]
+[node name="BackButton" type="Button" parent="Header/HBoxContainer" unique_id=1887505965]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(180, 80)
+custom_minimum_size = Vector2(150, 110)
 layout_mode = 2
-size_flags_vertical = 1
+size_flags_stretch_ratio = 0.4
 focus_mode = 0
-mouse_filter = 0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 40
 theme_override_styles/normal = SubResource("StyleBoxFlat_back_button_normal")
-theme_override_styles/hover = SubResource("StyleBoxFlat_back_button_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_back_button_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_back_button_hover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_back_button_hover")
-text = "←  Back"
+icon = ExtResource("2_back")
+flat = true
+alignment = 2
+icon_alignment = 1
+expand_icon = true
 
-[node name="ContentMargin" type="MarginContainer" parent="."]
+[node name="empty2" type="Control" parent="Header/HBoxContainer" unique_id=1896640216]
+custom_minimum_size = Vector2(20, 0)
+layout_mode = 2
+
+[node name="ContentMargin" type="MarginContainer" parent="." unique_id=1541498259]
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/margin_left = 36
@@ -120,37 +139,37 @@ theme_override_constants/margin_top = 24
 theme_override_constants/margin_right = 36
 theme_override_constants/margin_bottom = 24
 
-[node name="ContentVBox" type="VBoxContainer" parent="ContentMargin"]
+[node name="ContentVBox" type="VBoxContainer" parent="ContentMargin" unique_id=1072092013]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/separation = 24
 
-[node name="BalanceRow" type="HBoxContainer" parent="ContentMargin/ContentVBox"]
+[node name="BalanceRow" type="HBoxContainer" parent="ContentMargin/ContentVBox" unique_id=1650170997]
 layout_mode = 2
 theme_override_constants/separation = 12
 alignment = 1
 
-[node name="CoinIcon" type="TextureRect" parent="ContentMargin/ContentVBox/BalanceRow"]
+[node name="CoinIcon" type="TextureRect" parent="ContentMargin/ContentVBox/BalanceRow" unique_id=1963873742]
 custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
 texture = ExtResource("1_coin")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="ShopBalanceLabel" type="Label" parent="ContentMargin/ContentVBox/BalanceRow"]
+[node name="ShopBalanceLabel" type="Label" parent="ContentMargin/ContentVBox/BalanceRow" unique_id=795705569]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.82, 0.25, 1)
 theme_override_font_sizes/font_size = 48
 text = "0"
 
-[node name="NavigationContainer" type="HBoxContainer" parent="ContentMargin/ContentVBox"]
+[node name="NavigationContainer" type="HBoxContainer" parent="ContentMargin/ContentVBox" unique_id=1317737816]
 layout_mode = 2
 theme_override_constants/separation = 24
 alignment = 1
 
-[node name="PrevButton" type="Button" parent="ContentMargin/ContentVBox/NavigationContainer"]
+[node name="PrevButton" type="Button" parent="ContentMargin/ContentVBox/NavigationContainer" unique_id=211344148]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(100, 72)
 layout_mode = 2
@@ -159,7 +178,7 @@ theme_override_font_sizes/font_size = 40
 theme_override_styles/normal = SubResource("StyleBoxFlat_nav_button")
 text = "<"
 
-[node name="SectionLabel" type="Label" parent="ContentMargin/ContentVBox/NavigationContainer"]
+[node name="SectionLabel" type="Label" parent="ContentMargin/ContentVBox/NavigationContainer" unique_id=786427672]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(280, 60)
 layout_mode = 2
@@ -169,7 +188,7 @@ text = "SKINS"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="NextButton" type="Button" parent="ContentMargin/ContentVBox/NavigationContainer"]
+[node name="NextButton" type="Button" parent="ContentMargin/ContentVBox/NavigationContainer" unique_id=1431807086]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(100, 72)
 layout_mode = 2
@@ -178,14 +197,14 @@ theme_override_font_sizes/font_size = 40
 theme_override_styles/normal = SubResource("StyleBoxFlat_nav_button")
 text = ">"
 
-[node name="ScrollContainer" type="ScrollContainer" parent="ContentMargin/ContentVBox"]
+[node name="ScrollContainer" type="ScrollContainer" parent="ContentMargin/ContentVBox" unique_id=1430644687]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="ShopContentContainer" type="VBoxContainer" parent="ContentMargin/ContentVBox/ScrollContainer"]
+[node name="ShopContentContainer" type="VBoxContainer" parent="ContentMargin/ContentVBox/ScrollContainer" unique_id=763793161]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3

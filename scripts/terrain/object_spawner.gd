@@ -1014,11 +1014,11 @@ func _create_object(obj_data: RefCounted, rng: RandomNumberGenerator, category: 
 	
 	# Try to get from pool first
 	if pool and pool.has_available(model_path, category):
-		var obj: Node3D = pool.get_object(model_path, category)
-		if obj:
+		var pooled_obj: Node3D = pool.get_object(model_path, category)
+		if pooled_obj:
 			# Reconfigure pooled object with current data
-			_reconfigure_object(obj, obj_data, category)
-			return obj
+			_reconfigure_object(pooled_obj, obj_data, category)
+			return pooled_obj
 	
 	# No pooled object available, create new one
 	var obj: Node3D = null

@@ -451,10 +451,10 @@ func _set_coin_balance(new_balance: int) -> void:
 	var stats_data := {}
 	
 	if FileAccess.file_exists(STATS_FILE):
-		var file := FileAccess.open(STATS_FILE, FileAccess.READ)
-		if file:
-			var json_string := file.get_as_text()
-			file.close()
+		var read_file := FileAccess.open(STATS_FILE, FileAccess.READ)
+		if read_file:
+			var json_string := read_file.get_as_text()
+			read_file.close()
 			var json := JSON.new()
 			if json.parse(json_string) == OK:
 				var data = json.get_data()
@@ -463,10 +463,10 @@ func _set_coin_balance(new_balance: int) -> void:
 	
 	stats_data["coin_balance"] = new_balance
 	
-	var file := FileAccess.open(STATS_FILE, FileAccess.WRITE)
-	if file:
-		file.store_string(JSON.stringify(stats_data))
-		file.close()
+	var write_file := FileAccess.open(STATS_FILE, FileAccess.WRITE)
+	if write_file:
+		write_file.store_string(JSON.stringify(stats_data))
+		write_file.close()
 
 func _load_shop_data() -> void:
 	if FileAccess.file_exists(SHOP_DATA_PATH):

@@ -69,9 +69,6 @@ func rebuild() -> void:
 	# Connect signals
 	_connect_signals()
 	
-	# Apply dynamic styling where needed
-	_apply_dynamic_styles()
-	
 	# Load saved settings
 	_load_saved_settings()
 
@@ -111,16 +108,6 @@ func _connect_signals() -> void:
 		tilt_sensitivity_slider.value_changed.connect(_on_tilt_sensitivity_changed)
 
 
-func _apply_dynamic_styles() -> void:
-	# Apply slider styling
-	if music_slider:
-		_style_slider(music_slider)
-	if sfx_slider:
-		_style_slider(sfx_slider)
-	if tilt_sensitivity_slider:
-		_style_slider(tilt_sensitivity_slider)
-
-
 func _load_saved_settings() -> void:
 	if audio_manager:
 		if music_slider:
@@ -148,47 +135,6 @@ func get_back_button() -> Button:
 	if content_instance:
 		return content_instance.get_node("%BackButton") as Button
 	return null
-
-
-# ========== Styling ==========
-
-func _style_slider(slider: HSlider) -> void:
-	var slider_bg := StyleBoxFlat.new()
-	slider_bg.bg_color = COLOR_BG_DARK
-	slider_bg.set_corner_radius_all(25)
-	slider_bg.set_content_margin_all(12)
-	
-	var grabber_area := StyleBoxFlat.new()
-	grabber_area.bg_color = COLOR_ACCENT_PRIMARY.darkened(0.3)
-	grabber_area.set_corner_radius_all(25)
-	grabber_area.set_content_margin_all(12)
-	
-	var grabber_area_hl := StyleBoxFlat.new()
-	grabber_area_hl.bg_color = COLOR_ACCENT_PRIMARY
-	grabber_area_hl.set_corner_radius_all(25)
-	grabber_area_hl.set_content_margin_all(12)
-	
-	slider.add_theme_stylebox_override("slider", slider_bg)
-	slider.add_theme_stylebox_override("grabber_area", grabber_area)
-	slider.add_theme_stylebox_override("grabber_area_highlight", grabber_area_hl)
-	slider.add_theme_icon_override("grabber", _create_circle_texture(72, COLOR_ACCENT_PRIMARY))
-	slider.add_theme_icon_override("grabber_highlight", _create_circle_texture(76, COLOR_ACCENT_PRIMARY.lightened(0.2)))
-
-
-func _create_circle_texture(size: int, color: Color) -> ImageTexture:
-	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
-	var center := Vector2(size / 2.0, size / 2.0)
-	var radius := size / 2.0 - 1
-	
-	for x in range(size):
-		for y in range(size):
-			var dist := Vector2(x, y).distance_to(center)
-			if dist <= radius:
-				img.set_pixel(x, y, color)
-			else:
-				img.set_pixel(x, y, Color(0, 0, 0, 0))
-	
-	return ImageTexture.create_from_image(img)
 
 
 func _update_control_mode_buttons(mode: int) -> void:

@@ -1,13 +1,17 @@
 [gd_scene format=3 uid="uid://ba036kq57bhe0"]
 
 [ext_resource type="Texture2D" uid="uid://cbmjrgtoexwle" path="res://assets/svg/stats.svg" id="1_stats"]
+[ext_resource type="Texture2D" uid="uid://jknnhd7en14a" path="res://assets/svg/back_arrow.svg" id="2_back"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_header"]
-content_margin_left = 24.0
-content_margin_top = 12.0
-content_margin_right = 24.0
-content_margin_bottom = 12.0
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
 bg_color = Color(0.05, 0.07, 0.1, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_accent"]
+bg_color = Color(1, 1, 1, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_back_button_normal"]
 content_margin_left = 24.0
@@ -63,20 +67,28 @@ grow_vertical = 2
 theme_override_constants/separation = 0
 
 [node name="Header" type="PanelContainer" parent="." unique_id=40408722]
-custom_minimum_size = Vector2(0, 140)
+custom_minimum_size = Vector2(0, 200)
 layout_mode = 2
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_header")
 
 [node name="HBoxContainer" type="HBoxContainer" parent="Header" unique_id=234835306]
 layout_mode = 2
-size_flags_vertical = 3
 mouse_filter = 2
 theme_override_constants/separation = 24
 alignment = 1
 
+[node name="Panel" type="Panel" parent="Header/HBoxContainer"]
+custom_minimum_size = Vector2(30, 0)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_accent")
+
+[node name="empty1" type="Control" parent="Header/HBoxContainer"]
+custom_minimum_size = Vector2(20, 0)
+layout_mode = 2
+
 [node name="HeaderIcon" type="TextureRect" parent="Header/HBoxContainer" unique_id=1476897832]
-custom_minimum_size = Vector2(56, 56)
+custom_minimum_size = Vector2(85, 85)
 layout_mode = 2
 size_flags_vertical = 4
 mouse_filter = 2
@@ -86,8 +98,9 @@ stretch_mode = 5
 
 [node name="HeaderTitle" type="Label" parent="Header/HBoxContainer" unique_id=1519689011]
 layout_mode = 2
+size_flags_horizontal = 3
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 56
+theme_override_font_sizes/font_size = 70
 text = "STATISTICS"
 
 [node name="Spacer" type="Control" parent="Header/HBoxContainer" unique_id=948114447]
@@ -97,8 +110,9 @@ mouse_filter = 2
 
 [node name="BackButton" type="Button" parent="Header/HBoxContainer" unique_id=2050955782]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(180, 80)
+custom_minimum_size = Vector2(150, 110)
 layout_mode = 2
+size_flags_stretch_ratio = 0.4
 focus_mode = 0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 40
@@ -106,7 +120,15 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_back_button_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_back_button_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_back_button_hover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_back_button_hover")
-text = "←  Back"
+icon = ExtResource("2_back")
+flat = true
+alignment = 2
+icon_alignment = 1
+expand_icon = true
+
+[node name="empty2" type="Control" parent="Header/HBoxContainer"]
+custom_minimum_size = Vector2(20, 0)
+layout_mode = 2
 
 [node name="ScrollContainer" type="ScrollContainer" parent="." unique_id=971233694]
 layout_mode = 2

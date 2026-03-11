@@ -1,13 +1,17 @@
 [gd_scene format=3 uid="uid://b8iwd0cvr7qen"]
 
 [ext_resource type="Texture2D" uid="uid://dj64mjtua4avs" path="res://assets/svg/settings.svg" id="1_settings"]
+[ext_resource type="Texture2D" uid="uid://jknnhd7en14a" path="res://assets/svg/back_arrow.svg" id="2_javpj"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_header"]
-content_margin_left = 24.0
-content_margin_top = 12.0
-content_margin_right = 24.0
-content_margin_bottom = 12.0
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
 bg_color = Color(0.05, 0.07, 0.1, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_javpj"]
+bg_color = Color(1, 1, 1, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_back_button_normal"]
 content_margin_left = 24.0
@@ -43,20 +47,48 @@ corner_radius_bottom_right = 20
 corner_radius_bottom_left = 20
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_section"]
-content_margin_left = 24.0
+content_margin_left = 48.0
 content_margin_top = 24.0
-content_margin_right = 24.0
+content_margin_right = 48.0
 content_margin_bottom = 24.0
 bg_color = Color(0.06, 0.08, 0.12, 1)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
+border_width_left = 8
+border_width_top = 8
+border_width_right = 8
+border_width_bottom = 8
 border_color = Color(0.25, 0.32, 0.45, 0.8)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
+corner_radius_top_left = 32
+corner_radius_top_right = 32
+corner_radius_bottom_right = 32
+corner_radius_bottom_left = 32
+
+[sub_resource type="DPITexture" id="DPITexture_grabber"]
+_source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\"><circle cx=\"8\" cy=\"8\" r=\"7\" fill=\"#fefefe\" fill-opacity=\".75\"/></svg>
+"
+base_scale = 2.0
+
+[sub_resource type="DPITexture" id="DPITexture_grabber_highlight"]
+_source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\"><circle cx=\"8\" cy=\"8\" r=\"7\" fill=\"#fefefe\"/></svg>
+"
+base_scale = 2.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_slider_bg"]
+content_margin_top = 10.0
+content_margin_bottom = 10.0
+bg_color = Color(1, 1, 1, 0.08)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_slider_fill"]
+content_margin_top = 10.0
+content_margin_bottom = 10.0
+bg_color = Color(0.91, 0.27, 0.38, 0.9)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_control_button"]
 bg_color = Color(0.06, 0.08, 0.12, 1)
@@ -79,20 +111,28 @@ grow_vertical = 2
 theme_override_constants/separation = 0
 
 [node name="Header" type="PanelContainer" parent="." unique_id=1265916818]
-custom_minimum_size = Vector2(0, 140)
+custom_minimum_size = Vector2(0, 200)
 layout_mode = 2
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_header")
 
 [node name="HBoxContainer" type="HBoxContainer" parent="Header" unique_id=12577998]
 layout_mode = 2
-size_flags_vertical = 3
 mouse_filter = 2
 theme_override_constants/separation = 24
 alignment = 1
 
+[node name="Panel" type="Panel" parent="Header/HBoxContainer" unique_id=1604576773]
+custom_minimum_size = Vector2(30, 0)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_javpj")
+
+[node name="empty1" type="Control" parent="Header/HBoxContainer" unique_id=2039054631]
+custom_minimum_size = Vector2(20, 0)
+layout_mode = 2
+
 [node name="HeaderIcon" type="TextureRect" parent="Header/HBoxContainer" unique_id=1401400316]
-custom_minimum_size = Vector2(56, 56)
+custom_minimum_size = Vector2(85, 85)
 layout_mode = 2
 size_flags_vertical = 4
 mouse_filter = 2
@@ -102,8 +142,9 @@ stretch_mode = 5
 
 [node name="HeaderTitle" type="Label" parent="Header/HBoxContainer" unique_id=839103633]
 layout_mode = 2
+size_flags_horizontal = 3
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 56
+theme_override_font_sizes/font_size = 70
 text = "SETTINGS"
 
 [node name="Spacer" type="Control" parent="Header/HBoxContainer" unique_id=2090479503]
@@ -113,8 +154,9 @@ mouse_filter = 2
 
 [node name="BackButton" type="Button" parent="Header/HBoxContainer" unique_id=216993275]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(180, 80)
+custom_minimum_size = Vector2(150, 110)
 layout_mode = 2
+size_flags_stretch_ratio = 0.4
 focus_mode = 0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 40
@@ -122,7 +164,15 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_back_button_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_back_button_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_back_button_hover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_back_button_hover")
-text = "←  Back"
+icon = ExtResource("2_javpj")
+flat = true
+alignment = 2
+icon_alignment = 1
+expand_icon = true
+
+[node name="empty2" type="Control" parent="Header/HBoxContainer" unique_id=2074550559]
+custom_minimum_size = Vector2(20, 0)
+layout_mode = 2
 
 [node name="ScrollContainer" type="ScrollContainer" parent="." unique_id=1118165591]
 layout_mode = 2
@@ -157,7 +207,7 @@ theme_override_constants/separation = 24
 [node name="SectionLabel" type="Label" parent="ScrollContainer/MarginContainer/ContentVBox/AudioSection/VBoxContainer" unique_id=1841573041]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.25, 0.65, 0.96, 1)
-theme_override_font_sizes/font_size = 38
+theme_override_font_sizes/font_size = 42
 text = "AUDIO"
 
 [node name="MusicRow" type="HBoxContainer" parent="ScrollContainer/MarginContainer/ContentVBox/AudioSection/VBoxContainer" unique_id=1587611523]
@@ -168,7 +218,7 @@ theme_override_constants/separation = 32
 custom_minimum_size = Vector2(280, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
-theme_override_font_sizes/font_size = 48
+theme_override_font_sizes/font_size = 50
 text = "Music"
 
 [node name="MusicSlider" type="HSlider" parent="ScrollContainer/MarginContainer/ContentVBox/AudioSection/VBoxContainer/MusicRow" unique_id=1905333918]
@@ -176,6 +226,11 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(300, 100)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_icons/grabber = SubResource("DPITexture_grabber")
+theme_override_icons/grabber_highlight = SubResource("DPITexture_grabber_highlight")
+theme_override_styles/slider = SubResource("StyleBoxFlat_slider_bg")
+theme_override_styles/grabber_area = SubResource("StyleBoxFlat_slider_fill")
+theme_override_styles/grabber_area_highlight = SubResource("StyleBoxFlat_slider_fill")
 max_value = 1.0
 step = 0.05
 value = 0.7
@@ -188,7 +243,7 @@ theme_override_constants/separation = 32
 custom_minimum_size = Vector2(280, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
-theme_override_font_sizes/font_size = 48
+theme_override_font_sizes/font_size = 50
 text = "Sound Effects"
 
 [node name="SFXSlider" type="HSlider" parent="ScrollContainer/MarginContainer/ContentVBox/AudioSection/VBoxContainer/SFXRow" unique_id=440400678]
@@ -196,6 +251,11 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(300, 100)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_icons/grabber = SubResource("DPITexture_grabber")
+theme_override_icons/grabber_highlight = SubResource("DPITexture_grabber_highlight")
+theme_override_styles/slider = SubResource("StyleBoxFlat_slider_bg")
+theme_override_styles/grabber_area = SubResource("StyleBoxFlat_slider_fill")
+theme_override_styles/grabber_area_highlight = SubResource("StyleBoxFlat_slider_fill")
 max_value = 1.0
 step = 0.05
 value = 0.8
@@ -213,7 +273,7 @@ theme_override_constants/separation = 24
 [node name="SectionLabel" type="Label" parent="ScrollContainer/MarginContainer/ContentVBox/DisplaySection/VBoxContainer" unique_id=80044989]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.25, 0.65, 0.96, 1)
-theme_override_font_sizes/font_size = 38
+theme_override_font_sizes/font_size = 42
 text = "DISPLAY"
 
 [node name="PopupCheck" type="CheckButton" parent="ScrollContainer/MarginContainer/ContentVBox/DisplaySection/VBoxContainer" unique_id=1760889669]
@@ -221,7 +281,7 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 140)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
-theme_override_font_sizes/font_size = 52
+theme_override_font_sizes/font_size = 50
 button_pressed = true
 text = "Show Pickup Popups"
 
@@ -230,7 +290,7 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 140)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
-theme_override_font_sizes/font_size = 52
+theme_override_font_sizes/font_size = 50
 button_pressed = true
 text = "Show Damage Numbers"
 
@@ -239,7 +299,7 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 140)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
-theme_override_font_sizes/font_size = 52
+theme_override_font_sizes/font_size = 50
 button_pressed = true
 text = "Haptic Feedback"
 
@@ -248,7 +308,7 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 140)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
-theme_override_font_sizes/font_size = 52
+theme_override_font_sizes/font_size = 50
 button_pressed = true
 text = "Screen Shake"
 
@@ -265,13 +325,13 @@ theme_override_constants/separation = 24
 [node name="SectionLabel" type="Label" parent="ScrollContainer/MarginContainer/ContentVBox/ControlsSection/VBoxContainer" unique_id=1129168264]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.25, 0.65, 0.96, 1)
-theme_override_font_sizes/font_size = 38
+theme_override_font_sizes/font_size = 42
 text = "CONTROLS"
 
 [node name="ControlModeLabel" type="Label" parent="ScrollContainer/MarginContainer/ContentVBox/ControlsSection/VBoxContainer" unique_id=328995078]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
-theme_override_font_sizes/font_size = 48
+theme_override_font_sizes/font_size = 50
 text = "Control Mode"
 
 [node name="ControlButtonsRow" type="HBoxContainer" parent="ScrollContainer/MarginContainer/ContentVBox/ControlsSection/VBoxContainer" unique_id=608624124]
@@ -282,7 +342,7 @@ theme_override_constants/separation = 24
 unique_name_in_owner = true
 custom_minimum_size = Vector2(200, 100)
 layout_mode = 2
-theme_override_font_sizes/font_size = 48
+theme_override_font_sizes/font_size = 50
 theme_override_styles/normal = SubResource("StyleBoxFlat_control_button")
 text = "GYRO"
 
@@ -290,7 +350,7 @@ text = "GYRO"
 unique_name_in_owner = true
 custom_minimum_size = Vector2(200, 100)
 layout_mode = 2
-theme_override_font_sizes/font_size = 48
+theme_override_font_sizes/font_size = 50
 theme_override_styles/normal = SubResource("StyleBoxFlat_control_button")
 text = "TOUCH"
 
@@ -306,20 +366,25 @@ layout_mode = 2
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
-theme_override_font_sizes/font_size = 48
+theme_override_font_sizes/font_size = 50
 text = "Tilt Sensitivity"
 
 [node name="TiltSensitivityValue" type="Label" parent="ScrollContainer/MarginContainer/ContentVBox/ControlsSection/VBoxContainer/TiltSensitivityContainer/TiltSensitivityRow" unique_id=523396404]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.25, 0.65, 0.96, 1)
-theme_override_font_sizes/font_size = 48
+theme_override_font_sizes/font_size = 50
 text = "1.0x"
 
 [node name="TiltSensitivitySlider" type="HSlider" parent="ScrollContainer/MarginContainer/ContentVBox/ControlsSection/VBoxContainer/TiltSensitivityContainer" unique_id=1697295400]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(300, 100)
 layout_mode = 2
+theme_override_icons/grabber = SubResource("DPITexture_grabber")
+theme_override_icons/grabber_highlight = SubResource("DPITexture_grabber_highlight")
+theme_override_styles/slider = SubResource("StyleBoxFlat_slider_bg")
+theme_override_styles/grabber_area = SubResource("StyleBoxFlat_slider_fill")
+theme_override_styles/grabber_area_highlight = SubResource("StyleBoxFlat_slider_fill")
 min_value = 0.5
 max_value = 2.0
 step = 0.1

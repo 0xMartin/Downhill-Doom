@@ -803,11 +803,11 @@ func _create_roulette_item(item_data: Dictionary) -> PanelContainer:
 		var icon := TextureRect.new()
 		icon.texture = load(icon_path)
 		var enlarged_size := icon_size * 2.5
-		var offset := (enlarged_size - icon_size) / 2.0
+		var icon_offset := (enlarged_size - icon_size) / 2.0
 		icon.custom_minimum_size = Vector2(enlarged_size, enlarged_size)
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-		icon.position = Vector2(-offset, -offset)
+		icon.position = Vector2(-icon_offset, -icon_offset)
 		clip_container.add_child(icon)
 	else:
 		var icon_size := ROULETTE_ICON_SIZE
@@ -1066,11 +1066,11 @@ func _update_roulette_item(panel: PanelContainer, result: Dictionary) -> void:
 		var icon := TextureRect.new()
 		icon.texture = load(icon_path)
 		var enlarged_size := icon_size * 2.5
-		var offset := (enlarged_size - icon_size) / 2.0
+		var icon_offset := (enlarged_size - icon_size) / 2.0
 		icon.custom_minimum_size = Vector2(enlarged_size, enlarged_size)
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-		icon.position = Vector2(-offset, -offset)
+		icon.position = Vector2(-icon_offset, -icon_offset)
 		clip_container.add_child(icon)
 	else:
 		var icon_size := ROULETTE_ICON_SIZE

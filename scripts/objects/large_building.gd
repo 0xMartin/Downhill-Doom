@@ -50,7 +50,6 @@ func _on_detect_area_body_entered(body: Node) -> void:
 	
 	if body.is_in_group("player"):
 		# Check if player is in supercharge mode
-		var gm := get_node_or_null("/root/GameManager")
 		if gm and gm.is_supercharged:
 			# Get player's velocity to determine fall direction
 			var player_velocity := Vector3.FORWARD
@@ -91,7 +90,6 @@ func destroy(player_velocity: Vector3) -> void:
 		audio.play_building_hit_sound()
 	
 	# Award coins and record stats BEFORE destruction
-	var gm := get_node_or_null("/root/GameManager")
 	if gm:
 		gm.add_coin(coin_value)
 		gm.record_destroyed_object(object_id, object_name, coin_value)

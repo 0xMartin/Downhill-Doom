@@ -100,9 +100,9 @@ func _setup_animation() -> void:
 	
 	# Look for the main action animation
 	var anim_name := ""
-	for name in anims:
-		if "main" in name.to_lower() or "action" in name.to_lower():
-			anim_name = name
+	for aname in anims:
+		if "main" in aname.to_lower() or "action" in aname.to_lower():
+			anim_name = aname
 			break
 	
 	if anim_name.is_empty() and anims.size() > 0:

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://by37mplivpiu4"
-path="res://.godot/imported/super_charge_flame.svg-9be12a84f2073194341b7fd0fe54b4f9.ctex"
+uid="uid://dudld3gxi6r0v"
+path="res://.godot/imported/resume.svg-72236611a2f37d094418c3f3b87d0806.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/svg/super_charge_flame.svg"
-dest_files=["res://.godot/imported/super_charge_flame.svg-9be12a84f2073194341b7fd0fe54b4f9.ctex"]
+source_file="res://assets/svg/resume.svg"
+dest_files=["res://.godot/imported/resume.svg-72236611a2f37d094418c3f3b87d0806.ctex"]
 
 [params]
 
