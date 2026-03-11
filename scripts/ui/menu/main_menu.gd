@@ -5,10 +5,6 @@ extends Control
 const STATS_FILE := "user://stats.json"
 const PLAYER_MODEL_SCENE := preload("res://assets/models/players/player_1.blend")
 
-const SettingsPanelHelper := preload("res://scripts/ui/menu/settings_panel_helper.gd")
-const StatsPanelHelper := preload("res://scripts/ui/menu/stats_panel_helper.gd")
-const ShopPanelHelper := preload("res://scripts/ui/menu/shop_panel_helper.gd")
-
 # ========== COLOR PALETTE ==========
 const COLOR_BG_DARK := Color(0.06, 0.08, 0.12, 1.0)
 const COLOR_BG_MEDIUM := Color(0.10, 0.14, 0.20, 1.0)
@@ -27,15 +23,18 @@ const COLOR_BORDER := Color(0.25, 0.32, 0.45, 0.8)
 @onready var stats_panel: Control = $StatsPanel
 @onready var shop_panel: Control = $ShopPanel
 @onready var main_content: VBoxContainer = $MainContent
-@onready var player_model_container: Node3D = $PlayerViewport/SubViewport/PlayerModel
+@onready var player_model_container: Node3D = $PlayerContainer/PlayerViewport/SubViewport/PlayerModel
 @onready var button_grid: GridContainer = $MainContent/ButtonGrid
 @onready var play_button: Button = $MainContent/ButtonGrid/PlayButton
 @onready var stats_button: Button = $MainContent/ButtonGrid/StatsButton
 @onready var shop_button: Button = $MainContent/ButtonGrid/ShopButton
 @onready var settings_button: Button = $MainContent/ButtonGrid/SettingsButton
 @onready var quit_button: Button = $MainContent/ButtonGrid/QuitButton
+@onready var title_label: Label = $MainContent/TitleContainer/Title
+@onready var balance_label: Label = $BalanceCard/HBox/BalanceLabel
 
 var audio_manager: Node
+var title_outline_tween: Tween
 var shop_manager: Node
 var player_model_instance: Node3D
 var model_rotation_speed := 0.5
@@ -44,10 +43,6 @@ var model_rotation_speed := 0.5
 var settings_helper: RefCounted
 var stats_helper: RefCounted
 var shop_helper: RefCounted
-
-# Dynamically created
-var balance_label: Label
-var balance_container: HBoxContainer
 
 # Animation tweens
 var button_tweens: Dictionary = {}
@@ -92,10 +87,11 @@ func _ready() -> void:
 	# Connect panel back buttons
 	_connect_panel_buttons()
 	
-	_setup_balance_display()
+	_update_balance_display()
 	_apply_safe_area_offset()
 	_setup_player_model()
-	_setup_speed_lines()
+	_adjust_particle_positions()
+	_setup_title_animation()
 	
 	# Connect shop manager signals
 	if shop_manager:
@@ -191,14 +187,14 @@ func _find_all_mesh_instances(node: Node) -> Array[MeshInstance3D]:
 
 func _apply_skin_texture_to_model(node: Node, texture: Texture2D) -> void:
 	for mesh_inst: MeshInstance3D in _find_all_mesh_instances(node):
-		var material := StandardMaterial3D.new()
-		material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		material.albedo_texture = texture
-		material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+		var skin_material := StandardMaterial3D.new()
+		skin_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		skin_material.albedo_texture = texture
+		skin_material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 		
 		if mesh_inst.mesh:
 			for i in range(mesh_inst.mesh.get_surface_count()):
-				mesh_inst.set_surface_override_material(i, material)
+				mesh_inst.set_surface_override_material(i, skin_material)
 
 
 func _apply_unshaded_material(node: Node) -> void:
@@ -235,52 +231,6 @@ func _apply_unshaded_material(node: Node) -> void:
 
 # ========== BALANCE DISPLAY ==========
 
-func _setup_balance_display() -> void:
-	balance_container = HBoxContainer.new()
-	balance_container.add_theme_constant_override("separation", 12)
-	
-	var screen_size := get_viewport().get_visible_rect().size
-	var viewport_size := get_viewport().get_visible_rect().size
-	
-	# Calculate safe area offset (same approach as HUD)
-	var safe_area := DisplayServer.get_display_safe_area()
-	var physical_screen := Vector2(DisplayServer.screen_get_size())
-	var scale_y: float = viewport_size.y / physical_screen.y
-	var top_inset: float = safe_area.position.y * scale_y
-	
-	var coin_icon := TextureRect.new()
-	coin_icon.custom_minimum_size = Vector2(48, 48)
-	coin_icon.texture = load("res://assets/svg/coin.svg")
-	coin_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	coin_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	coin_icon.modulate = COLOR_ACCENT_GOLD
-	balance_container.add_child(coin_icon)
-	
-	balance_label = Label.new()
-	balance_label.text = _format_balance(stats.get("coin_balance", 0))
-	balance_label.add_theme_font_size_override("font_size", 44)
-	balance_label.add_theme_color_override("font_color", COLOR_ACCENT_GOLD)
-	balance_label.add_theme_color_override("font_outline_color", Color(0.1, 0.1, 0.15, 0.8))
-	balance_label.add_theme_constant_override("outline_size", 3)
-	balance_container.add_child(balance_label)
-	
-	var card := PanelContainer.new()
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.08, 0.1, 0.15, 0.85)
-	style.set_corner_radius_all(18)
-	style.set_border_width_all(2)
-	style.border_color = COLOR_ACCENT_GOLD.darkened(0.3)
-	style.set_content_margin_all(16)
-	card.add_theme_stylebox_override("panel", style)
-	
-	# Position with safe area offset
-	card.position = Vector2(screen_size.x - 250, 20 + top_inset)
-	card.add_child(balance_container)
-	balance_container.position = Vector2.ZERO
-	
-	add_child(card)
-
-
 func _update_balance_display() -> void:
 	if balance_label:
 		balance_label.text = _format_balance(stats.get("coin_balance", 0))
@@ -294,101 +244,60 @@ func _format_balance(amount: int) -> String:
 	return str(amount)
 
 
-# ========== SPEED LINES EFFECT ==========
+# ========== PARTICLES ADJUSTMENT ==========
 
-func _setup_speed_lines() -> void:
+func _adjust_particle_positions() -> void:
 	var viewport_size := get_viewport().get_visible_rect().size
+	var center := viewport_size / 2.0
 	
-	var lines := GPUParticles2D.new()
-	lines.name = "SpeedLines"
-	lines.amount = 25
-	lines.lifetime = 0.6
-	lines.z_index = 1  # Above background but below UI
-	lines.local_coords = false
-	lines.emitting = true
+	var dust_particles := get_node_or_null("DustParticles") as GPUParticles2D
+	if dust_particles:
+		dust_particles.position = center
+		dust_particles.visibility_rect = Rect2(-100, -100, viewport_size.x + 200, viewport_size.y + 200)
+		var mat := dust_particles.process_material as ParticleProcessMaterial
+		if mat:
+			mat.emission_box_extents = Vector3(center.x, center.y, 1)
+
+
+# ========== TITLE ANIMATION ==========
+
+func _setup_title_animation() -> void:
+	if not title_label:
+		return
 	
-	var mat := ParticleProcessMaterial.new()
-	mat.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
-	mat.emission_box_extents = Vector3(viewport_size.x / 2.0, 10, 1)
-	mat.direction = Vector3(0, 1, 0)
-	mat.spread = 0
-	mat.initial_velocity_min = 800
-	mat.initial_velocity_max = 1200
-	mat.gravity = Vector3.ZERO
-	mat.angle_min = -5
-	mat.angle_max = 5
-	mat.scale_min = 0.3
-	mat.scale_max = 0.8
-	mat.color = Color(0.25, 0.65, 0.96, 0.15)
+	# Base color: #9c6dff (0.61, 0.43, 1.0)
+	# More pronounced variations for visible cycling
+	var color_base := Color(0.61, 0.43, 1.0, 1.0)
+	var color_warm := Color(1.0, 0.45, 0.75, 1.0)   # Pink/magenta
+	var color_cool := Color(0.35, 0.65, 1.0, 1.0)   # Bright blue
 	
-	lines.process_material = mat
+	_animate_title_outline_loop(color_base, color_warm, color_cool)
+
+
+func _animate_title_outline_loop(base: Color, warm: Color, cool: Color) -> void:
+	if title_outline_tween:
+		title_outline_tween.kill()
 	
-	# Create a simple line texture for 2D particles
-	var gradient := Gradient.new()
-	gradient.set_color(0, Color(0.25, 0.65, 0.96, 0.3))
-	gradient.set_color(1, Color(0.25, 0.65, 0.96, 0.0))
-	var line_texture := GradientTexture2D.new()
-	line_texture.gradient = gradient
-	line_texture.width = 4
-	line_texture.height = 64
-	line_texture.fill = GradientTexture2D.FILL_LINEAR
-	line_texture.fill_from = Vector2(0.5, 0)
-	line_texture.fill_to = Vector2(0.5, 1)
-	lines.texture = line_texture
+	title_outline_tween = create_tween()
+	title_outline_tween.set_loops()  # Infinite loop
+	title_outline_tween.set_ease(Tween.EASE_IN_OUT)
+	title_outline_tween.set_trans(Tween.TRANS_SINE)
 	
-	lines.position = Vector2(viewport_size.x / 2.0, -100)
-	lines.visibility_rect = Rect2(-100, -200, viewport_size.x + 200, viewport_size.y + 400)
-	
-	$Background.add_sibling(lines)
-	
-	# Ambient orbs
-	var orbs := GPUParticles2D.new()
-	orbs.name = "AmbientOrbs"
-	orbs.amount = 15
-	orbs.lifetime = 4.0
-	orbs.z_index = 1  # Above background but below UI
-	orbs.local_coords = false
-	orbs.emitting = true
-	
-	var orb_mat := ParticleProcessMaterial.new()
-	orb_mat.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
-	orb_mat.emission_box_extents = Vector3(viewport_size.x / 2.0, viewport_size.y / 2.0, 1)
-	orb_mat.direction = Vector3(0, -1, 0)
-	orb_mat.spread = 180
-	orb_mat.initial_velocity_min = 20
-	orb_mat.initial_velocity_max = 50
-	orb_mat.gravity = Vector3.ZERO
-	orb_mat.scale_min = 0.5
-	orb_mat.scale_max = 1.5
-	orb_mat.color = Color(0.25, 0.65, 0.96, 0.15)
-	
-	orbs.process_material = orb_mat
-	
-	# Create a circular orb texture
-	var orb_gradient := Gradient.new()
-	orb_gradient.set_color(0, Color(0.25, 0.65, 0.96, 0.3))
-	orb_gradient.set_color(1, Color(0.25, 0.65, 0.96, 0.0))
-	var orb_texture := GradientTexture2D.new()
-	orb_texture.gradient = orb_gradient
-	orb_texture.width = 32
-	orb_texture.height = 32
-	orb_texture.fill = GradientTexture2D.FILL_RADIAL
-	orb_texture.fill_from = Vector2(0.5, 0.5)
-	orb_texture.fill_to = Vector2(1.0, 0.5)
-	orbs.texture = orb_texture
-	
-	orbs.position = Vector2(viewport_size.x / 2.0, viewport_size.y / 2.0)
-	orbs.visibility_rect = Rect2(-100, -100, viewport_size.x + 200, viewport_size.y + 200)
-	
-	$Background.add_sibling(orbs)
+	# Smooth cycle: base -> warm -> base -> cool -> base
+	title_outline_tween.tween_method(_set_title_outline_color, base, warm, 2.5)
+	title_outline_tween.tween_method(_set_title_outline_color, warm, base, 2.5)
+	title_outline_tween.tween_method(_set_title_outline_color, base, cool, 2.5)
+	title_outline_tween.tween_method(_set_title_outline_color, cool, base, 2.5)
+
+
+func _set_title_outline_color(color: Color) -> void:
+	if title_label:
+		title_label.add_theme_color_override("font_outline_color", color)
 
 
 func _apply_safe_area_offset() -> void:
 	var safe_area := DisplayServer.get_display_safe_area()
-	var screen_size := DisplayServer.screen_get_size()
-	
 	var top_inset := safe_area.position.y
-	var bottom_inset := screen_size.y - safe_area.end.y
 	
 	if top_inset > 0:
 		main_content.offset_top = top_inset
@@ -422,10 +331,10 @@ static func record_game_stats(coins: int, distance: float, game_time: float = 0.
 	var stats_data := {}
 	
 	if FileAccess.file_exists(STATS_FILE):
-		var file := FileAccess.open(STATS_FILE, FileAccess.READ)
-		if file:
-			var json_string := file.get_as_text()
-			file.close()
+		var read_file := FileAccess.open(STATS_FILE, FileAccess.READ)
+		if read_file:
+			var json_string := read_file.get_as_text()
+			read_file.close()
 			var json := JSON.new()
 			if json.parse(json_string) == OK:
 				var data = json.get_data()

@@ -8,6 +8,7 @@
 [ext_resource type="Texture2D" uid="uid://dj64mjtua4avs" path="res://assets/svg/settings.svg" id="9_settings"]
 [ext_resource type="Texture2D" uid="uid://cpumyhj7tioid" path="res://assets/svg/quit.svg" id="10_quit"]
 [ext_resource type="Texture2D" uid="uid://bsrejrwemnmkg" path="res://assets/svg/shop.svg" id="11_shop"]
+[ext_resource type="Texture2D" uid="uid://jepsdf0och2h" path="res://assets/svg/coin.svg" id="12_coin"]
 
 [sub_resource type="Gradient" id="Gradient_bg"]
 offsets = PackedFloat32Array(0, 0.5, 1)
@@ -16,6 +17,34 @@ colors = PackedColorArray(0.04, 0.06, 0.1, 1, 0.06, 0.1, 0.16, 1, 0.08, 0.12, 0.
 [sub_resource type="GradientTexture2D" id="GradientTexture2D_bg"]
 gradient = SubResource("Gradient_bg")
 fill_to = Vector2(0, 1)
+
+[sub_resource type="Gradient" id="Gradient_dust_texture"]
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_dust_texture"]
+gradient = SubResource("Gradient_dust_texture")
+width = 48
+height = 48
+
+[sub_resource type="Gradient" id="Gradient_dust_ramp"]
+offsets = PackedFloat32Array(0, 0.15, 0.85, 1)
+colors = PackedColorArray(0.5, 0.6, 0.8, 0, 0.5, 0.6, 0.8, 0.12, 0.5, 0.6, 0.8, 0.12, 0.5, 0.6, 0.8, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_dust_ramp"]
+gradient = SubResource("Gradient_dust_ramp")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_dust"]
+emission_shape = 3
+emission_box_extents = Vector3(960, 540, 1)
+angle_max = 6.28319
+spread = 180.0
+initial_velocity_min = 25.0
+initial_velocity_max = 60.0
+angular_velocity_min = -0.8
+angular_velocity_max = 0.8
+gravity = Vector3(0, 0, 0)
+scale_max = 2.0
+color_ramp = SubResource("GradientTexture1D_dust_ramp")
 
 [sub_resource type="Environment" id="Environment_menu"]
 background_mode = 1
@@ -83,6 +112,22 @@ border_width_right = 2
 border_width_bottom = 2
 border_color = Color(1, 0.82, 0.25, 1)
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_balance_card"]
+content_margin_left = 16.0
+content_margin_top = 16.0
+content_margin_right = 16.0
+content_margin_bottom = 16.0
+bg_color = Color(0.08, 0.1, 0.15, 0.85)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.7, 0.574, 0.175, 1)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+
 [node name="MainMenu" type="Control" unique_id=953096881]
 layout_mode = 3
 anchors_preset = 15
@@ -101,69 +146,71 @@ grow_horizontal = 2
 grow_vertical = 2
 texture = SubResource("GradientTexture2D_bg")
 
+[node name="DustParticles" type="GPUParticles2D" parent="." unique_id=1511918060]
+z_index = 2
+amount = 10
+texture = SubResource("GradientTexture2D_dust_texture")
+lifetime = 4.79
+explosiveness = 0.29
+randomness = 0.2
+visibility_rect = Rect2(-100, -100, 2200, 1500)
+process_material = SubResource("ParticleProcessMaterial_dust")
+
 [node name="MountainSilhouette" type="TextureRect" parent="." unique_id=136045562]
 layout_mode = 1
-anchors_preset = 12
-anchor_top = 1.0
+anchors_preset = -1
+anchor_top = 0.85
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -200.0
 grow_horizontal = 2
 grow_vertical = 0
 texture = ExtResource("3_mountain")
 expand_mode = 1
 stretch_mode = 6
 
-[node name="PlayerViewport" type="SubViewportContainer" parent="." unique_id=844224676]
-z_index = 5
+[node name="PlayerContainer" type="AspectRatioContainer" parent="." unique_id=1732659305]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -150.0
-offset_top = -450.0
-offset_right = 150.0
-offset_bottom = -150.0
-grow_horizontal = 2
-grow_vertical = 2
+anchors_preset = -1
+anchor_left = 0.25
+anchor_top = 0.18
+anchor_right = 0.75
+anchor_bottom = 0.42
+
+[node name="PlayerViewport" type="SubViewportContainer" parent="PlayerContainer" unique_id=844224676]
+z_index = 5
+layout_mode = 2
 mouse_filter = 2
 stretch = true
 
-[node name="SubViewport" type="SubViewport" parent="PlayerViewport" unique_id=145302333]
+[node name="SubViewport" type="SubViewport" parent="PlayerContainer/PlayerViewport" unique_id=145302333]
 own_world_3d = true
 transparent_bg = true
 handle_input_locally = false
-size = Vector2i(300, 300)
+size = Vector2i(540, 540)
 render_target_update_mode = 4
 
-[node name="Camera3D" type="Camera3D" parent="PlayerViewport/SubViewport" unique_id=705843495]
+[node name="Camera3D" type="Camera3D" parent="PlayerContainer/PlayerViewport/SubViewport" unique_id=705843495]
 transform = Transform3D(1, 0, 0, 0, 0.95, 0.3, 0, -0.3, 0.95, 0, 0.3, 1.5)
 environment = SubResource("Environment_menu")
 fov = 45.0
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="PlayerViewport/SubViewport" unique_id=1470613060]
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="PlayerContainer/PlayerViewport/SubViewport" unique_id=1470613060]
 transform = Transform3D(0.866, -0.25, 0.433, 0, 0.866, 0.5, -0.5, -0.433, 0.75, 2, 3, 2)
 
-[node name="DirectionalLight3D2" type="DirectionalLight3D" parent="PlayerViewport/SubViewport" unique_id=1723932440]
+[node name="DirectionalLight3D2" type="DirectionalLight3D" parent="PlayerContainer/PlayerViewport/SubViewport" unique_id=1723932440]
 transform = Transform3D(0.866, 0.25, -0.433, 0, 0.866, 0.5, 0.5, -0.433, 0.75, -2, 2, -1)
 light_color = Color(0.9, 0.95, 1, 1)
 light_energy = 0.8
 
-[node name="PlayerModel" type="Node3D" parent="PlayerViewport/SubViewport" unique_id=595751960]
+[node name="PlayerModel" type="Node3D" parent="PlayerContainer/PlayerViewport/SubViewport" unique_id=595751960]
 
 [node name="MainContent" type="VBoxContainer" parent="." unique_id=510871778]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -200.0
-offset_top = -80.0
-offset_right = 200.0
-offset_bottom = 320.0
+anchors_preset = -1
+anchor_left = 0.15
+anchor_top = 0.43
+anchor_right = 0.85
+anchor_bottom = 0.75
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 20
@@ -176,20 +223,18 @@ theme_override_constants/separation = 5
 [node name="Title" type="Label" parent="MainContent/TitleContainer" unique_id=1010877595]
 layout_mode = 2
 size_flags_horizontal = 4
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_shadow_color = Color(0.3, 0.15, 0, 0.9)
-theme_override_colors/font_outline_color = Color(0.5, 0.3, 0.1, 1)
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_outline_color = Color(0.6105742, 0.427035, 1, 1)
 theme_override_constants/shadow_offset_x = 3
 theme_override_constants/shadow_offset_y = 3
-theme_override_constants/outline_size = 2
-theme_override_font_sizes/font_size = 64
+theme_override_constants/outline_size = 30
+theme_override_font_sizes/font_size = 90
 text = "DOWNHILL DOOM"
 horizontal_alignment = 1
 
 [node name="Decoration" type="TextureRect" parent="MainContent/TitleContainer" unique_id=604039621]
-custom_minimum_size = Vector2(300, 30)
+custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
-size_flags_horizontal = 4
 texture = ExtResource("4_decoration")
 expand_mode = 1
 stretch_mode = 5
@@ -201,7 +246,7 @@ theme_override_colors/font_color = Color(0.61528784, 0.7575195, 0.909668, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.5)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 1
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 42
 text = "Roll. Destroy. Survive."
 horizontal_alignment = 1
 
@@ -424,6 +469,36 @@ bbcode_enabled = true
 text = "[right]Made by [url=https://github.com/0xMartin]0xM4R71N[/url][/right]"
 fit_content = true
 scroll_active = false
+
+[node name="BalanceCard" type="PanelContainer" parent="." unique_id=706992669]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.9
+anchor_top = 0.01
+anchor_right = 0.96
+anchor_bottom = 0.01
+grow_horizontal = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_balance_card")
+
+[node name="HBox" type="HBoxContainer" parent="BalanceCard" unique_id=1475799569]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="CoinIcon" type="TextureRect" parent="BalanceCard/HBox" unique_id=1615069600]
+modulate = Color(1, 0.82, 0.25, 1)
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+texture = ExtResource("12_coin")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="BalanceLabel" type="Label" parent="BalanceCard/HBox" unique_id=1985643210]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.82, 0.25, 1)
+theme_override_colors/font_outline_color = Color(0.1, 0.1, 0.15, 0.8)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 44
+text = "0"
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=69379275]
 
