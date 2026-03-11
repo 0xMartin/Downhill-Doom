@@ -1,0 +1,124 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://assets/svg/roulette_frame.svg" id="1_frame"]
+[ext_resource type="Texture2D" path="res://assets/svg/roulette_glow.svg" id="2_glow"]
+[ext_resource type="Texture2D" path="res://assets/svg/roulette_indicator.svg" id="3_indicator"]
+[ext_resource type="Texture2D" path="res://assets/svg/roulette_speed_lines.svg" id="4_speed_lines"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
+bg_color = Color(0, 0, 0, 0.9)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_window_bg"]
+bg_color = Color(0.05, 0.08, 0.15, 1)
+
+[node name="RouletteSpinner" type="PanelContainer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_bg")
+
+[node name="CenterContainer" type="VBoxContainer" parent="."]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="Title" type="Label" parent="CenterContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.82, 0.25, 1)
+theme_override_font_sizes/font_size = 42
+text = "OPENING CRATE"
+horizontal_alignment = 1
+
+[node name="WindowWrapper" type="CenterContainer" parent="CenterContainer"]
+layout_mode = 2
+
+[node name="WindowContainer" type="Control" parent="CenterContainer/WindowWrapper"]
+unique_name_in_owner = true
+clip_contents = true
+custom_minimum_size = Vector2(980, 280)
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="Background" type="PanelContainer" parent="CenterContainer/WindowWrapper/WindowContainer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_window_bg")
+
+[node name="ItemsContainer" type="HBoxContainer" parent="CenterContainer/WindowWrapper/WindowContainer"]
+unique_name_in_owner = true
+layout_mode = 1
+offset_top = 30.0
+offset_bottom = 250.0
+theme_override_constants/separation = 16
+
+[node name="SpeedLines" type="TextureRect" parent="CenterContainer/WindowWrapper/WindowContainer"]
+unique_name_in_owner = true
+modulate = Color(1, 1, 1, 0)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("4_speed_lines")
+expand_mode = 1
+stretch_mode = 1
+metadata/_edit_lock_ = true
+
+[node name="Frame" type="TextureRect" parent="CenterContainer/WindowWrapper/WindowContainer"]
+z_index = 5
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1_frame")
+expand_mode = 1
+stretch_mode = 1
+metadata/_edit_lock_ = true
+
+[node name="MarkerContainer" type="Control" parent="CenterContainer/WindowWrapper/WindowContainer"]
+z_index = 15
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -24.0
+offset_right = 24.0
+offset_top = -8.0
+offset_bottom = 64.0
+grow_horizontal = 2
+
+[node name="MarkerGlow" type="TextureRect" parent="CenterContainer/WindowWrapper/WindowContainer/MarkerContainer"]
+unique_name_in_owner = true
+modulate = Color(1, 1, 1, 0.6)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_glow")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="MarkerIndicator" type="TextureRect" parent="CenterContainer/WindowWrapper/WindowContainer/MarkerContainer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("3_indicator")
+expand_mode = 1
+stretch_mode = 6

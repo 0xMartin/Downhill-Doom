@@ -4,6 +4,8 @@ extends RefCounted
 ## and handles dynamic content generation (skin cards, boost cards, crate cards, roulette)
 
 const CONTENT_SCENE := preload("res://scenes/ui/shop_panel_content.tscn")
+const ROULETTE_SPINNER_SCENE := preload("res://scenes/ui/roulette_spinner.tscn")
+const ROULETTE_RESULT_SCENE := preload("res://scenes/ui/roulette_result.tscn")
 const ModelRenderer := preload("res://scripts/utils/model_renderer.gd")
 
 # UI Size Constants
@@ -141,11 +143,15 @@ func update_balance() -> void:
 
 
 func _on_section_prev() -> void:
+	if audio_manager:
+		audio_manager.play_button_click()
 	shop_section_index = (shop_section_index - 1 + SHOP_SECTIONS.size()) % SHOP_SECTIONS.size()
 	_update_section_display()
 
 
 func _on_section_next() -> void:
+	if audio_manager:
+		audio_manager.play_button_click()
 	shop_section_index = (shop_section_index + 1) % SHOP_SECTIONS.size()
 	_update_section_display()
 
@@ -472,6 +478,18 @@ func _populate_crates_section() -> void:
 
 
 func _create_crate_card(crate_type: String) -> PanelContainer:
+	## Creates a card for displaying a crate type in the shop.
+	##
+	## CRATE TYPE COLORS (edit here to change crate appearance):
+	## ─────────────────────────────────────────────────────────────
+	## Basic crate:     Gray accent     - Color(0.7, 0.7, 0.7)
+	## Premium crate:   Teal accent     - COLOR_ACCENT_PRIMARY (0.28, 0.76, 0.70)
+	## Legendary crate: Gold accent     - COLOR_ACCENT_GOLD (1.0, 0.82, 0.25)
+	##
+	## Border color: accent_color.darkened(0.3)
+	## Background: COLOR_BG_DARK with 16px corner radius
+	## Icon size: 115x115 centered in 230x115 container
+	
 	var card := PanelContainer.new()
 	card.custom_minimum_size = Vector2(0, LIST_ITEM_HEIGHT_LARGE)
 	card.mouse_filter = Control.MOUSE_FILTER_PASS
@@ -482,14 +500,15 @@ func _create_crate_card(crate_type: String) -> PanelContainer:
 	var icon_path: String = shop_manager.CRATE_ICONS.get(crate_type, "")
 	var chances: Dictionary = shop_manager.CRATE_DROP_CHANCES.get(crate_type, {})
 	
+	# Crate type accent color
 	var accent_color := COLOR_TEXT_SECONDARY
 	match crate_type:
 		"basic":
-			accent_color = Color(0.7, 0.7, 0.7)
+			accent_color = Color(0.7, 0.7, 0.7)  # Neutral gray
 		"premium":
-			accent_color = COLOR_ACCENT_PRIMARY
+			accent_color = COLOR_ACCENT_PRIMARY   # Teal
 		"legendary":
-			accent_color = COLOR_ACCENT_GOLD
+			accent_color = COLOR_ACCENT_GOLD      # Gold
 	
 	var style := StyleBoxFlat.new()
 	style.bg_color = COLOR_BG_DARK
@@ -594,113 +613,24 @@ func show_roulette(crate_type: String) -> void:
 	roulette_crate_type = crate_type
 	roulette_items = shop_manager.generate_roulette_items(crate_type, 35)
 	
-	# Create roulette overlay
-	roulette_container = Control.new()
-	roulette_container.set_anchors_preset(Control.PRESET_FULL_RECT)
+	# Instance the spinner scene
+	roulette_container = ROULETTE_SPINNER_SCENE.instantiate()
 	shop_panel.add_child(roulette_container)
 	
-	# Dark background
-	var bg := ColorRect.new()
-	bg.color = Color(0, 0, 0, 0.9)
-	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	roulette_container.add_child(bg)
-	
-	# Center container
-	var center := VBoxContainer.new()
-	center.set_anchors_preset(Control.PRESET_CENTER)
-	center.anchor_left = 0.5
-	center.anchor_right = 0.5
-	center.anchor_top = 0.5
-	center.anchor_bottom = 0.5
-	center.offset_left = -500
-	center.offset_right = 500
-	center.offset_top = -200
-	center.offset_bottom = 200
-	center.add_theme_constant_override("separation", 20)
-	center.alignment = BoxContainer.ALIGNMENT_CENTER
-	roulette_container.add_child(center)
-	
-	# Title
-	var title := Label.new()
+	# Set title text
+	var title: Label = roulette_container.get_node("%Title")
 	title.text = "OPENING %s" % shop_manager.CRATE_NAMES.get(crate_type, "Crate").to_upper()
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 42)
-	title.add_theme_color_override("font_color", COLOR_ACCENT_GOLD)
-	center.add_child(title)
 	
-	# Roulette window with mask
-	var window_wrapper := CenterContainer.new()
-	center.add_child(window_wrapper)
+	# Get references to scene elements
+	roulette_hbox = roulette_container.get_node("%ItemsContainer")
+	roulette_speed_lines = roulette_container.get_node("%SpeedLines")
+	var marker_glow: TextureRect = roulette_container.get_node("%MarkerGlow")
 	
-	var window_container := Control.new()
-	window_container.custom_minimum_size = Vector2(ROULETTE_WINDOW_WIDTH, ROULETTE_WINDOW_HEIGHT)
-	window_container.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	window_container.clip_contents = true
-	window_wrapper.add_child(window_container)
-	
-	# Background glow effect
-	var bg_glow := ColorRect.new()
-	bg_glow.color = Color(0.05, 0.08, 0.15, 1.0)
-	bg_glow.set_anchors_preset(Control.PRESET_FULL_RECT)
-	window_container.add_child(bg_glow)
-	
-	# Add decorative frame
-	var frame_texture := TextureRect.new()
-	if ResourceLoader.exists("res://assets/svg/roulette_frame.svg"):
-		frame_texture.texture = load("res://assets/svg/roulette_frame.svg")
-	frame_texture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	frame_texture.stretch_mode = TextureRect.STRETCH_SCALE
-	frame_texture.set_anchors_preset(Control.PRESET_FULL_RECT)
-	frame_texture.z_index = 5
-	window_container.add_child(frame_texture)
-	
-	# Items container
-	roulette_hbox = HBoxContainer.new()
-	roulette_hbox.add_theme_constant_override("separation", ROULETTE_ITEM_SPACING)
-	roulette_hbox.position = Vector2(0, (ROULETTE_WINDOW_HEIGHT - ROULETTE_ITEM_HEIGHT) / 2)
-	window_container.add_child(roulette_hbox)
-	
-	# Center marker
-	var marker_container := Control.new()
-	marker_container.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	marker_container.anchor_left = 0.5
-	marker_container.anchor_right = 0.5
-	marker_container.offset_left = -24
-	marker_container.offset_right = 24
-	marker_container.offset_top = -8
-	marker_container.offset_bottom = 64
-	marker_container.z_index = 15
-	window_container.add_child(marker_container)
-	
-	# Marker glow
-	var marker_glow := TextureRect.new()
-	if ResourceLoader.exists("res://assets/svg/roulette_glow.svg"):
-		marker_glow.texture = load("res://assets/svg/roulette_glow.svg")
-	marker_glow.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	marker_glow.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	marker_glow.set_anchors_preset(Control.PRESET_FULL_RECT)
-	marker_glow.modulate.a = 0.6
-	marker_container.add_child(marker_glow)
+	# Animate marker glow
 	_animate_marker_glow(marker_glow)
 	
-	var marker_texture := TextureRect.new()
-	if ResourceLoader.exists("res://assets/svg/roulette_indicator.svg"):
-		marker_texture.texture = load("res://assets/svg/roulette_indicator.svg")
-	marker_texture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	marker_texture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	marker_texture.set_anchors_preset(Control.PRESET_FULL_RECT)
-	marker_container.add_child(marker_texture)
-	
-	# Speed lines effect
-	roulette_speed_lines = TextureRect.new()
-	if ResourceLoader.exists("res://assets/svg/roulette_speed_lines.svg"):
-		roulette_speed_lines.texture = load("res://assets/svg/roulette_speed_lines.svg")
-	roulette_speed_lines.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	roulette_speed_lines.stretch_mode = TextureRect.STRETCH_SCALE
-	roulette_speed_lines.set_anchors_preset(Control.PRESET_FULL_RECT)
-	roulette_speed_lines.modulate.a = 0.0
-	roulette_speed_lines.z_index = 3
-	window_container.add_child(roulette_speed_lines)
+	# Position items container vertically centered
+	roulette_hbox.position = Vector2(0, (ROULETTE_WINDOW_HEIGHT - ROULETTE_ITEM_HEIGHT) / 2.0)
 	
 	# Populate items
 	for i in range(roulette_items.size()):
@@ -712,6 +642,19 @@ func show_roulette(crate_type: String) -> void:
 
 
 func _create_roulette_item(item_data: Dictionary) -> PanelContainer:
+	## Creates a single item panel for the roulette spinner.
+	## Each item type has distinct colors for easy identification:
+	##
+	## ROULETTE ITEM COLORS (edit here to change item appearance):
+	## ─────────────────────────────────────────────────────────────
+	## Boost items:  Teal border/bg    - COLOR_ACCENT_PRIMARY (0.28, 0.76, 0.70)
+	## Crate items:  Purple border/bg  - COLOR_ACCENT_SECONDARY (0.62, 0.32, 0.82)
+	## Skin items:   Gold border/bg    - COLOR_ACCENT_GOLD (1.0, 0.82, 0.25)
+	## Default:      Gray border/bg    - COLOR_BORDER / COLOR_BG_DARK
+	##
+	## Background alpha: 0.15 for boost/crate, 0.20 for skin (more prominent)
+	## Border width: 3px, Corner radius: 10px
+	
 	var panel := PanelContainer.new()
 	panel.custom_minimum_size = Vector2(ROULETTE_ITEM_WIDTH, ROULETTE_ITEM_HEIGHT)
 	panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
@@ -721,14 +664,18 @@ func _create_roulette_item(item_data: Dictionary) -> PanelContainer:
 	var border_color := COLOR_BORDER
 	var bg_color := COLOR_BG_DARK
 	
+	# Item type color assignment
 	match item_data.get("type", ""):
 		"boost":
+			# Teal color for boosts
 			border_color = COLOR_ACCENT_PRIMARY
 			bg_color = Color(COLOR_ACCENT_PRIMARY.r, COLOR_ACCENT_PRIMARY.g, COLOR_ACCENT_PRIMARY.b, 0.15)
 		"crate":
+			# Purple color for nested crates
 			border_color = COLOR_ACCENT_SECONDARY
 			bg_color = Color(COLOR_ACCENT_SECONDARY.r, COLOR_ACCENT_SECONDARY.g, COLOR_ACCENT_SECONDARY.b, 0.15)
 		"skin":
+			# Gold color for skins (most valuable)
 			border_color = COLOR_ACCENT_GOLD
 			bg_color = Color(COLOR_ACCENT_GOLD.r, COLOR_ACCENT_GOLD.g, COLOR_ACCENT_GOLD.b, 0.2)
 	
@@ -1092,35 +1039,22 @@ func _on_roulette_finished() -> void:
 	await timer.timeout
 	
 	if roulette_container:
-		for child in roulette_container.get_children():
-			if child != roulette_container.get_child(0):
-				child.queue_free()
+		# Remove the spinner, keep the parent
+		roulette_container.queue_free()
 		
-		# Win burst background effect
-		var burst_container := Control.new()
-		burst_container.set_anchors_preset(Control.PRESET_CENTER)
-		burst_container.anchor_left = 0.5
-		burst_container.anchor_right = 0.5
-		burst_container.anchor_top = 0.5
-		burst_container.anchor_bottom = 0.5
-		burst_container.offset_left = -200
-		burst_container.offset_right = 200
-		burst_container.offset_top = -200
-		burst_container.offset_bottom = 200
-		burst_container.z_index = -1
-		roulette_container.add_child(burst_container)
+		# Instance the result scene
+		roulette_container = ROULETTE_RESULT_SCENE.instantiate()
+		shop_panel.add_child(roulette_container)
 		
-		var burst_texture := TextureRect.new()
-		if ResourceLoader.exists("res://assets/svg/roulette_win_burst.svg"):
-			burst_texture.texture = load("res://assets/svg/roulette_win_burst.svg")
-		burst_texture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		burst_texture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		burst_texture.set_anchors_preset(Control.PRESET_FULL_RECT)
-		burst_texture.modulate.a = 0.0
-		burst_container.add_child(burst_texture)
+		# Get scene references
+		var win_label: Label = roulette_container.get_node("%WinLabel")
+		var preview_container: CenterContainer = roulette_container.get_node("%PreviewContainer")
+		var item_label: Label = roulette_container.get_node("%ItemLabel")
+		var close_btn: Button = roulette_container.get_node("%CloseButton")
+		var burst_texture: TextureRect = roulette_container.get_node("%BurstTexture")
 		
+		# Animate burst
 		var burst_tween := shop_panel.create_tween()
-		burst_tween.set_parallel(true)
 		burst_tween.tween_property(burst_texture, "modulate:a", 0.8, 0.5)
 		
 		var burst_rotate_tween := shop_panel.create_tween()
@@ -1128,39 +1062,13 @@ func _on_roulette_finished() -> void:
 		burst_rotate_tween.tween_property(burst_texture, "rotation", TAU, 8.0).from(0.0)
 		roulette_looping_tweens.append(burst_rotate_tween)
 		
+		# Add sparkle effects
 		_add_win_sparkles(roulette_container)
 		
-		# Result display
-		var result_vbox := VBoxContainer.new()
-		result_vbox.set_anchors_preset(Control.PRESET_CENTER)
-		result_vbox.anchor_left = 0.5
-		result_vbox.anchor_right = 0.5
-		result_vbox.anchor_top = 0.5
-		result_vbox.anchor_bottom = 0.5
-		result_vbox.offset_left = -350
-		result_vbox.offset_right = 350
-		result_vbox.offset_top = -450
-		result_vbox.offset_bottom = 450
-		result_vbox.add_theme_constant_override("separation", 8)
-		result_vbox.alignment = BoxContainer.ALIGNMENT_CENTER
-		roulette_container.add_child(result_vbox)
-		
-		var win_label := Label.new()
-		win_label.text = "YOU WON!"
-		win_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		win_label.add_theme_font_size_override("font_size", 72)
-		win_label.add_theme_color_override("font_color", COLOR_ACCENT_GOLD)
-		win_label.add_theme_color_override("font_outline_color", Color(0.3, 0.15, 0.0, 1.0))
-		win_label.add_theme_constant_override("outline_size", 4)
-		result_vbox.add_child(win_label)
-		
+		# Animate win label
 		win_label.ready.connect(_animate_win_label.bind(win_label))
 		
-		# Preview container
-		var preview_container := CenterContainer.new()
-		preview_container.custom_minimum_size = Vector2(600, 600)
-		result_vbox.add_child(preview_container)
-		
+		# Determine result content
 		var result_text := ""
 		var preview_icon_path := ""
 		var is_skin := false
@@ -1217,24 +1125,11 @@ func _on_roulette_finished() -> void:
 			preview_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 			preview_container.add_child(preview_icon)
 		
-		var item_label := Label.new()
+		# Set item label text
 		item_label.text = result_text
-		item_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		item_label.add_theme_font_size_override("font_size", 44)
-		item_label.add_theme_color_override("font_color", COLOR_TEXT_PRIMARY)
-		result_vbox.add_child(item_label)
 		
-		var spacer := Control.new()
-		spacer.custom_minimum_size = Vector2(0, 32)
-		result_vbox.add_child(spacer)
-		
-		var close_btn := Button.new()
-		close_btn.text = "CLOSE"
-		close_btn.custom_minimum_size = Vector2(200, 88)
-		close_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-		_style_secondary_button(close_btn)
+		# Connect close button
 		close_btn.pressed.connect(_on_roulette_close)
-		result_vbox.add_child(close_btn)
 
 
 func _on_roulette_close() -> void:
