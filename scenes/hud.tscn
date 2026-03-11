@@ -17,10 +17,10 @@
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
 bg_color = Color(0.1, 0.08, 0.18, 0.92)
-border_width_left = 4
-border_width_top = 4
-border_width_right = 4
-border_width_bottom = 4
+border_width_left = 8
+border_width_top = 8
+border_width_right = 8
+border_width_bottom = 8
 border_color = Color(0.91, 0.27, 0.38, 0.6)
 corner_radius_top_left = 25
 corner_radius_top_right = 25
@@ -32,15 +32,15 @@ shadow_offset = Vector2(0, 4)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
 bg_color = Color(0.1, 0.1, 0.15, 0.9)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
 border_color = Color(1, 1, 1, 0.1)
-corner_radius_top_left = 22
-corner_radius_top_right = 22
-corner_radius_bottom_right = 22
-corner_radius_bottom_left = 22
+corner_radius_top_left = 44
+corner_radius_top_right = 44
+corner_radius_bottom_right = 44
+corner_radius_bottom_left = 44
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fill"]
 bg_color = Color(0.91, 0.27, 0.38, 1)
@@ -225,10 +225,10 @@ base_scale = 4.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_right_panel_bg"]
 bg_color = Color(0.12, 0.12, 0.14, 0.92)
-border_width_left = 4
-border_width_top = 4
-border_width_right = 4
-border_width_bottom = 4
+border_width_left = 8
+border_width_top = 8
+border_width_right = 8
+border_width_bottom = 8
 border_color = Color(0.91, 0.27, 0.38, 0.6)
 corner_radius_top_left = 100
 corner_radius_top_right = 100
@@ -244,10 +244,10 @@ content_margin_top = 8.0
 content_margin_right = 8.0
 content_margin_bottom = 8.0
 bg_color = Color(0.08, 0.06, 0.14, 0.75)
-border_width_left = 4
-border_width_top = 4
-border_width_right = 4
-border_width_bottom = 4
+border_width_left = 8
+border_width_top = 8
+border_width_right = 8
+border_width_bottom = 8
 border_color = Color(0.91, 0.27, 0.38, 0.6)
 corner_radius_top_left = 100
 corner_radius_top_right = 100
@@ -259,11 +259,11 @@ shadow_offset = Vector2(0, 4)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_supercharge_bar_bg"]
 bg_color = Color(0.05, 0.03, 0.08, 0.9)
-border_width_left = 4
-border_width_top = 4
-border_width_right = 4
-border_width_bottom = 4
-border_color = Color(0.4188523, 0.13993892, 0, 1)
+border_width_left = 8
+border_width_top = 8
+border_width_right = 8
+border_width_bottom = 8
+border_color = Color(0, 0, 0, 1)
 corner_radius_top_left = 100
 corner_radius_top_right = 100
 corner_radius_bottom_right = 5
@@ -271,11 +271,11 @@ corner_radius_bottom_left = 5
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_supercharge_bar_fill"]
 bg_color = Color(0.9622491, 0.33953175, 0.3340835, 1)
-border_width_left = 8
-border_width_top = 8
-border_width_right = 8
-border_width_bottom = 16
-border_color = Color(0.66, 0, 0, 1)
+border_width_left = 16
+border_width_top = 16
+border_width_right = 16
+border_width_bottom = 32
+border_color = Color(0.40379044, 0.00035125823, 0.00019242674, 1)
 border_blend = true
 corner_radius_top_left = 100
 corner_radius_top_right = 100
@@ -408,11 +408,11 @@ cache/0/52/0/scale = 1.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_0m4u7"]
 bg_color = Color(0.17254902, 0.10980392, 0.06666667, 1)
-border_width_left = 4
-border_width_top = 4
-border_width_right = 4
-border_width_bottom = 4
-border_color = Color(0.4188523, 0.13993892, 0, 1)
+border_width_left = 8
+border_width_top = 8
+border_width_right = 8
+border_width_bottom = 8
+border_color = Color(0, 0, 0, 1)
 corner_radius_bottom_right = 100
 corner_radius_bottom_left = 100
 
@@ -425,7 +425,7 @@ anchor_right = 1.0
 offset_left = 20.0
 offset_top = 20.0
 offset_right = -20.0
-offset_bottom = 130.0
+offset_bottom = 145.0
 grow_horizontal = 2
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
@@ -486,8 +486,8 @@ theme_override_font_sizes/font_size = 48
 text = "0"
 vertical_alignment = 1
 
-[node name="Separator1" type="VSeparator" parent="TopBar/MarginContainer/HBoxContainer" unique_id=1805106782]
-modulate = Color(1, 1, 1, 0.3)
+[node name="empty1" type="Control" parent="TopBar/MarginContainer/HBoxContainer" unique_id=1183377117]
+custom_minimum_size = Vector2(5, 0)
 layout_mode = 2
 
 [node name="HealthContainer" type="HBoxContainer" parent="TopBar/MarginContainer/HBoxContainer" unique_id=1264983076]
@@ -530,8 +530,8 @@ text = "100/100"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="Separator2" type="VSeparator" parent="TopBar/MarginContainer/HBoxContainer" unique_id=1040663433]
-modulate = Color(1, 1, 1, 0.3)
+[node name="empty2" type="Control" parent="TopBar/MarginContainer/HBoxContainer" unique_id=1707918348]
+custom_minimum_size = Vector2(5, 0)
 layout_mode = 2
 
 [node name="DistanceContainer" type="HBoxContainer" parent="TopBar/MarginContainer/HBoxContainer" unique_id=68147577]
@@ -560,13 +560,14 @@ text = "0 m"
 vertical_alignment = 1
 
 [node name="TimerLabel" type="Label" parent="." unique_id=1304192667]
+visible = false
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -75.0
-offset_top = 144.0
-offset_right = 76.0
-offset_bottom = 197.0
+offset_left = -87.0
+offset_top = 162.0
+offset_right = 88.0
+offset_bottom = 223.0
 grow_horizontal = 2
 theme_override_colors/font_color = Color(1, 1, 1, 0.9)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.7)
@@ -584,9 +585,9 @@ anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -100.0
-offset_top = 231.0
+offset_top = 252.0
 offset_right = 100.0
-offset_bottom = 281.0
+offset_bottom = 302.0
 grow_horizontal = 2
 pivot_offset = Vector2(100, 25)
 mouse_filter = 2
@@ -900,13 +901,17 @@ anchor_left = 0.86
 anchor_top = 0.46
 anchor_right = 0.98
 anchor_bottom = 0.73
+offset_left = 0.2000122
+offset_top = 0.4000244
+offset_right = 0.20007324
+offset_bottom = 0.4000244
 grow_horizontal = 0
 theme_override_styles/panel = SubResource("StyleBoxFlat_supercharge_panel")
 
 [node name="SuperchargeContainer" type="VBoxContainer" parent="SuperchargePanel" unique_id=1653555539]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_constants/separation = 6
+theme_override_constants/separation = 0
 alignment = 1
 
 [node name="SuperchargeBar" type="Control" parent="SuperchargePanel/SuperchargeContainer" unique_id=2138306708]
