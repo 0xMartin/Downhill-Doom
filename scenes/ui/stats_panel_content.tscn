@@ -51,20 +51,24 @@ corner_radius_bottom_right = 20
 corner_radius_bottom_left = 20
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_global_stats"]
-content_margin_left = 24.0
+content_margin_left = 48.0
 content_margin_top = 24.0
-content_margin_right = 24.0
+content_margin_right = 48.0
 content_margin_bottom = 24.0
 bg_color = Color(0.06, 0.08, 0.12, 1)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.25, 0.32, 0.45, 0.8)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
+border_width_left = 8
+border_width_top = 8
+border_width_right = 8
+border_width_bottom = 8
+border_color = Color(0.2509804, 0.32156864, 0.4509804, 0.8)
+corner_radius_top_left = 32
+corner_radius_top_right = 32
+corner_radius_bottom_right = 32
+corner_radius_bottom_left = 32
+expand_margin_left = 8.0
+expand_margin_top = 8.0
+expand_margin_right = 8.0
+expand_margin_bottom = 8.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6fhhm"]
 bg_color = Color(0.14, 0.18, 0.26, 1)
@@ -188,10 +192,10 @@ horizontal_scroll_mode = 0
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_constants/margin_left = 36
-theme_override_constants/margin_top = 24
-theme_override_constants/margin_right = 36
-theme_override_constants/margin_bottom = 48
+theme_override_constants/margin_left = 74
+theme_override_constants/margin_top = 40
+theme_override_constants/margin_right = 74
+theme_override_constants/margin_bottom = 40
 
 [node name="ContentVBox" type="VBoxContainer" parent="ScrollContainer/MarginContainer" unique_id=1852588286]
 layout_mode = 2
@@ -216,7 +220,7 @@ theme_override_constants/separation = 12
 
 [node name="GamesIcon" type="TextureRect" parent="ScrollContainer/MarginContainer/ContentVBox/GlobalStatsCard/GlobalStatsContent/GamesRow" unique_id=1590654452]
 modulate = Color(0.7, 0.75, 0.85, 1)
-custom_minimum_size = Vector2(50, 50)
+custom_minimum_size = Vector2(60, 60)
 layout_mode = 2
 texture = ExtResource("5_games")
 expand_mode = 1
@@ -225,15 +229,18 @@ stretch_mode = 5
 [node name="GamesLabel" type="Label" parent="ScrollContainer/MarginContainer/ContentVBox/GlobalStatsCard/GlobalStatsContent/GamesRow" unique_id=1522824137]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
-theme_override_font_sizes/font_size = 50
-text = "Games Played:"
+theme_override_font_sizes/font_size = 60
+text = "Games Played"
 
-[node name="GamesValue" type="Label" parent="ScrollContainer/MarginContainer/ContentVBox/GlobalStatsCard/GlobalStatsContent/GamesRow" unique_id=368507880]
+[node name="GamesValue" type="RichTextLabel" parent="ScrollContainer/MarginContainer/ContentVBox/GlobalStatsCard/GlobalStatsContent/GamesRow" unique_id=368507880]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 60)
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 50
-text = "0"
+size_flags_horizontal = 3
+theme_override_font_sizes/normal_font_size = 55
+bbcode_enabled = true
+text = "[right]0[/right]"
+scroll_active = false
 
 [node name="CoinsRow" type="HBoxContainer" parent="ScrollContainer/MarginContainer/ContentVBox/GlobalStatsCard/GlobalStatsContent" unique_id=498927500]
 layout_mode = 2
@@ -241,7 +248,7 @@ theme_override_constants/separation = 12
 
 [node name="CoinsIcon" type="TextureRect" parent="ScrollContainer/MarginContainer/ContentVBox/GlobalStatsCard/GlobalStatsContent/CoinsRow" unique_id=1547210309]
 modulate = Color(1, 0.82, 0.25, 1)
-custom_minimum_size = Vector2(50, 50)
+custom_minimum_size = Vector2(60, 60)
 layout_mode = 2
 texture = ExtResource("3_coin")
 expand_mode = 1
@@ -250,15 +257,18 @@ stretch_mode = 5
 [node name="CoinsLabel" type="Label" parent="ScrollContainer/MarginContainer/ContentVBox/GlobalStatsCard/GlobalStatsContent/CoinsRow" unique_id=971130408]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.82, 0.25, 1)
-theme_override_font_sizes/font_size = 50
-text = "Coins:"
+theme_override_font_sizes/font_size = 60
+text = "Coins"
 
-[node name="CoinsValue" type="Label" parent="ScrollContainer/MarginContainer/ContentVBox/GlobalStatsCard/GlobalStatsContent/CoinsRow" unique_id=803287011]
+[node name="CoinsValue" type="RichTextLabel" parent="ScrollContainer/MarginContainer/ContentVBox/GlobalStatsCard/GlobalStatsContent/CoinsRow" unique_id=803287011]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 60)
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 50
-text = "Best: 0  |  Avg: 0  |  Total: 0"
+size_flags_horizontal = 3
+theme_override_font_sizes/normal_font_size = 55
+bbcode_enabled = true
+text = "[right][color=#ffcf40]Best[/color]  [color=#ffffff]0[/color][/right]"
+scroll_active = false
 
 [node name="DistanceRow" type="HBoxContainer" parent="ScrollContainer/MarginContainer/ContentVBox/GlobalStatsCard/GlobalStatsContent" unique_id=614689415]
 layout_mode = 2
@@ -266,7 +276,7 @@ theme_override_constants/separation = 12
 
 [node name="DistanceIcon" type="TextureRect" parent="ScrollContainer/MarginContainer/ContentVBox/GlobalStatsCard/GlobalStatsContent/DistanceRow" unique_id=873766036]
 modulate = Color(0.25, 0.65, 0.96, 1)
-custom_minimum_size = Vector2(50, 50)
+custom_minimum_size = Vector2(60, 60)
 layout_mode = 2
 texture = ExtResource("4_distance")
 expand_mode = 1
@@ -275,15 +285,18 @@ stretch_mode = 5
 [node name="DistanceLabel" type="Label" parent="ScrollContainer/MarginContainer/ContentVBox/GlobalStatsCard/GlobalStatsContent/DistanceRow" unique_id=473337534]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.25, 0.65, 0.96, 1)
-theme_override_font_sizes/font_size = 50
-text = "Distance:"
+theme_override_font_sizes/font_size = 60
+text = "Distance"
 
-[node name="DistanceValue" type="Label" parent="ScrollContainer/MarginContainer/ContentVBox/GlobalStatsCard/GlobalStatsContent/DistanceRow" unique_id=1664674995]
+[node name="DistanceValue" type="RichTextLabel" parent="ScrollContainer/MarginContainer/ContentVBox/GlobalStatsCard/GlobalStatsContent/DistanceRow" unique_id=1664674995]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 60)
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 50
-text = "Best: 0m  |  Avg: 0m"
+size_flags_horizontal = 3
+theme_override_font_sizes/normal_font_size = 55
+bbcode_enabled = true
+text = "[right][color=#40a6f5]Best[/color]  [color=#ffffff]0 m[/color][/right]"
+scroll_active = false
 
 [node name="TimeRow" type="HBoxContainer" parent="ScrollContainer/MarginContainer/ContentVBox/GlobalStatsCard/GlobalStatsContent" unique_id=438526733]
 layout_mode = 2
@@ -291,7 +304,7 @@ theme_override_constants/separation = 12
 
 [node name="TimeIcon" type="TextureRect" parent="ScrollContainer/MarginContainer/ContentVBox/GlobalStatsCard/GlobalStatsContent/TimeRow" unique_id=295820375]
 modulate = Color(0.3, 0.85, 0.55, 1)
-custom_minimum_size = Vector2(50, 50)
+custom_minimum_size = Vector2(60, 60)
 layout_mode = 2
 texture = ExtResource("6_time")
 expand_mode = 1
@@ -300,15 +313,18 @@ stretch_mode = 5
 [node name="TimeLabel" type="Label" parent="ScrollContainer/MarginContainer/ContentVBox/GlobalStatsCard/GlobalStatsContent/TimeRow" unique_id=1022738596]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.3, 0.85, 0.55, 1)
-theme_override_font_sizes/font_size = 50
-text = "Time:"
+theme_override_font_sizes/font_size = 60
+text = "Time"
 
-[node name="TimeValue" type="Label" parent="ScrollContainer/MarginContainer/ContentVBox/GlobalStatsCard/GlobalStatsContent/TimeRow" unique_id=1037793187]
+[node name="TimeValue" type="RichTextLabel" parent="ScrollContainer/MarginContainer/ContentVBox/GlobalStatsCard/GlobalStatsContent/TimeRow" unique_id=1037793187]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 60)
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 50
-text = "Best: 00:00  |  Avg: 00:00  |  Total: 00:00"
+size_flags_horizontal = 3
+theme_override_font_sizes/normal_font_size = 55
+bbcode_enabled = true
+text = "[right][color=#4dd98c]Best[/color]  [color=#ffffff]00h 00min 00s[/color][/right]"
+scroll_active = false
 
 [node name="Separator" type="HSeparator" parent="ScrollContainer/MarginContainer/ContentVBox" unique_id=1652630843]
 modulate = Color(0.25, 0.32, 0.45, 0.8)
@@ -336,6 +352,8 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(280, 60)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.25, 0.65, 0.96, 1)
+theme_override_colors/font_outline_color = Color(0.019406848, 0.27027866, 0.43863568, 1)
+theme_override_constants/outline_size = 30
 theme_override_font_sizes/font_size = 70
 text = "Trees"
 horizontal_alignment = 1

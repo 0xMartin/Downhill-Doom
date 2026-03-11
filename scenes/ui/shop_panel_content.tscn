@@ -162,10 +162,10 @@ layout_mode = 2
 [node name="ContentMargin" type="MarginContainer" parent="." unique_id=1541498259]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_constants/margin_left = 36
-theme_override_constants/margin_top = 24
-theme_override_constants/margin_right = 36
-theme_override_constants/margin_bottom = 24
+theme_override_constants/margin_left = 74
+theme_override_constants/margin_top = 40
+theme_override_constants/margin_right = 74
+theme_override_constants/margin_bottom = 40
 
 [node name="ContentVBox" type="VBoxContainer" parent="ContentMargin" unique_id=1072092013]
 layout_mode = 2
@@ -214,7 +214,8 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(280, 60)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.82, 0.25, 1)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_colors/font_outline_color = Color(0.42306423, 0.27729744, 1.4439226e-07, 1)
+theme_override_constants/outline_size = 30
 theme_override_font_sizes/font_size = 70
 text = "SKINS"
 horizontal_alignment = 1

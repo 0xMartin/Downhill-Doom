@@ -440,6 +440,7 @@ func _on_stats_section_next() -> void:
 
 func _on_stats_back_pressed() -> void:
 	audio_manager.play_button_click()
+	stats_helper.stop_stats_cycling()
 	_animate_panel_out(stats_panel)
 
 

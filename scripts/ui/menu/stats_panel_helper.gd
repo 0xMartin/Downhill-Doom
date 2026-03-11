@@ -27,12 +27,18 @@ var object_viewports: Array[SubViewportContainer] = []
 
 # UI References
 var global_stats_card: PanelContainer
-var games_value_label: Label
-var coins_value_label: Label
-var distance_value_label: Label
-var time_value_label: Label
+var games_value_label: RichTextLabel
+var coins_value_label: RichTextLabel
+var distance_value_label: RichTextLabel
+var time_value_label: RichTextLabel
 var section_label: Label
 var object_grid: GridContainer
+
+# Stats cycling
+var stats_cycle_index: int = 0
+var stats_cycle_tween: Tween
+const STATS_CYCLE_LABELS := ["Best", "Avg", "Total"]
+const STATS_CYCLE_INTERVAL := 5.0
 
 
 func _init(panel: Control, stats_dict: Dictionary) -> void:
@@ -82,10 +88,10 @@ func rebuild() -> void:
 
 func _find_ui_references() -> void:
 	global_stats_card = content_instance.get_node("%GlobalStatsCard") as PanelContainer
-	games_value_label = content_instance.get_node("%GamesValue") as Label
-	coins_value_label = content_instance.get_node("%CoinsValue") as Label
-	distance_value_label = content_instance.get_node("%DistanceValue") as Label
-	time_value_label = content_instance.get_node("%TimeValue") as Label
+	games_value_label = content_instance.get_node("%GamesValue") as RichTextLabel
+	coins_value_label = content_instance.get_node("%CoinsValue") as RichTextLabel
+	distance_value_label = content_instance.get_node("%DistanceValue") as RichTextLabel
+	time_value_label = content_instance.get_node("%TimeValue") as RichTextLabel
 	section_label = content_instance.get_node("%SectionLabel") as Label
 	object_grid = content_instance.get_node("%ObjectGrid") as GridContainer
 
@@ -110,6 +116,12 @@ func get_next_button() -> Button:
 
 func get_object_viewports() -> Array[SubViewportContainer]:
 	return object_viewports
+
+
+func stop_stats_cycling() -> void:
+	if stats_cycle_tween and stats_cycle_tween.is_valid():
+		stats_cycle_tween.kill()
+		stats_cycle_tween = null
 
 
 func update_stats(new_stats: Dictionary) -> void:
@@ -137,28 +149,70 @@ func _update_global_stats() -> void:
 	
 	# Games played
 	if games_value_label:
-		games_value_label.text = str(games_count)
+		games_value_label.text = "[right]%s[/right]" % _format_number(games_count)
+	
+	# Update cycling stats display
+	_update_cycling_stats_display()
+	
+	# Start cycling if not already running
+	_start_stats_cycling()
+
+
+func _start_stats_cycling() -> void:
+	if stats_cycle_tween and stats_cycle_tween.is_valid():
+		return  # Already running
+	
+	stats_cycle_tween = stats_panel.create_tween()
+	stats_cycle_tween.set_loops()
+	stats_cycle_tween.tween_interval(STATS_CYCLE_INTERVAL)
+	stats_cycle_tween.tween_callback(_on_stats_cycle)
+
+
+func _on_stats_cycle() -> void:
+	stats_cycle_index = (stats_cycle_index + 1) % 3
+	_update_cycling_stats_display()
+
+
+func _update_cycling_stats_display() -> void:
+	var games_count: int = stats.get("games_played", 0)
+	var label_prefix: String = STATS_CYCLE_LABELS[stats_cycle_index]
 	
 	# Coins stats
 	if coins_value_label:
 		var max_c: int = stats.get("max_coins", 0)
 		var total_c: int = stats.get("total_coins", 0)
-		var avg_c: int = int(total_c / games_count) if games_count > 0 else 0
-		coins_value_label.text = "Best: %d  |  Avg: %d  |  Total: %d" % [max_c, avg_c, total_c]
+		var avg_c: int = int(float(total_c) / games_count) if games_count > 0 else 0
+		var value: int = [max_c, avg_c, total_c][stats_cycle_index]
+		coins_value_label.text = _format_stat_bbcode(label_prefix, _format_number(value), COLOR_ACCENT_GOLD)
 	
 	# Distance stats
 	if distance_value_label:
 		var max_d: float = stats.get("max_distance", 0.0)
 		var total_d: float = stats.get("total_distance", 0.0)
 		var avg_d: float = total_d / games_count if games_count > 0 else 0.0
-		distance_value_label.text = "Best: %dm  |  Avg: %dm" % [int(max_d), int(avg_d)]
+		var value_d: float = [max_d, avg_d, total_d][stats_cycle_index]
+		distance_value_label.text = _format_stat_bbcode(label_prefix, _format_number(int(value_d)) + "m", COLOR_ACCENT_PRIMARY)
 	
 	# Time stats
 	if time_value_label:
 		var max_t: float = stats.get("max_time", 0.0)
 		var total_t: float = stats.get("total_time", 0.0)
 		var avg_t: float = total_t / games_count if games_count > 0 else 0.0
-		time_value_label.text = "Best: %s  |  Avg: %s  |  Total: %s" % [_format_time(max_t), _format_time(avg_t), _format_time(total_t)]
+		var value_t: float = [max_t, avg_t, total_t][stats_cycle_index]
+		time_value_label.text = _format_stat_bbcode(label_prefix, _format_time(value_t), COLOR_ACCENT_SECONDARY)
+
+
+func _format_stat_bbcode(label: String, value: String, accent_color: Color) -> String:
+	var color_hex := accent_color.to_html(false)
+	return "[right][color=#%s]%s[/color]  [color=#ffffff]%s[/color][/right]" % [color_hex, label, value]
+
+
+func _format_number(amount: int) -> String:
+	if amount >= 1000000:
+		return "%.3f M" % (amount / 1000000.0)
+	elif amount >= 1000:
+		return "%.3f k" % (amount / 1000.0)
+	return str(amount)
 
 
 func _format_time(time_seconds: float) -> String:
@@ -167,8 +221,10 @@ func _format_time(time_seconds: float) -> String:
 	var minutes := (total_seconds % 3600) / 60
 	var seconds := total_seconds % 60
 	if hours > 0:
-		return "%d:%02d:%02d" % [hours, minutes, seconds]
-	return "%02d:%02d" % [minutes, seconds]
+		return "%dh %dmin %ds" % [hours, minutes, seconds]
+	if minutes > 0:
+		return "%dmin %ds" % [minutes, seconds]
+	return "%ds" % seconds
 
 
 func _populate_object_cards() -> void:
