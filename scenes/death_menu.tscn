@@ -1,6 +1,22 @@
 [gd_scene format=3 uid="uid://death001"]
 
-[ext_resource type="Script" path="res://scripts/ui/death_menu.gd" id="1_death"]
+[ext_resource type="Script" uid="uid://bo7ogomcn6303" path="res://scripts/ui/death_menu.gd" id="1_death"]
+
+[sub_resource type="Animation" id="Animation_RESET"]
+resource_name = "RESET"
+length = 0.01
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Panel:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1, 1, 1, 0)]
+}
 
 [sub_resource type="Animation" id="Animation_hide"]
 resource_name = "hide"
@@ -58,34 +74,18 @@ tracks/1/keys = {
 "values": [Vector2(0.5, 0.5), Vector2(1, 1)]
 }
 
-[sub_resource type="Animation" id="Animation_RESET"]
-resource_name = "RESET"
-length = 0.01
-tracks/0/type = "value"
-tracks/0/imported = false
-tracks/0/enabled = true
-tracks/0/path = NodePath("Panel:modulate")
-tracks/0/interp = 1
-tracks/0/loop_wrap = true
-tracks/0/keys = {
-"times": PackedFloat32Array(0),
-"transitions": PackedFloat32Array(1),
-"update": 0,
-"values": [Color(1, 1, 1, 0)]
-}
-
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_1"]
 _data = {
-"RESET": SubResource("Animation_RESET"),
-"hide": SubResource("Animation_hide"),
-"show": SubResource("Animation_show")
+&"RESET": SubResource("Animation_RESET"),
+&"hide": SubResource("Animation_hide"),
+&"show": SubResource("Animation_show")
 }
 
-[node name="DeathMenu" type="CanvasLayer"]
+[node name="DeathMenu" type="CanvasLayer" unique_id=425461593]
 layer = 10
 script = ExtResource("1_death")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Background" type="ColorRect" parent="." unique_id=1530545932]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -93,7 +93,8 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.1, 0, 0, 0.8)
 
-[node name="Panel" type="Control" parent="."]
+[node name="Panel" type="Control" parent="." unique_id=1756225368]
+modulate = Color(1, 1, 1, 0)
 layout_mode = 3
 anchors_preset = 8
 anchor_left = 0.5
@@ -108,7 +109,7 @@ grow_horizontal = 2
 grow_vertical = 2
 pivot_offset = Vector2(200, 200)
 
-[node name="VBoxContainer" type="VBoxContainer" parent="Panel"]
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel" unique_id=32714044]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -117,81 +118,89 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 25
 
-[node name="Title" type="Label" parent="Panel/VBoxContainer"]
+[node name="Title" type="Label" parent="Panel/VBoxContainer" unique_id=339023600]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.3, 0.3, 1)
-theme_override_font_sizes/font_size = 72
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 35
+theme_override_font_sizes/font_size = 100
 text = "GAME OVER"
 horizontal_alignment = 1
 
-[node name="StatsContainer" type="GridContainer" parent="Panel/VBoxContainer"]
+[node name="StatsContainer" type="GridContainer" parent="Panel/VBoxContainer" unique_id=1365268671]
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_constants/h_separation = 28
 theme_override_constants/v_separation = 16
 columns = 2
 
-[node name="DistanceText" type="Label" parent="Panel/VBoxContainer/StatsContainer"]
+[node name="DistanceText" type="Label" parent="Panel/VBoxContainer/StatsContainer" unique_id=1973990070]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 36
+theme_override_constants/outline_size = 22
+theme_override_font_sizes/font_size = 48
 text = "Distance:"
 
-[node name="DistanceValue" type="Label" parent="Panel/VBoxContainer/StatsContainer"]
+[node name="DistanceValue" type="Label" parent="Panel/VBoxContainer/StatsContainer" unique_id=274634388]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 36
+theme_override_constants/outline_size = 10
+theme_override_font_sizes/font_size = 48
 text = "0 m"
 
-[node name="CoinsText" type="Label" parent="Panel/VBoxContainer/StatsContainer"]
+[node name="CoinsText" type="Label" parent="Panel/VBoxContainer/StatsContainer" unique_id=949979797]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 36
+theme_override_constants/outline_size = 22
+theme_override_font_sizes/font_size = 48
 text = "Coins:"
 
-[node name="CoinsValue" type="Label" parent="Panel/VBoxContainer/StatsContainer"]
+[node name="CoinsValue" type="Label" parent="Panel/VBoxContainer/StatsContainer" unique_id=1411156298]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.85, 0, 1)
-theme_override_font_sizes/font_size = 36
+theme_override_constants/outline_size = 10
+theme_override_font_sizes/font_size = 48
 text = "0"
 
-[node name="BestText" type="Label" parent="Panel/VBoxContainer/StatsContainer"]
+[node name="BestText" type="Label" parent="Panel/VBoxContainer/StatsContainer" unique_id=1407859513]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
-theme_override_font_sizes/font_size = 36
+theme_override_constants/outline_size = 22
+theme_override_font_sizes/font_size = 48
 text = "Best:"
 
-[node name="BestDistanceValue" type="Label" parent="Panel/VBoxContainer/StatsContainer"]
+[node name="BestDistanceValue" type="Label" parent="Panel/VBoxContainer/StatsContainer" unique_id=806325600]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.5, 1, 0.5, 1)
-theme_override_font_sizes/font_size = 36
+theme_override_constants/outline_size = 10
+theme_override_font_sizes/font_size = 48
 text = "0 m"
 
-[node name="Spacer" type="Control" parent="Panel/VBoxContainer"]
-custom_minimum_size = Vector2(0, 20)
+[node name="Spacer" type="Control" parent="Panel/VBoxContainer" unique_id=512636793]
+custom_minimum_size = Vector2(0, 100)
 layout_mode = 2
 
-[node name="ButtonsContainer" type="VBoxContainer" parent="Panel/VBoxContainer"]
+[node name="ButtonsContainer" type="VBoxContainer" parent="Panel/VBoxContainer" unique_id=1905391599]
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_constants/separation = 20
 
-[node name="RestartButton" type="Button" parent="Panel/VBoxContainer/ButtonsContainer"]
-custom_minimum_size = Vector2(300, 88)
+[node name="RestartButton" type="Button" parent="Panel/VBoxContainer/ButtonsContainer" unique_id=999671973]
+custom_minimum_size = Vector2(420, 100)
 layout_mode = 2
-theme_override_font_sizes/font_size = 36
-text = "🔄 Try Again"
+theme_override_constants/outline_size = 24
+theme_override_font_sizes/font_size = 48
+text = "Try Again"
 
-[node name="MenuButton" type="Button" parent="Panel/VBoxContainer/ButtonsContainer"]
-custom_minimum_size = Vector2(300, 88)
+[node name="MenuButton" type="Button" parent="Panel/VBoxContainer/ButtonsContainer" unique_id=1477487190]
+custom_minimum_size = Vector2(420, 100)
 layout_mode = 2
-theme_override_font_sizes/font_size = 36
-text = "🏠 Main Menu"
+theme_override_constants/outline_size = 24
+theme_override_font_sizes/font_size = 48
+text = "Main Menu"
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
-libraries = {
-"": SubResource("AnimationLibrary_1")
-}
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=1500051300]
+libraries/ = SubResource("AnimationLibrary_1")
 
 [connection signal="pressed" from="Panel/VBoxContainer/ButtonsContainer/RestartButton" to="." method="_on_restart_pressed"]
 [connection signal="pressed" from="Panel/VBoxContainer/ButtonsContainer/MenuButton" to="." method="_on_menu_pressed"]

@@ -349,10 +349,10 @@ func show_pickup_popup(amount: int, icon_texture: Texture2D) -> void:
 	
 	# Position at player area - use design resolution (720x1280 with stretch)
 	# Center horizontally, 70% from top (30% from bottom)
-	var design_width: float = 720.0
-	var design_height: float = 1280.0
-	var base_x: float = design_width / 2.0
-	var base_y: float = design_height * 0.70
+	var popup_container_width: float = popup_container.get_viewport_rect().size.x
+	var popup_container_height: float = popup_container.get_viewport_rect().size.y
+	var base_x: float = popup_container_width / 2.0
+	var base_y: float = popup_container_height * 0.70
 	
 	# Larger random offset around spawn point for more spread
 	var offset_x := randf_range(-120, 120)
@@ -364,7 +364,7 @@ func show_pickup_popup(amount: int, icon_texture: Texture2D) -> void:
 	
 	# Fall downward and off-screen
 	var angle := randf_range(PI * 0.3, PI * 0.7)  # Downward angles
-	var distance := design_height - base_y + 100  # Enough to exit screen at bottom
+	var distance := popup_container_height - base_y + 100  # Enough to exit screen at bottom
 	var duration := 1.0  # Animation duration
 	var target_offset := Vector2(cos(angle), sin(angle)) * distance
 	
@@ -413,10 +413,10 @@ func show_combo_popup(amount: int, icon_texture: Texture2D) -> void:
 	
 	# Position at player area - use design resolution (720x1280 with stretch)
 	# Center horizontally, 70% from top (30% from bottom)
-	var design_width: float = 720.0
-	var design_height: float = 1280.0
-	var base_x: float = design_width / 2.0
-	var base_y: float = design_height * 0.70
+	var popup_container_width: float = popup_container.get_viewport_rect().size.x
+	var popup_container_height: float = popup_container.get_viewport_rect().size.y
+	var base_x: float = popup_container_width / 2.0
+	var base_y: float = popup_container_height * 0.70
 	
 	# Larger random offset around spawn point for more spread
 	var offset_x := randf_range(-120, 120)
@@ -428,7 +428,7 @@ func show_combo_popup(amount: int, icon_texture: Texture2D) -> void:
 	
 	# Fall downward and off-screen
 	var angle := randf_range(PI * 0.3, PI * 0.7)  # Downward angles
-	var distance := design_height - base_y + 100  # Enough to exit screen at bottom
+	var distance := popup_container_height - base_y + 100  # Enough to exit screen at bottom
 	var duration := 1.0  # Animation duration
 	var target_offset := Vector2(cos(angle), sin(angle)) * distance
 	
@@ -478,10 +478,10 @@ func show_damage_popup(amount: int) -> void:
 	
 	# Position at player area - use design resolution (720x1280 with stretch)
 	# Center horizontally, 70% from top (30% from bottom)
-	var design_width: float = 720.0
-	var design_height: float = 1280.0
-	var base_x: float = design_width / 2.0
-	var base_y: float = design_height * 0.70
+	var popup_container_width: float = popup_container.get_viewport_rect().size.x
+	var popup_container_height: float = popup_container.get_viewport_rect().size.y
+	var base_x: float = popup_container_width / 2.0
+	var base_y: float = popup_container_height * 0.70
 	
 	# Larger random offset around spawn point for more spread
 	var offset_x := randf_range(-120, 120)
@@ -493,7 +493,7 @@ func show_damage_popup(amount: int) -> void:
 	
 	# Fall downward and off-screen
 	var angle := randf_range(PI * 0.3, PI * 0.7)  # Downward angles
-	var distance := design_height - base_y + 100  # Enough to exit screen at bottom
+	var distance := popup_container_height - base_y + 100  # Enough to exit screen at bottom
 	var duration := 1.0  # Animation duration
 	var target_offset := Vector2(cos(angle), sin(angle)) * distance
 	
