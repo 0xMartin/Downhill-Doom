@@ -27,7 +27,10 @@ var object_viewports: Array[SubViewportContainer] = []
 
 # UI References
 var global_stats_card: PanelContainer
-var global_stats_content: VBoxContainer
+var games_value_label: Label
+var coins_value_label: Label
+var distance_value_label: Label
+var time_value_label: Label
 var section_label: Label
 var object_grid: GridContainer
 
@@ -70,11 +73,8 @@ func rebuild() -> void:
 	# Get references to UI elements
 	_find_ui_references()
 	
-	# Apply styling to the global stats card
-	_style_global_stats_card()
-	
-	# Populate global stats
-	_populate_global_stats()
+	# Update global stats values
+	_update_global_stats()
 	
 	# Populate initial object section
 	_populate_object_cards()
@@ -82,22 +82,12 @@ func rebuild() -> void:
 
 func _find_ui_references() -> void:
 	global_stats_card = content_instance.get_node("%GlobalStatsCard") as PanelContainer
-	global_stats_content = content_instance.get_node("%GlobalStatsContent") as VBoxContainer
+	games_value_label = content_instance.get_node("%GamesValue") as Label
+	coins_value_label = content_instance.get_node("%CoinsValue") as Label
+	distance_value_label = content_instance.get_node("%DistanceValue") as Label
+	time_value_label = content_instance.get_node("%TimeValue") as Label
 	section_label = content_instance.get_node("%SectionLabel") as Label
 	object_grid = content_instance.get_node("%ObjectGrid") as GridContainer
-
-
-func _style_global_stats_card() -> void:
-	if not global_stats_card:
-		return
-	
-	var style := StyleBoxFlat.new()
-	style.bg_color = COLOR_BG_DARK
-	style.set_corner_radius_all(16)
-	style.set_border_width_all(1)
-	style.border_color = COLOR_BORDER
-	style.set_content_margin_all(24)
-	global_stats_card.add_theme_stylebox_override("panel", style)
 
 
 func get_back_button() -> Button:
@@ -142,77 +132,33 @@ func _update_section_display() -> void:
 	_populate_object_cards()
 
 
-func _populate_global_stats() -> void:
-	if not global_stats_content:
-		return
-	
-	# Clear existing content
-	for child in global_stats_content.get_children():
-		child.queue_free()
-	
-	var coin_icon: Texture2D = load("res://assets/svg/coin.svg")
-	var distance_icon: Texture2D = load("res://assets/svg/distance.svg")
+func _update_global_stats() -> void:
 	var games_count: int = stats.get("games_played", 0)
 	
 	# Games played
-	var games_row := _create_stat_row("Games Played", str(games_count), null, COLOR_TEXT_SECONDARY)
-	global_stats_content.add_child(games_row)
+	if games_value_label:
+		games_value_label.text = str(games_count)
 	
 	# Coins stats
-	var max_c: int = stats.get("max_coins", 0)
-	var total_c: int = stats.get("total_coins", 0)
-	var avg_c: int = int(total_c / games_count) if games_count > 0 else 0
-	var coins_text := "Best: %d  |  Avg: %d  |  Total: %d" % [max_c, avg_c, total_c]
-	var coins_row := _create_stat_row("Coins", coins_text, coin_icon, COLOR_ACCENT_GOLD)
-	global_stats_content.add_child(coins_row)
+	if coins_value_label:
+		var max_c: int = stats.get("max_coins", 0)
+		var total_c: int = stats.get("total_coins", 0)
+		var avg_c: int = int(total_c / games_count) if games_count > 0 else 0
+		coins_value_label.text = "Best: %d  |  Avg: %d  |  Total: %d" % [max_c, avg_c, total_c]
 	
 	# Distance stats
-	var max_d: float = stats.get("max_distance", 0.0)
-	var total_d: float = stats.get("total_distance", 0.0)
-	var avg_d: float = total_d / games_count if games_count > 0 else 0.0
-	var dist_text := "Best: %dm  |  Avg: %dm" % [int(max_d), int(avg_d)]
-	var dist_row := _create_stat_row("Distance", dist_text, distance_icon, COLOR_ACCENT_PRIMARY)
-	global_stats_content.add_child(dist_row)
+	if distance_value_label:
+		var max_d: float = stats.get("max_distance", 0.0)
+		var total_d: float = stats.get("total_distance", 0.0)
+		var avg_d: float = total_d / games_count if games_count > 0 else 0.0
+		distance_value_label.text = "Best: %dm  |  Avg: %dm" % [int(max_d), int(avg_d)]
 	
 	# Time stats
-	var max_t: float = stats.get("max_time", 0.0)
-	var total_t: float = stats.get("total_time", 0.0)
-	var avg_t: float = total_t / games_count if games_count > 0 else 0.0
-	var time_text := "Best: %s  |  Avg: %s  |  Total: %s" % [_format_time(max_t), _format_time(avg_t), _format_time(total_t)]
-	var time_row := _create_stat_row("Time", time_text, null, COLOR_ACCENT_SECONDARY)
-	global_stats_content.add_child(time_row)
-
-
-func _create_stat_row(label_text: String, value_text: String, icon: Texture2D, accent: Color) -> HBoxContainer:
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 12)
-	
-	if icon:
-		var tex := TextureRect.new()
-		tex.custom_minimum_size = Vector2(36, 36)
-		tex.texture = icon
-		tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		tex.modulate = accent
-		row.add_child(tex)
-	else:
-		var spacer := Control.new()
-		spacer.custom_minimum_size = Vector2(36, 36)
-		row.add_child(spacer)
-	
-	var lbl := Label.new()
-	lbl.text = label_text + ": "
-	lbl.add_theme_font_size_override("font_size", 36)
-	lbl.add_theme_color_override("font_color", accent)
-	row.add_child(lbl)
-	
-	var val := Label.new()
-	val.text = value_text
-	val.add_theme_font_size_override("font_size", 36)
-	val.add_theme_color_override("font_color", COLOR_TEXT_PRIMARY)
-	row.add_child(val)
-	
-	return row
+	if time_value_label:
+		var max_t: float = stats.get("max_time", 0.0)
+		var total_t: float = stats.get("total_time", 0.0)
+		var avg_t: float = total_t / games_count if games_count > 0 else 0.0
+		time_value_label.text = "Best: %s  |  Avg: %s  |  Total: %s" % [_format_time(max_t), _format_time(avg_t), _format_time(total_t)]
 
 
 func _format_time(time_seconds: float) -> String:
