@@ -92,10 +92,10 @@ corner_radius_bottom_left = 10
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_control_button"]
 bg_color = Color(0.06, 0.08, 0.12, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
+border_width_left = 5
+border_width_top = 5
+border_width_right = 5
+border_width_bottom = 5
 border_color = Color(0.25, 0.32, 0.45, 0.8)
 corner_radius_top_left = 10
 corner_radius_top_right = 10
@@ -207,7 +207,7 @@ theme_override_constants/separation = 24
 [node name="SectionLabel" type="Label" parent="ScrollContainer/MarginContainer/ContentVBox/AudioSection/VBoxContainer" unique_id=1841573041]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.25, 0.65, 0.96, 1)
-theme_override_font_sizes/font_size = 42
+theme_override_font_sizes/font_size = 50
 text = "AUDIO"
 
 [node name="MusicRow" type="HBoxContainer" parent="ScrollContainer/MarginContainer/ContentVBox/AudioSection/VBoxContainer" unique_id=1587611523]
@@ -217,8 +217,8 @@ theme_override_constants/separation = 32
 [node name="MusicLabel" type="Label" parent="ScrollContainer/MarginContainer/ContentVBox/AudioSection/VBoxContainer/MusicRow" unique_id=122839103]
 custom_minimum_size = Vector2(280, 0)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
-theme_override_font_sizes/font_size = 50
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 55
 text = "Music"
 
 [node name="MusicSlider" type="HSlider" parent="ScrollContainer/MarginContainer/ContentVBox/AudioSection/VBoxContainer/MusicRow" unique_id=1905333918]
@@ -242,8 +242,8 @@ theme_override_constants/separation = 32
 [node name="SFXLabel" type="Label" parent="ScrollContainer/MarginContainer/ContentVBox/AudioSection/VBoxContainer/SFXRow" unique_id=1875485172]
 custom_minimum_size = Vector2(280, 0)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
-theme_override_font_sizes/font_size = 50
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 55
 text = "Sound Effects"
 
 [node name="SFXSlider" type="HSlider" parent="ScrollContainer/MarginContainer/ContentVBox/AudioSection/VBoxContainer/SFXRow" unique_id=440400678]
@@ -273,7 +273,7 @@ theme_override_constants/separation = 24
 [node name="SectionLabel" type="Label" parent="ScrollContainer/MarginContainer/ContentVBox/DisplaySection/VBoxContainer" unique_id=80044989]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.25, 0.65, 0.96, 1)
-theme_override_font_sizes/font_size = 42
+theme_override_font_sizes/font_size = 50
 text = "DISPLAY"
 
 [node name="PopupCheck" type="CheckButton" parent="ScrollContainer/MarginContainer/ContentVBox/DisplaySection/VBoxContainer" unique_id=1760889669]
@@ -281,7 +281,7 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 140)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
-theme_override_font_sizes/font_size = 50
+theme_override_font_sizes/font_size = 55
 button_pressed = true
 text = "Show Pickup Popups"
 
@@ -290,7 +290,7 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 140)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
-theme_override_font_sizes/font_size = 50
+theme_override_font_sizes/font_size = 55
 button_pressed = true
 text = "Show Damage Numbers"
 
@@ -299,7 +299,7 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 140)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
-theme_override_font_sizes/font_size = 50
+theme_override_font_sizes/font_size = 55
 button_pressed = true
 text = "Haptic Feedback"
 
@@ -308,7 +308,7 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 140)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
-theme_override_font_sizes/font_size = 50
+theme_override_font_sizes/font_size = 55
 button_pressed = true
 text = "Screen Shake"
 
@@ -325,13 +325,13 @@ theme_override_constants/separation = 24
 [node name="SectionLabel" type="Label" parent="ScrollContainer/MarginContainer/ContentVBox/ControlsSection/VBoxContainer" unique_id=1129168264]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.25, 0.65, 0.96, 1)
-theme_override_font_sizes/font_size = 42
+theme_override_font_sizes/font_size = 50
 text = "CONTROLS"
 
 [node name="ControlModeLabel" type="Label" parent="ScrollContainer/MarginContainer/ContentVBox/ControlsSection/VBoxContainer" unique_id=328995078]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
-theme_override_font_sizes/font_size = 50
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 55
 text = "Control Mode"
 
 [node name="ControlButtonsRow" type="HBoxContainer" parent="ScrollContainer/MarginContainer/ContentVBox/ControlsSection/VBoxContainer" unique_id=608624124]
@@ -342,7 +342,8 @@ theme_override_constants/separation = 24
 unique_name_in_owner = true
 custom_minimum_size = Vector2(200, 100)
 layout_mode = 2
-theme_override_font_sizes/font_size = 50
+theme_override_colors/font_color = Color(0.6033099, 0.74936783, 0.8706623, 1)
+theme_override_font_sizes/font_size = 55
 theme_override_styles/normal = SubResource("StyleBoxFlat_control_button")
 text = "GYRO"
 
@@ -350,6 +351,7 @@ text = "GYRO"
 unique_name_in_owner = true
 custom_minimum_size = Vector2(200, 100)
 layout_mode = 2
+theme_override_colors/font_color = Color(0.6039216, 0.7490196, 0.87058824, 1)
 theme_override_font_sizes/font_size = 50
 theme_override_styles/normal = SubResource("StyleBoxFlat_control_button")
 text = "TOUCH"
@@ -365,15 +367,15 @@ layout_mode = 2
 [node name="TiltSensitivityLabel" type="Label" parent="ScrollContainer/MarginContainer/ContentVBox/ControlsSection/VBoxContainer/TiltSensitivityContainer/TiltSensitivityRow" unique_id=240274149]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
-theme_override_font_sizes/font_size = 50
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 55
 text = "Tilt Sensitivity"
 
 [node name="TiltSensitivityValue" type="Label" parent="ScrollContainer/MarginContainer/ContentVBox/ControlsSection/VBoxContainer/TiltSensitivityContainer/TiltSensitivityRow" unique_id=523396404]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.25, 0.65, 0.96, 1)
-theme_override_font_sizes/font_size = 50
+theme_override_font_sizes/font_size = 55
 text = "1.0x"
 
 [node name="TiltSensitivitySlider" type="HSlider" parent="ScrollContainer/MarginContainer/ContentVBox/ControlsSection/VBoxContainer/TiltSensitivityContainer" unique_id=1697295400]

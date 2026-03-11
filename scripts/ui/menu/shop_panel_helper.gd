@@ -101,9 +101,6 @@ func rebuild() -> void:
 	# Connect signals
 	_connect_signals()
 	
-	# Apply dynamic styles
-	_apply_dynamic_styles()
-	
 	# Populate initial section
 	update_balance()
 	_populate_section()
@@ -125,36 +122,6 @@ func _connect_signals() -> void:
 		prev_button.pressed.connect(_on_section_prev)
 	if next_button:
 		next_button.pressed.connect(_on_section_next)
-
-
-func _apply_dynamic_styles() -> void:
-	# Style nav buttons
-	var prev_button := content_instance.get_node("%PrevButton") as Button
-	var next_button := content_instance.get_node("%NextButton") as Button
-	
-	for btn in [prev_button, next_button]:
-		if btn:
-			_style_nav_button(btn)
-
-
-func _style_nav_button(btn: Button) -> void:
-	var normal := StyleBoxFlat.new()
-	normal.bg_color = COLOR_BG_LIGHT
-	normal.set_corner_radius_all(16)
-	normal.set_border_width_all(3)
-	normal.border_color = COLOR_BORDER
-	
-	var hover := StyleBoxFlat.new()
-	hover.bg_color = COLOR_ACCENT_GOLD.darkened(0.3)
-	hover.set_corner_radius_all(16)
-	hover.set_border_width_all(3)
-	hover.border_color = COLOR_ACCENT_GOLD
-	
-	btn.add_theme_stylebox_override("normal", normal)
-	btn.add_theme_stylebox_override("hover", hover)
-	btn.add_theme_stylebox_override("pressed", hover)
-	btn.add_theme_color_override("font_color", COLOR_TEXT_PRIMARY)
-	btn.add_theme_color_override("font_hover_color", COLOR_ACCENT_GOLD)
 
 
 func get_back_button() -> Button:

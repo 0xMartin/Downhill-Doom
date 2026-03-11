@@ -46,17 +46,45 @@ corner_radius_top_right = 20
 corner_radius_bottom_right = 20
 corner_radius_bottom_left = 20
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_14yi5"]
+bg_color = Color(0.14, 0.18, 0.26, 1)
+border_width_left = 5
+border_width_top = 5
+border_width_right = 10
+border_width_bottom = 5
+border_color = Color(1, 0.82, 0.25, 0.6)
+corner_radius_top_left = 60
+corner_radius_bottom_left = 60
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_prev_hover"]
+bg_color = Color(0.2, 0.24, 0.32, 1)
+border_width_left = 5
+border_width_top = 5
+border_width_right = 10
+border_width_bottom = 5
+border_color = Color(1, 0.82, 0.25, 1)
+corner_radius_top_left = 60
+corner_radius_bottom_left = 60
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_nav_button"]
 bg_color = Color(0.14, 0.18, 0.26, 1)
-border_width_left = 3
-border_width_top = 3
-border_width_right = 3
-border_width_bottom = 3
+border_width_left = 10
+border_width_top = 5
+border_width_right = 5
+border_width_bottom = 5
 border_color = Color(1, 0.82, 0.25, 0.6)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
+corner_radius_top_right = 60
+corner_radius_bottom_right = 60
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_next_hover"]
+bg_color = Color(0.2, 0.24, 0.32, 1)
+border_width_left = 10
+border_width_top = 5
+border_width_right = 5
+border_width_bottom = 5
+border_color = Color(1, 0.82, 0.25, 1)
+corner_radius_top_right = 60
+corner_radius_bottom_right = 60
 
 [node name="ShopPanelContent" type="VBoxContainer" unique_id=269934911]
 anchors_preset = 15
@@ -151,7 +179,8 @@ theme_override_constants/separation = 12
 alignment = 1
 
 [node name="CoinIcon" type="TextureRect" parent="ContentMargin/ContentVBox/BalanceRow" unique_id=1963873742]
-custom_minimum_size = Vector2(48, 48)
+modulate = Color(1, 0.81960785, 0.2509804, 1)
+custom_minimum_size = Vector2(64, 64)
 layout_mode = 2
 texture = ExtResource("1_coin")
 expand_mode = 1
@@ -161,7 +190,7 @@ stretch_mode = 5
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.82, 0.25, 1)
-theme_override_font_sizes/font_size = 48
+theme_override_font_sizes/font_size = 64
 text = "0"
 
 [node name="NavigationContainer" type="HBoxContainer" parent="ContentMargin/ContentVBox" unique_id=1317737816]
@@ -174,8 +203,10 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(100, 72)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.82, 0.25, 1)
-theme_override_font_sizes/font_size = 40
-theme_override_styles/normal = SubResource("StyleBoxFlat_nav_button")
+theme_override_font_sizes/font_size = 50
+theme_override_styles/normal = SubResource("StyleBoxFlat_14yi5")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_prev_hover")
+theme_override_styles/hover = SubResource("StyleBoxFlat_prev_hover")
 text = "<"
 
 [node name="SectionLabel" type="Label" parent="ContentMargin/ContentVBox/NavigationContainer" unique_id=786427672]
@@ -183,7 +214,7 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(280, 60)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.82, 0.25, 1)
-theme_override_font_sizes/font_size = 48
+theme_override_font_sizes/font_size = 64
 text = "SKINS"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -193,8 +224,10 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(100, 72)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.82, 0.25, 1)
-theme_override_font_sizes/font_size = 40
+theme_override_font_sizes/font_size = 50
 theme_override_styles/normal = SubResource("StyleBoxFlat_nav_button")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_next_hover")
+theme_override_styles/hover = SubResource("StyleBoxFlat_next_hover")
 text = ">"
 
 [node name="ScrollContainer" type="ScrollContainer" parent="ContentMargin/ContentVBox" unique_id=1430644687]
