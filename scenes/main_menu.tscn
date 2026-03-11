@@ -80,22 +80,6 @@ corner_radius_bottom_left = 8
 shadow_color = Color(0.3, 0.6, 0.9, 0.5)
 shadow_size = 8
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button"]
-bg_color = Color(0.12, 0.16, 0.24, 0.9)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.25, 0.35, 0.5, 1)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_hover"]
-bg_color = Color(0.16, 0.22, 0.32, 0.95)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.35, 0.5, 0.7, 1)
-
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_shop_button"]
 bg_color = Color(0.35, 0.3, 0.15, 0.9)
 border_width_left = 2
@@ -111,6 +95,22 @@ border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
 border_color = Color(1, 0.82, 0.25, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button"]
+bg_color = Color(0.12, 0.16, 0.24, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.25, 0.35, 0.5, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_hover"]
+bg_color = Color(0.16, 0.22, 0.32, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.35, 0.5, 0.7, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_balance_card"]
 content_margin_left = 16.0
@@ -296,41 +296,6 @@ theme_override_font_sizes/font_size = 32
 text = "PLAY"
 horizontal_alignment = 1
 
-[node name="StatsButton" type="Button" parent="MainContent/ButtonGrid" unique_id=605584356]
-custom_minimum_size = Vector2(200, 200)
-layout_mode = 2
-theme_override_styles/normal = SubResource("StyleBoxFlat_button")
-theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
-icon_alignment = 1
-expand_icon = true
-
-[node name="VBox" type="VBoxContainer" parent="MainContent/ButtonGrid/StatsButton" unique_id=66831442]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-theme_override_constants/separation = 5
-alignment = 1
-
-[node name="Icon" type="TextureRect" parent="MainContent/ButtonGrid/StatsButton/VBox" unique_id=682557443]
-custom_minimum_size = Vector2(96, 96)
-layout_mode = 2
-size_flags_horizontal = 4
-texture = ExtResource("8_stats")
-expand_mode = 1
-stretch_mode = 5
-
-[node name="Label" type="Label" parent="MainContent/ButtonGrid/StatsButton/VBox" unique_id=1161734560]
-layout_mode = 2
-size_flags_horizontal = 4
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 32
-text = "STATS"
-horizontal_alignment = 1
-
 [node name="ShopButton" type="Button" parent="MainContent/ButtonGrid" unique_id=572709658]
 custom_minimum_size = Vector2(200, 200)
 layout_mode = 2
@@ -364,6 +329,41 @@ size_flags_horizontal = 4
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 32
 text = "SHOP"
+horizontal_alignment = 1
+
+[node name="StatsButton" type="Button" parent="MainContent/ButtonGrid" unique_id=605584356]
+custom_minimum_size = Vector2(200, 200)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_button")
+theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
+icon_alignment = 1
+expand_icon = true
+
+[node name="VBox" type="VBoxContainer" parent="MainContent/ButtonGrid/StatsButton" unique_id=66831442]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 5
+alignment = 1
+
+[node name="Icon" type="TextureRect" parent="MainContent/ButtonGrid/StatsButton/VBox" unique_id=682557443]
+custom_minimum_size = Vector2(96, 96)
+layout_mode = 2
+size_flags_horizontal = 4
+texture = ExtResource("8_stats")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="MainContent/ButtonGrid/StatsButton/VBox" unique_id=1161734560]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 32
+text = "STATS"
 horizontal_alignment = 1
 
 [node name="SettingsButton" type="Button" parent="MainContent/ButtonGrid" unique_id=455693802]
@@ -473,7 +473,7 @@ scroll_active = false
 [node name="BalanceCard" type="PanelContainer" parent="." unique_id=706992669]
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 0.9
+anchor_left = 0.859
 anchor_top = 0.01
 anchor_right = 0.96
 anchor_bottom = 0.01
@@ -486,7 +486,7 @@ theme_override_constants/separation = 12
 
 [node name="CoinIcon" type="TextureRect" parent="BalanceCard/HBox" unique_id=1615069600]
 modulate = Color(1, 0.82, 0.25, 1)
-custom_minimum_size = Vector2(48, 48)
+custom_minimum_size = Vector2(66, 66)
 layout_mode = 2
 texture = ExtResource("12_coin")
 expand_mode = 1
@@ -497,7 +497,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.82, 0.25, 1)
 theme_override_colors/font_outline_color = Color(0.1, 0.1, 0.15, 0.8)
 theme_override_constants/outline_size = 3
-theme_override_font_sizes/font_size = 44
+theme_override_font_sizes/font_size = 66
 text = "0"
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=69379275]
@@ -560,8 +560,8 @@ grow_vertical = 2
 color = Color(0, 0, 0, 0.9)
 
 [connection signal="pressed" from="MainContent/ButtonGrid/PlayButton" to="." method="_on_play_button_pressed"]
-[connection signal="pressed" from="MainContent/ButtonGrid/StatsButton" to="." method="_on_stats_button_pressed"]
 [connection signal="pressed" from="MainContent/ButtonGrid/ShopButton" to="." method="_on_shop_button_pressed"]
+[connection signal="pressed" from="MainContent/ButtonGrid/StatsButton" to="." method="_on_stats_button_pressed"]
 [connection signal="pressed" from="MainContent/ButtonGrid/SettingsButton" to="." method="_on_settings_button_pressed"]
 [connection signal="pressed" from="MainContent/ButtonGrid/QuitButton" to="." method="_on_quit_button_pressed"]
 [connection signal="meta_clicked" from="AuthorLabel" to="." method="_on_author_link_clicked"]

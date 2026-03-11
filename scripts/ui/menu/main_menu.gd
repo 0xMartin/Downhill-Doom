@@ -31,6 +31,7 @@ const COLOR_BORDER := Color(0.25, 0.32, 0.45, 0.8)
 @onready var settings_button: Button = $MainContent/ButtonGrid/SettingsButton
 @onready var quit_button: Button = $MainContent/ButtonGrid/QuitButton
 @onready var title_label: Label = $MainContent/TitleContainer/Title
+@onready var balance_card: PanelContainer = $BalanceCard
 @onready var balance_label: Label = $BalanceCard/HBox/BalanceLabel
 
 var audio_manager: Node
@@ -297,10 +298,16 @@ func _set_title_outline_color(color: Color) -> void:
 
 func _apply_safe_area_offset() -> void:
 	var safe_area := DisplayServer.get_display_safe_area()
-	var top_inset := safe_area.position.y
+	var physical_screen := Vector2(DisplayServer.screen_get_size())
+	var viewport_size := get_viewport().get_visible_rect().size
+	var scale_y: float = viewport_size.y / physical_screen.y
+	var top_inset: float = safe_area.position.y * scale_y
 	
 	if top_inset > 0:
 		main_content.offset_top = top_inset
+		if balance_card:
+			balance_card.offset_top = 20 + top_inset
+			balance_card.offset_bottom = 80 + top_inset
 
 
 # ========== STATS MANAGEMENT ==========
