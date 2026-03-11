@@ -156,18 +156,6 @@ randomness = 0.2
 visibility_rect = Rect2(-100, -100, 2200, 1500)
 process_material = SubResource("ParticleProcessMaterial_dust")
 
-[node name="MountainSilhouette" type="TextureRect" parent="." unique_id=136045562]
-layout_mode = 1
-anchors_preset = -1
-anchor_top = 0.85
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 0
-texture = ExtResource("3_mountain")
-expand_mode = 1
-stretch_mode = 6
-
 [node name="PlayerContainer" type="AspectRatioContainer" parent="." unique_id=1732659305]
 layout_mode = 1
 anchors_preset = -1
@@ -204,6 +192,18 @@ light_energy = 0.8
 
 [node name="PlayerModel" type="Node3D" parent="PlayerContainer/PlayerViewport/SubViewport" unique_id=595751960]
 
+[node name="MountainSilhouette" type="TextureRect" parent="." unique_id=136045562]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.82
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 0
+texture = ExtResource("3_mountain")
+expand_mode = 1
+stretch_mode = 6
+
 [node name="MainContent" type="VBoxContainer" parent="." unique_id=510871778]
 layout_mode = 1
 anchors_preset = -1
@@ -233,7 +233,7 @@ text = "DOWNHILL DOOM"
 horizontal_alignment = 1
 
 [node name="Decoration" type="TextureRect" parent="MainContent/TitleContainer" unique_id=604039621]
-custom_minimum_size = Vector2(0, 40)
+custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 texture = ExtResource("4_decoration")
 expand_mode = 1
@@ -247,7 +247,7 @@ theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.5)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 1
 theme_override_font_sizes/font_size = 42
-text = "Roll. Destroy. Survive."
+text = "ROLL | DESTROY | SURVIVE"
 horizontal_alignment = 1
 
 [node name="Spacer" type="Control" parent="MainContent" unique_id=153063036]
@@ -438,37 +438,33 @@ horizontal_alignment = 1
 
 [node name="VersionLabel" type="Label" parent="." unique_id=1629940536]
 layout_mode = 1
-anchors_preset = 2
-anchor_top = 1.0
-anchor_bottom = 1.0
-offset_left = 80.0
-offset_top = -64.0
-offset_right = 220.0
-offset_bottom = -29.0
+anchors_preset = -1
+anchor_left = 0.05
+anchor_top = 0.95
+anchor_right = 0.45
+anchor_bottom = 0.98
 grow_vertical = 0
 theme_override_colors/font_color = Color(0.6, 0.65, 0.7, 0.7)
-theme_override_font_sizes/font_size = 26
+theme_override_font_sizes/font_size = 42
 text = "v0.1.0"
+vertical_alignment = 1
 
 [node name="AuthorLabel" type="RichTextLabel" parent="." unique_id=1143964675]
 layout_mode = 1
-anchors_preset = 3
-anchor_left = 1.0
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -368.0
-offset_top = -64.0
-offset_right = -78.0
-offset_bottom = -29.0
+anchors_preset = -1
+anchor_left = 0.45
+anchor_top = 0.95
+anchor_right = 0.95
+anchor_bottom = 0.98
 grow_horizontal = 0
 grow_vertical = 0
 theme_override_colors/default_color = Color(0.6, 0.65, 0.7, 0.7)
-theme_override_font_sizes/normal_font_size = 26
+theme_override_font_sizes/normal_font_size = 42
 bbcode_enabled = true
 text = "[right]Made by [url=https://github.com/0xMartin]0xM4R71N[/url][/right]"
 fit_content = true
 scroll_active = false
+vertical_alignment = 1
 
 [node name="BalanceCard" type="PanelContainer" parent="." unique_id=706992669]
 layout_mode = 1
