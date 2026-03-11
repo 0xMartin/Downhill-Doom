@@ -56,16 +56,6 @@ border_color = Color(0.25, 0.32, 0.45, 0.8)
 corner_radius_top_left = 60
 corner_radius_bottom_left = 60
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_nav_button"]
-bg_color = Color(0.14, 0.18, 0.26, 1)
-border_width_left = 10
-border_width_top = 5
-border_width_right = 5
-border_width_bottom = 5
-border_color = Color(0.25, 0.32, 0.45, 0.8)
-corner_radius_top_right = 60
-corner_radius_bottom_right = 60
-
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_prev_hover"]
 bg_color = Color(0.2, 0.24, 0.32, 1)
 border_width_left = 5
@@ -75,6 +65,16 @@ border_width_bottom = 5
 border_color = Color(0.25, 0.65, 0.96, 1)
 corner_radius_top_left = 60
 corner_radius_bottom_left = 60
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_nav_button"]
+bg_color = Color(0.14, 0.18, 0.26, 1)
+border_width_left = 10
+border_width_top = 5
+border_width_right = 5
+border_width_bottom = 5
+border_color = Color(0.25, 0.32, 0.45, 0.8)
+corner_radius_top_right = 60
+corner_radius_bottom_right = 60
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_next_hover"]
 bg_color = Color(0.2, 0.24, 0.32, 1)
@@ -201,13 +201,13 @@ alignment = 1
 
 [node name="PrevButton" type="Button" parent="ScrollContainer/MarginContainer/ContentVBox/NavigationContainer" unique_id=159408186]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(100, 72)
+custom_minimum_size = Vector2(120, 100)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.2509804, 0.6509804, 0.9607843, 1)
-theme_override_font_sizes/font_size = 50
+theme_override_font_sizes/font_size = 65
 theme_override_styles/normal = SubResource("StyleBoxFlat_6fhhm")
-theme_override_styles/hover = SubResource("StyleBoxFlat_prev_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_prev_hover")
+theme_override_styles/hover = SubResource("StyleBoxFlat_prev_hover")
 text = "<"
 
 [node name="SectionLabel" type="Label" parent="ScrollContainer/MarginContainer/ContentVBox/NavigationContainer" unique_id=1768346589]
@@ -215,20 +215,20 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(280, 60)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.25, 0.65, 0.96, 1)
-theme_override_font_sizes/font_size = 64
+theme_override_font_sizes/font_size = 70
 text = "Trees"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="NextButton" type="Button" parent="ScrollContainer/MarginContainer/ContentVBox/NavigationContainer" unique_id=860527592]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(100, 72)
+custom_minimum_size = Vector2(120, 100)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.2509804, 0.6509804, 0.9607843, 1)
-theme_override_font_sizes/font_size = 50
+theme_override_font_sizes/font_size = 65
 theme_override_styles/normal = SubResource("StyleBoxFlat_nav_button")
-theme_override_styles/hover = SubResource("StyleBoxFlat_next_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_next_hover")
+theme_override_styles/hover = SubResource("StyleBoxFlat_next_hover")
 text = ">"
 
 [node name="ObjectGrid" type="GridContainer" parent="ScrollContainer/MarginContainer/ContentVBox" unique_id=1840880426]

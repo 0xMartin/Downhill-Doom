@@ -200,10 +200,10 @@ alignment = 1
 
 [node name="PrevButton" type="Button" parent="ContentMargin/ContentVBox/NavigationContainer" unique_id=211344148]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(100, 72)
+custom_minimum_size = Vector2(120, 100)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.82, 0.25, 1)
-theme_override_font_sizes/font_size = 50
+theme_override_font_sizes/font_size = 65
 theme_override_styles/normal = SubResource("StyleBoxFlat_14yi5")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_prev_hover")
 theme_override_styles/hover = SubResource("StyleBoxFlat_prev_hover")
@@ -214,17 +214,18 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(280, 60)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.82, 0.25, 1)
-theme_override_font_sizes/font_size = 64
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 70
 text = "SKINS"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="NextButton" type="Button" parent="ContentMargin/ContentVBox/NavigationContainer" unique_id=1431807086]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(100, 72)
+custom_minimum_size = Vector2(120, 100)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.82, 0.25, 1)
-theme_override_font_sizes/font_size = 50
+theme_override_font_sizes/font_size = 65
 theme_override_styles/normal = SubResource("StyleBoxFlat_nav_button")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_next_hover")
 theme_override_styles/hover = SubResource("StyleBoxFlat_next_hover")

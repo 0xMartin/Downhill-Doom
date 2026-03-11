@@ -158,40 +158,70 @@ corner_radius_bottom_left = 12
 [sub_resource type="DPITexture" id="DPITexture_eld54"]
 _source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\"><circle cx=\"8\" cy=\"8\" r=\"7\" fill=\"#fefefe\" fill-opacity=\".75\"/></svg>
 "
-base_scale = 2.0
+base_scale = 3.0
 
 [sub_resource type="DPITexture" id="DPITexture_3swnk"]
 _source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\"><circle cx=\"8\" cy=\"8\" r=\"7\" fill=\"#fefefe\"/></svg>
 "
-base_scale = 2.0
+base_scale = 3.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_slider_bg"]
-content_margin_top = 10.0
-content_margin_bottom = 10.0
+content_margin_top = 15.0
+content_margin_bottom = 15.0
 bg_color = Color(1, 1, 1, 0.08)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
+corner_radius_top_left = 15
+corner_radius_top_right = 15
+corner_radius_bottom_right = 15
+corner_radius_bottom_left = 15
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_slider_fill"]
 content_margin_top = 10.0
 content_margin_bottom = 10.0
 bg_color = Color(0.91, 0.27, 0.38, 0.9)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
+corner_radius_top_left = 15
+corner_radius_top_right = 15
+corner_radius_bottom_right = 15
+corner_radius_bottom_left = 15
 
 [sub_resource type="DPITexture" id="DPITexture_qkknv"]
 _source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\"><circle cx=\"8\" cy=\"8\" r=\"7\" fill=\"#fefefe\" fill-opacity=\".75\"/></svg>
 "
-base_scale = 2.0
+base_scale = 3.0
 
 [sub_resource type="DPITexture" id="DPITexture_uxdf7"]
 _source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\"><circle cx=\"8\" cy=\"8\" r=\"7\" fill=\"#fefefe\"/></svg>
 "
-base_scale = 2.0
+base_scale = 3.0
+
+[sub_resource type="DPITexture" id="DPITexture_5357l"]
+_source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"32\" height=\"16\"><rect width=\"30\" height=\"14\" x=\"1\" y=\"1\" fill=\"#fff\" fill-opacity=\".75\" rx=\"7\"/><circle cx=\"24\" cy=\"8\" r=\"5\" fill=\"#1a1a1a\"/></svg>
+"
+base_scale = 4.0
+
+[sub_resource type="DPITexture" id="DPITexture_iypfu"]
+_source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"32\" height=\"16\"><g fill-opacity=\".5\"><rect width=\"30\" height=\"14\" x=\"1\" y=\"1\" fill=\"#1a1a1a\" rx=\"7\"/><circle cx=\"8\" cy=\"8\" r=\"5\" fill=\"#fff\"/></g></svg>
+"
+base_scale = 4.0
+
+[sub_resource type="DPITexture" id="DPITexture_qpprf"]
+_source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"32\" height=\"16\"><rect width=\"30\" height=\"14\" x=\"1\" y=\"1\" fill=\"#fff\" fill-opacity=\".75\" rx=\"7\"/><circle cx=\"24\" cy=\"8\" r=\"5\" fill=\"#1a1a1a\"/></svg>
+"
+base_scale = 4.0
+
+[sub_resource type="DPITexture" id="DPITexture_3xg78"]
+_source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"32\" height=\"16\"><g fill-opacity=\".5\"><rect width=\"30\" height=\"14\" x=\"1\" y=\"1\" fill=\"#1a1a1a\" rx=\"7\"/><circle cx=\"8\" cy=\"8\" r=\"5\" fill=\"#fff\"/></g></svg>
+"
+base_scale = 4.0
+
+[sub_resource type="DPITexture" id="DPITexture_48y67"]
+_source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"32\" height=\"16\"><rect width=\"30\" height=\"14\" x=\"1\" y=\"1\" fill=\"#fff\" fill-opacity=\".75\" rx=\"7\"/><circle cx=\"24\" cy=\"8\" r=\"5\" fill=\"#1a1a1a\"/></svg>
+"
+base_scale = 4.0
+
+[sub_resource type="DPITexture" id="DPITexture_084dp"]
+_source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"32\" height=\"16\"><g fill-opacity=\".5\"><rect width=\"30\" height=\"14\" x=\"1\" y=\"1\" fill=\"#1a1a1a\" rx=\"7\"/><circle cx=\"8\" cy=\"8\" r=\"5\" fill=\"#fff\"/></g></svg>
+"
+base_scale = 4.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_right_panel_bg"]
 bg_color = Color(0.12, 0.12, 0.14, 0.92)
@@ -601,7 +631,6 @@ color = Color(1, 0, 0, 0.4)
 
 [node name="PauseMenu" type="Control" parent="." unique_id=160735412]
 process_mode = 2
-visible = false
 z_index = 100
 layout_mode = 3
 anchors_preset = 15
@@ -657,7 +686,7 @@ theme_override_constants/separation = 24
 alignment = 1
 
 [node name="empty1" type="Control" parent="PauseMenu/PanelContainer/VBoxContainer/HBoxContainer" unique_id=253442448]
-custom_minimum_size = Vector2(70, 0)
+custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 
 [node name="ResumeButton" type="Button" parent="PauseMenu/PanelContainer/VBoxContainer/HBoxContainer" unique_id=1589495864]
@@ -694,7 +723,7 @@ icon_alignment = 1
 expand_icon = true
 
 [node name="empty2" type="Control" parent="PauseMenu/PanelContainer/VBoxContainer/HBoxContainer" unique_id=1472700289]
-custom_minimum_size = Vector2(70, 0)
+custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 
 [node name="Spacer2" type="Control" parent="PauseMenu/PanelContainer/VBoxContainer" unique_id=1989306592]
@@ -769,7 +798,7 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_section")
 
 [node name="DisplayVBox" type="VBoxContainer" parent="PauseMenu/PanelContainer/VBoxContainer/DisplaySection" unique_id=1187854490]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 20
 
 [node name="DisplayLabel" type="Label" parent="PauseMenu/PanelContainer/VBoxContainer/DisplaySection/DisplayVBox" unique_id=2049912056]
 layout_mode = 2
@@ -782,6 +811,8 @@ custom_minimum_size = Vector2(0, 96)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 0.8)
 theme_override_font_sizes/font_size = 42
+theme_override_icons/checked = SubResource("DPITexture_5357l")
+theme_override_icons/unchecked = SubResource("DPITexture_iypfu")
 text = "Pickup Popups"
 
 [node name="DamageCheck" type="CheckButton" parent="PauseMenu/PanelContainer/VBoxContainer/DisplaySection/DisplayVBox" unique_id=871497496]
@@ -789,6 +820,8 @@ custom_minimum_size = Vector2(0, 96)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 0.8)
 theme_override_font_sizes/font_size = 42
+theme_override_icons/checked = SubResource("DPITexture_qpprf")
+theme_override_icons/unchecked = SubResource("DPITexture_3xg78")
 button_pressed = true
 text = "Damage Numbers"
 
@@ -797,6 +830,8 @@ custom_minimum_size = Vector2(0, 96)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 0.8)
 theme_override_font_sizes/font_size = 42
+theme_override_icons/checked = SubResource("DPITexture_48y67")
+theme_override_icons/unchecked = SubResource("DPITexture_084dp")
 button_pressed = true
 text = "Vibration"
 

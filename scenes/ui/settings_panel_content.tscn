@@ -65,30 +65,74 @@ corner_radius_bottom_left = 32
 [sub_resource type="DPITexture" id="DPITexture_grabber"]
 _source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\"><circle cx=\"8\" cy=\"8\" r=\"7\" fill=\"#fefefe\" fill-opacity=\".75\"/></svg>
 "
-base_scale = 2.0
+base_scale = 3.0
 
 [sub_resource type="DPITexture" id="DPITexture_grabber_highlight"]
 _source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\"><circle cx=\"8\" cy=\"8\" r=\"7\" fill=\"#fefefe\"/></svg>
 "
-base_scale = 2.0
+base_scale = 3.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_slider_bg"]
-content_margin_top = 10.0
-content_margin_bottom = 10.0
+content_margin_left = 15.0
+content_margin_top = 15.0
+content_margin_right = 15.0
+content_margin_bottom = 15.0
 bg_color = Color(1, 1, 1, 0.08)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
+corner_radius_top_left = 15
+corner_radius_top_right = 15
+corner_radius_bottom_right = 15
+corner_radius_bottom_left = 15
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_slider_fill"]
-content_margin_top = 10.0
-content_margin_bottom = 10.0
+content_margin_left = 15.0
+content_margin_top = 15.0
+content_margin_right = 15.0
+content_margin_bottom = 15.0
 bg_color = Color(0.91, 0.27, 0.38, 0.9)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
+corner_radius_top_left = 15
+corner_radius_top_right = 15
+corner_radius_bottom_right = 15
+corner_radius_bottom_left = 15
+
+[sub_resource type="DPITexture" id="DPITexture_javpj"]
+_source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"32\" height=\"16\"><rect width=\"30\" height=\"14\" x=\"1\" y=\"1\" fill=\"#fff\" fill-opacity=\".75\" rx=\"7\"/><circle cx=\"24\" cy=\"8\" r=\"5\" fill=\"#1a1a1a\"/></svg>
+"
+base_scale = 4.0
+
+[sub_resource type="DPITexture" id="DPITexture_npcd2"]
+_source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"32\" height=\"16\"><g fill-opacity=\".5\"><rect width=\"30\" height=\"14\" x=\"1\" y=\"1\" fill=\"#1a1a1a\" rx=\"7\"/><circle cx=\"8\" cy=\"8\" r=\"5\" fill=\"#fff\"/></g></svg>
+"
+base_scale = 4.0
+
+[sub_resource type="DPITexture" id="DPITexture_w21ob"]
+_source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"32\" height=\"16\"><rect width=\"30\" height=\"14\" x=\"1\" y=\"1\" fill=\"#fff\" fill-opacity=\".75\" rx=\"7\"/><circle cx=\"24\" cy=\"8\" r=\"5\" fill=\"#1a1a1a\"/></svg>
+"
+base_scale = 4.0
+
+[sub_resource type="DPITexture" id="DPITexture_63w27"]
+_source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"32\" height=\"16\"><g fill-opacity=\".5\"><rect width=\"30\" height=\"14\" x=\"1\" y=\"1\" fill=\"#1a1a1a\" rx=\"7\"/><circle cx=\"8\" cy=\"8\" r=\"5\" fill=\"#fff\"/></g></svg>
+"
+base_scale = 4.0
+
+[sub_resource type="DPITexture" id="DPITexture_iblaf"]
+_source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"32\" height=\"16\"><rect width=\"30\" height=\"14\" x=\"1\" y=\"1\" fill=\"#fff\" fill-opacity=\".75\" rx=\"7\"/><circle cx=\"24\" cy=\"8\" r=\"5\" fill=\"#1a1a1a\"/></svg>
+"
+base_scale = 4.0
+
+[sub_resource type="DPITexture" id="DPITexture_duwkw"]
+_source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"32\" height=\"16\"><g fill-opacity=\".5\"><rect width=\"30\" height=\"14\" x=\"1\" y=\"1\" fill=\"#1a1a1a\" rx=\"7\"/><circle cx=\"8\" cy=\"8\" r=\"5\" fill=\"#fff\"/></g></svg>
+"
+base_scale = 4.0
+
+[sub_resource type="DPITexture" id="DPITexture_2oftd"]
+_source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"32\" height=\"16\"><rect width=\"30\" height=\"14\" x=\"1\" y=\"1\" fill=\"#fff\" fill-opacity=\".75\" rx=\"7\"/><circle cx=\"24\" cy=\"8\" r=\"5\" fill=\"#1a1a1a\"/></svg>
+"
+base_scale = 4.0
+
+[sub_resource type="DPITexture" id="DPITexture_v5f2b"]
+_source = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"32\" height=\"16\"><g fill-opacity=\".5\"><rect width=\"30\" height=\"14\" x=\"1\" y=\"1\" fill=\"#1a1a1a\" rx=\"7\"/><circle cx=\"8\" cy=\"8\" r=\"5\" fill=\"#fff\"/></g></svg>
+"
+base_scale = 4.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_control_button"]
 bg_color = Color(0.06, 0.08, 0.12, 1)
@@ -184,10 +228,10 @@ horizontal_scroll_mode = 0
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_constants/margin_left = 36
-theme_override_constants/margin_top = 24
-theme_override_constants/margin_right = 36
-theme_override_constants/margin_bottom = 48
+theme_override_constants/margin_left = 74
+theme_override_constants/margin_top = 40
+theme_override_constants/margin_right = 74
+theme_override_constants/margin_bottom = 40
 
 [node name="ContentVBox" type="VBoxContainer" parent="ScrollContainer/MarginContainer" unique_id=711399750]
 layout_mode = 2
@@ -282,6 +326,8 @@ custom_minimum_size = Vector2(0, 140)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
 theme_override_font_sizes/font_size = 55
+theme_override_icons/checked = SubResource("DPITexture_javpj")
+theme_override_icons/unchecked = SubResource("DPITexture_npcd2")
 button_pressed = true
 text = "Show Pickup Popups"
 
@@ -291,6 +337,8 @@ custom_minimum_size = Vector2(0, 140)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
 theme_override_font_sizes/font_size = 55
+theme_override_icons/checked = SubResource("DPITexture_w21ob")
+theme_override_icons/unchecked = SubResource("DPITexture_63w27")
 button_pressed = true
 text = "Show Damage Numbers"
 
@@ -300,6 +348,8 @@ custom_minimum_size = Vector2(0, 140)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
 theme_override_font_sizes/font_size = 55
+theme_override_icons/checked = SubResource("DPITexture_iblaf")
+theme_override_icons/unchecked = SubResource("DPITexture_duwkw")
 button_pressed = true
 text = "Haptic Feedback"
 
@@ -309,6 +359,8 @@ custom_minimum_size = Vector2(0, 140)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
 theme_override_font_sizes/font_size = 55
+theme_override_icons/checked = SubResource("DPITexture_2oftd")
+theme_override_icons/unchecked = SubResource("DPITexture_v5f2b")
 button_pressed = true
 text = "Screen Shake"
 
