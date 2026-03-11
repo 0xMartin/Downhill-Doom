@@ -4,8 +4,18 @@ extends RefCounted
 ## and handles dynamic content generation (skin cards, boost cards, crate cards, roulette)
 
 const CONTENT_SCENE := preload("res://scenes/ui/shop_panel_content.tscn")
-const UIConstants := preload("res://scripts/ui/ui_constants.gd")
 const ModelRenderer := preload("res://scripts/utils/model_renderer.gd")
+
+# UI Size Constants
+const LIST_ITEM_HEIGHT := 184
+const LIST_ITEM_HEIGHT_LARGE := 220
+const ROULETTE_WINDOW_WIDTH := 980
+const ROULETTE_WINDOW_HEIGHT := 280
+const ROULETTE_ITEM_WIDTH := 200
+const ROULETTE_ITEM_HEIGHT := 220
+const ROULETTE_ICON_SIZE := 140
+const ROULETTE_ITEM_SPACING := 16
+const FONT_SIZE_NORMAL := 48
 
 # Colors
 const COLOR_ACCENT_PRIMARY := Color(0.28, 0.76, 0.70, 1.0)
@@ -233,7 +243,7 @@ func _populate_skins_section() -> void:
 
 func _create_skin_card(skin_id: String, is_texture: bool) -> PanelContainer:
 	var card := PanelContainer.new()
-	card.custom_minimum_size = Vector2(0, UIConstants.LIST_ITEM_HEIGHT)
+	card.custom_minimum_size = Vector2(0, LIST_ITEM_HEIGHT)
 	card.mouse_filter = Control.MOUSE_FILTER_PASS
 	
 	var is_owned: bool = shop_manager.is_skin_owned(skin_id)
@@ -377,7 +387,7 @@ func _populate_boosts_section() -> void:
 
 func _create_boost_card(boost_id: String) -> PanelContainer:
 	var card := PanelContainer.new()
-	card.custom_minimum_size = Vector2(0, UIConstants.LIST_ITEM_HEIGHT)
+	card.custom_minimum_size = Vector2(0, LIST_ITEM_HEIGHT)
 	card.mouse_filter = Control.MOUSE_FILTER_PASS
 	
 	var owned_count: int = shop_manager.get_boost_count(boost_id)
@@ -496,7 +506,7 @@ func _populate_crates_section() -> void:
 
 func _create_crate_card(crate_type: String) -> PanelContainer:
 	var card := PanelContainer.new()
-	card.custom_minimum_size = Vector2(0, UIConstants.LIST_ITEM_HEIGHT_LARGE)
+	card.custom_minimum_size = Vector2(0, LIST_ITEM_HEIGHT_LARGE)
 	card.mouse_filter = Control.MOUSE_FILTER_PASS
 	
 	var owned_count: int = shop_manager.get_crate_count(crate_type)
@@ -656,7 +666,7 @@ func show_roulette(crate_type: String) -> void:
 	center.add_child(window_wrapper)
 	
 	var window_container := Control.new()
-	window_container.custom_minimum_size = Vector2(UIConstants.ROULETTE_WINDOW_WIDTH, UIConstants.ROULETTE_WINDOW_HEIGHT)
+	window_container.custom_minimum_size = Vector2(ROULETTE_WINDOW_WIDTH, ROULETTE_WINDOW_HEIGHT)
 	window_container.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	window_container.clip_contents = true
 	window_wrapper.add_child(window_container)
@@ -679,8 +689,8 @@ func show_roulette(crate_type: String) -> void:
 	
 	# Items container
 	roulette_hbox = HBoxContainer.new()
-	roulette_hbox.add_theme_constant_override("separation", UIConstants.ROULETTE_ITEM_SPACING)
-	roulette_hbox.position = Vector2(0, (UIConstants.ROULETTE_WINDOW_HEIGHT - UIConstants.ROULETTE_ITEM_HEIGHT) / 2)
+	roulette_hbox.add_theme_constant_override("separation", ROULETTE_ITEM_SPACING)
+	roulette_hbox.position = Vector2(0, (ROULETTE_WINDOW_HEIGHT - ROULETTE_ITEM_HEIGHT) / 2)
 	window_container.add_child(roulette_hbox)
 	
 	# Center marker
@@ -736,7 +746,7 @@ func show_roulette(crate_type: String) -> void:
 
 func _create_roulette_item(item_data: Dictionary) -> PanelContainer:
 	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(UIConstants.ROULETTE_ITEM_WIDTH, UIConstants.ROULETTE_ITEM_HEIGHT)
+	panel.custom_minimum_size = Vector2(ROULETTE_ITEM_WIDTH, ROULETTE_ITEM_HEIGHT)
 	panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	
@@ -779,7 +789,7 @@ func _create_roulette_item(item_data: Dictionary) -> PanelContainer:
 			is_texture_skin = ResourceLoader.exists(icon_path)
 	
 	if is_texture_skin:
-		var icon_size := UIConstants.ROULETTE_ICON_SIZE
+		var icon_size := ROULETTE_ICON_SIZE
 		var half_icon := icon_size / 2
 		var clip_container := Control.new()
 		clip_container.clip_contents = true
@@ -800,7 +810,7 @@ func _create_roulette_item(item_data: Dictionary) -> PanelContainer:
 		icon.position = Vector2(-offset, -offset)
 		clip_container.add_child(icon)
 	else:
-		var icon_size := UIConstants.ROULETTE_ICON_SIZE
+		var icon_size := ROULETTE_ICON_SIZE
 		var half_icon := icon_size / 2
 		var icon := TextureRect.new()
 		if icon_path and ResourceLoader.exists(icon_path):
@@ -915,7 +925,7 @@ func _animate_win_label(label: Label) -> void:
 
 func _animate_roulette() -> void:
 	var winning_index := 25
-	var window_width := float(UIConstants.ROULETTE_WINDOW_WIDTH)
+	var window_width := float(ROULETTE_WINDOW_WIDTH)
 	var window_center := window_width / 2.0
 	
 	roulette_hbox.position.x = window_width
@@ -933,8 +943,8 @@ func _animate_roulette() -> void:
 	await shop_panel.get_tree().process_frame
 	await shop_panel.get_tree().process_frame
 	
-	var item_size := float(UIConstants.ROULETTE_ITEM_WIDTH)
-	var separation := float(UIConstants.ROULETTE_ITEM_SPACING)
+	var item_size := float(ROULETTE_ITEM_WIDTH)
+	var separation := float(ROULETTE_ITEM_SPACING)
 	var item_step := item_size + separation
 	var item_center := float(winning_index) * item_step + (item_size / 2.0)
 	var target_x := window_center - item_center
@@ -1042,7 +1052,7 @@ func _update_roulette_item(panel: PanelContainer, result: Dictionary) -> void:
 				is_texture_skin = ResourceLoader.exists(icon_path)
 	
 	if is_texture_skin:
-		var icon_size := UIConstants.ROULETTE_ICON_SIZE
+		var icon_size := ROULETTE_ICON_SIZE
 		var half_icon := icon_size / 2
 		var clip_container := Control.new()
 		clip_container.clip_contents = true
@@ -1063,7 +1073,7 @@ func _update_roulette_item(panel: PanelContainer, result: Dictionary) -> void:
 		icon.position = Vector2(-offset, -offset)
 		clip_container.add_child(icon)
 	else:
-		var icon_size := UIConstants.ROULETTE_ICON_SIZE
+		var icon_size := ROULETTE_ICON_SIZE
 		var half_icon := icon_size / 2
 		var icon := TextureRect.new()
 		if icon_path and ResourceLoader.exists(icon_path):
@@ -1299,9 +1309,9 @@ func _on_roulette_process() -> void:
 			shop_panel.get_tree().process_frame.disconnect(_on_roulette_process)
 		return
 	
-	var window_center := float(UIConstants.ROULETTE_WINDOW_WIDTH) / 2.0
-	var item_size := float(UIConstants.ROULETTE_ITEM_WIDTH)
-	var separation := float(UIConstants.ROULETTE_ITEM_SPACING)
+	var window_center := float(ROULETTE_WINDOW_WIDTH) / 2.0
+	var item_size := float(ROULETTE_ITEM_WIDTH)
+	var separation := float(ROULETTE_ITEM_SPACING)
 	var item_step := item_size + separation
 	
 	var pos_in_hbox := window_center - roulette_hbox.position.x
@@ -1380,7 +1390,7 @@ func _format_balance(amount: int) -> String:
 
 func _style_secondary_button(button: Button) -> void:
 	button.custom_minimum_size = Vector2(200, 88)
-	button.add_theme_font_size_override("font_size", UIConstants.FONT_SIZE_NORMAL)
+	button.add_theme_font_size_override("font_size", FONT_SIZE_NORMAL)
 	
 	var normal := StyleBoxFlat.new()
 	normal.bg_color = COLOR_BG_LIGHT
