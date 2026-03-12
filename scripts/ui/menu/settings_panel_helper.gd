@@ -3,7 +3,7 @@ extends RefCounted
 ## Helper class for managing the settings panel UI
 ## Loads UI from scene file and handles logic/signals
 
-const CONTENT_SCENE := preload("res://scenes/ui/settings_panel_content.tscn")
+const CONTENT_SCENE := preload("res://scenes/ui/menu/settings_panel_content.tscn")
 
 # Color palette for dynamic styling
 const COLOR_ACCENT_PRIMARY := Color(0.25, 0.65, 0.96, 1.0)

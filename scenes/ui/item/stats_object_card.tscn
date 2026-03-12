@@ -1,0 +1,79 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/item/stats_object_card.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://jepsdf0och2h" path="res://assets/svg/coin.svg" id="2_coin"]
+
+[node name="StatsObjectCard" type="PanelContainer"]
+custom_minimum_size = Vector2(0, 180)
+size_flags_horizontal = 3
+mouse_filter = 1
+script = ExtResource("1_script")
+
+[node name="HBox" type="HBoxContainer" parent="."]
+layout_mode = 2
+mouse_filter = 1
+theme_override_constants/separation = 24
+
+[node name="PreviewContainer" type="Control" parent="HBox" unique_name_in_owner=true]
+custom_minimum_size = Vector2(156, 156)
+layout_mode = 2
+mouse_filter = 1
+
+[node name="Info" type="VBoxContainer" parent="HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 1
+theme_override_constants/separation = 8
+
+[node name="NameLabel" type="Label" parent="HBox/Info" unique_name_in_owner=true]
+layout_mode = 2
+theme_override_font_sizes/font_size = 44
+text = "???"
+
+[node name="StatsRow" type="HBoxContainer" parent="HBox/Info"]
+layout_mode = 2
+mouse_filter = 1
+theme_override_constants/separation = 24
+
+[node name="CoinRow" type="HBoxContainer" parent="HBox/Info/StatsRow"]
+layout_mode = 2
+mouse_filter = 1
+theme_override_constants/separation = 8
+
+[node name="CoinIcon" type="TextureRect" parent="HBox/Info/StatsRow/CoinRow" unique_name_in_owner=true]
+custom_minimum_size = Vector2(36, 36)
+layout_mode = 2
+texture = ExtResource("2_coin")
+expand_mode = 1
+stretch_mode = 6
+mouse_filter = 1
+
+[node name="CoinLabel" type="Label" parent="HBox/Info/StatsRow/CoinRow" unique_name_in_owner=true]
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "?"
+
+[node name="SpawnLabel" type="Label" parent="HBox/Info/StatsRow" unique_name_in_owner=true]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Spawn: ?%"
+
+[node name="ArmoredLabel" type="Label" parent="HBox/Info/StatsRow" unique_name_in_owner=true]
+visible = false
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "ARMORED"
+
+[node name="BadgeContainer" type="HBoxContainer" parent="HBox/Info"]
+layout_mode = 2
+mouse_filter = 1
+theme_override_constants/separation = 12
+
+[node name="Badge" type="PanelContainer" parent="HBox/Info/BadgeContainer" unique_name_in_owner=true]
+layout_mode = 2
+mouse_filter = 1
+
+[node name="KillLabel" type="Label" parent="HBox/Info/BadgeContainer/Badge" unique_name_in_owner=true]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Destroyed: 0"

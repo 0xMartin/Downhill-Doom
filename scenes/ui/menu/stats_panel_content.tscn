@@ -1,0 +1,372 @@
+[gd_scene format=3 uid="uid://ba036kq57bhe0"]
+
+[ext_resource type="Texture2D" uid="uid://cbmjrgtoexwle" path="res://assets/svg/stats.svg" id="1_stats"]
+[ext_resource type="Texture2D" uid="uid://jknnhd7en14a" path="res://assets/svg/back_arrow.svg" id="2_back"]
+[ext_resource type="Texture2D" uid="uid://jepsdf0och2h" path="res://assets/svg/coin.svg" id="3_coin"]
+[ext_resource type="Texture2D" uid="uid://c8ih408eiw1t2" path="res://assets/svg/distance.svg" id="4_distance"]
+[ext_resource type="Texture2D" uid="uid://rww13whkph7g" path="res://assets/svg/games.svg" id="5_games"]
+[ext_resource type="Texture2D" uid="uid://ir0sfye5v0g4" path="res://assets/svg/time.svg" id="6_time"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_header"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(0.05, 0.07, 0.1, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_accent"]
+bg_color = Color(1, 1, 1, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_back_button_normal"]
+content_margin_left = 24.0
+content_margin_top = 12.0
+content_margin_right = 24.0
+content_margin_bottom = 12.0
+bg_color = Color(1, 1, 1, 0.1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_back_button_pressed"]
+content_margin_left = 24.0
+content_margin_top = 12.0
+content_margin_right = 24.0
+content_margin_bottom = 12.0
+bg_color = Color(0.2, 0.52, 0.77, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_back_button_hover"]
+content_margin_left = 24.0
+content_margin_top = 12.0
+content_margin_right = 24.0
+content_margin_bottom = 12.0
+bg_color = Color(1, 1, 1, 0.2)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_global_stats"]
+content_margin_left = 48.0
+content_margin_top = 24.0
+content_margin_right = 48.0
+content_margin_bottom = 24.0
+bg_color = Color(0.06, 0.08, 0.12, 1)
+border_width_left = 8
+border_width_top = 8
+border_width_right = 8
+border_width_bottom = 8
+border_color = Color(0.2509804, 0.32156864, 0.4509804, 0.8)
+corner_radius_top_left = 32
+corner_radius_top_right = 32
+corner_radius_bottom_right = 32
+corner_radius_bottom_left = 32
+expand_margin_left = 8.0
+expand_margin_top = 8.0
+expand_margin_right = 8.0
+expand_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6fhhm"]
+bg_color = Color(0.14, 0.18, 0.26, 1)
+border_width_left = 5
+border_width_top = 5
+border_width_right = 10
+border_width_bottom = 5
+border_color = Color(0.25, 0.32, 0.45, 0.8)
+corner_radius_top_left = 60
+corner_radius_bottom_left = 60
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_prev_hover"]
+bg_color = Color(0.2, 0.24, 0.32, 1)
+border_width_left = 5
+border_width_top = 5
+border_width_right = 10
+border_width_bottom = 5
+border_color = Color(0.25, 0.65, 0.96, 1)
+corner_radius_top_left = 60
+corner_radius_bottom_left = 60
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_nav_button"]
+bg_color = Color(0.14, 0.18, 0.26, 1)
+border_width_left = 10
+border_width_top = 5
+border_width_right = 5
+border_width_bottom = 5
+border_color = Color(0.25, 0.32, 0.45, 0.8)
+corner_radius_top_right = 60
+corner_radius_bottom_right = 60
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_next_hover"]
+bg_color = Color(0.2, 0.24, 0.32, 1)
+border_width_left = 10
+border_width_top = 5
+border_width_right = 5
+border_width_bottom = 5
+border_color = Color(0.25, 0.65, 0.96, 1)
+corner_radius_top_right = 60
+corner_radius_bottom_right = 60
+
+[node name="StatsPanelContent" type="VBoxContainer" unique_id=1991445147]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 0
+
+[node name="Header" type="PanelContainer" parent="." unique_id=40408722]
+custom_minimum_size = Vector2(0, 200)
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_header")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Header" unique_id=234835306]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 24
+alignment = 1
+
+[node name="Panel" type="Panel" parent="Header/HBoxContainer" unique_id=494824512]
+custom_minimum_size = Vector2(30, 0)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_accent")
+
+[node name="empty1" type="Control" parent="Header/HBoxContainer" unique_id=1015439610]
+custom_minimum_size = Vector2(20, 0)
+layout_mode = 2
+
+[node name="HeaderIcon" type="TextureRect" parent="Header/HBoxContainer" unique_id=1476897832]
+custom_minimum_size = Vector2(85, 85)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("1_stats")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="HeaderTitle" type="Label" parent="Header/HBoxContainer" unique_id=1519689011]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 70
+text = "STATISTICS"
+
+[node name="Spacer" type="Control" parent="Header/HBoxContainer" unique_id=948114447]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="BackButton" type="Button" parent="Header/HBoxContainer" unique_id=2050955782]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(150, 110)
+layout_mode = 2
+size_flags_stretch_ratio = 0.4
+focus_mode = 0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 40
+theme_override_styles/normal = SubResource("StyleBoxFlat_back_button_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_back_button_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_back_button_hover")
+theme_override_styles/focus = SubResource("StyleBoxFlat_back_button_hover")
+icon = ExtResource("2_back")
+flat = true
+alignment = 2
+icon_alignment = 1
+expand_icon = true
+
+[node name="empty2" type="Control" parent="Header/HBoxContainer" unique_id=383918486]
+custom_minimum_size = Vector2(20, 0)
+layout_mode = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="." unique_id=971233694]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="MarginContainer" type="MarginContainer" parent="ScrollContainer" unique_id=641472661]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_left = 74
+theme_override_constants/margin_top = 40
+theme_override_constants/margin_right = 74
+theme_override_constants/margin_bottom = 40
+
+[node name="ContentVBox" type="VBoxContainer" parent="ScrollContainer/MarginContainer" unique_id=1852588286]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 24
+
+[node name="GlobalStatsCard" type="PanelContainer" parent="ScrollContainer/MarginContainer/ContentVBox" unique_id=1898074232]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_global_stats")
+
+[node name="GlobalStatsContent" type="VBoxContainer" parent="ScrollContainer/MarginContainer/ContentVBox/GlobalStatsCard" unique_id=1600998797]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="GamesRow" type="HBoxContainer" parent="ScrollContainer/MarginContainer/ContentVBox/GlobalStatsCard/GlobalStatsContent" unique_id=1645523170]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="GamesIcon" type="TextureRect" parent="ScrollContainer/MarginContainer/ContentVBox/GlobalStatsCard/GlobalStatsContent/GamesRow" unique_id=1590654452]
+modulate = Color(0.7, 0.75, 0.85, 1)
+custom_minimum_size = Vector2(60, 60)
+layout_mode = 2
+texture = ExtResource("5_games")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="GamesLabel" type="Label" parent="ScrollContainer/MarginContainer/ContentVBox/GlobalStatsCard/GlobalStatsContent/GamesRow" unique_id=1522824137]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
+theme_override_font_sizes/font_size = 60
+text = "Games Played"
+
+[node name="GamesValue" type="RichTextLabel" parent="ScrollContainer/MarginContainer/ContentVBox/GlobalStatsCard/GlobalStatsContent/GamesRow" unique_id=368507880]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 60)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/normal_font_size = 55
+bbcode_enabled = true
+text = "[right]0[/right]"
+scroll_active = false
+
+[node name="CoinsRow" type="HBoxContainer" parent="ScrollContainer/MarginContainer/ContentVBox/GlobalStatsCard/GlobalStatsContent" unique_id=498927500]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="CoinsIcon" type="TextureRect" parent="ScrollContainer/MarginContainer/ContentVBox/GlobalStatsCard/GlobalStatsContent/CoinsRow" unique_id=1547210309]
+modulate = Color(1, 0.82, 0.25, 1)
+custom_minimum_size = Vector2(60, 60)
+layout_mode = 2
+texture = ExtResource("3_coin")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CoinsLabel" type="Label" parent="ScrollContainer/MarginContainer/ContentVBox/GlobalStatsCard/GlobalStatsContent/CoinsRow" unique_id=971130408]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.82, 0.25, 1)
+theme_override_font_sizes/font_size = 60
+text = "Coins"
+
+[node name="CoinsValue" type="RichTextLabel" parent="ScrollContainer/MarginContainer/ContentVBox/GlobalStatsCard/GlobalStatsContent/CoinsRow" unique_id=803287011]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 60)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/normal_font_size = 55
+bbcode_enabled = true
+text = "[right][color=#ffcf40]Best[/color]  [color=#ffffff]0[/color][/right]"
+scroll_active = false
+
+[node name="DistanceRow" type="HBoxContainer" parent="ScrollContainer/MarginContainer/ContentVBox/GlobalStatsCard/GlobalStatsContent" unique_id=614689415]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="DistanceIcon" type="TextureRect" parent="ScrollContainer/MarginContainer/ContentVBox/GlobalStatsCard/GlobalStatsContent/DistanceRow" unique_id=873766036]
+modulate = Color(0.25, 0.65, 0.96, 1)
+custom_minimum_size = Vector2(60, 60)
+layout_mode = 2
+texture = ExtResource("4_distance")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="DistanceLabel" type="Label" parent="ScrollContainer/MarginContainer/ContentVBox/GlobalStatsCard/GlobalStatsContent/DistanceRow" unique_id=473337534]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.25, 0.65, 0.96, 1)
+theme_override_font_sizes/font_size = 60
+text = "Distance"
+
+[node name="DistanceValue" type="RichTextLabel" parent="ScrollContainer/MarginContainer/ContentVBox/GlobalStatsCard/GlobalStatsContent/DistanceRow" unique_id=1664674995]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 60)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/normal_font_size = 55
+bbcode_enabled = true
+text = "[right][color=#40a6f5]Best[/color]  [color=#ffffff]0 m[/color][/right]"
+scroll_active = false
+
+[node name="TimeRow" type="HBoxContainer" parent="ScrollContainer/MarginContainer/ContentVBox/GlobalStatsCard/GlobalStatsContent" unique_id=438526733]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="TimeIcon" type="TextureRect" parent="ScrollContainer/MarginContainer/ContentVBox/GlobalStatsCard/GlobalStatsContent/TimeRow" unique_id=295820375]
+modulate = Color(0.3, 0.85, 0.55, 1)
+custom_minimum_size = Vector2(60, 60)
+layout_mode = 2
+texture = ExtResource("6_time")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="TimeLabel" type="Label" parent="ScrollContainer/MarginContainer/ContentVBox/GlobalStatsCard/GlobalStatsContent/TimeRow" unique_id=1022738596]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.85, 0.55, 1)
+theme_override_font_sizes/font_size = 60
+text = "Time"
+
+[node name="TimeValue" type="RichTextLabel" parent="ScrollContainer/MarginContainer/ContentVBox/GlobalStatsCard/GlobalStatsContent/TimeRow" unique_id=1037793187]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 60)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/normal_font_size = 55
+bbcode_enabled = true
+text = "[right][color=#4dd98c]Best[/color]  [color=#ffffff]00h 00min 00s[/color][/right]"
+scroll_active = false
+
+[node name="NavigationContainer" type="HBoxContainer" parent="ScrollContainer/MarginContainer/ContentVBox" unique_id=776421136]
+layout_mode = 2
+theme_override_constants/separation = 24
+alignment = 1
+
+[node name="PrevButton" type="Button" parent="ScrollContainer/MarginContainer/ContentVBox/NavigationContainer" unique_id=159408186]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 100)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.2509804, 0.6509804, 0.9607843, 1)
+theme_override_font_sizes/font_size = 65
+theme_override_styles/normal = SubResource("StyleBoxFlat_6fhhm")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_prev_hover")
+theme_override_styles/hover = SubResource("StyleBoxFlat_prev_hover")
+text = "<"
+
+[node name="SectionLabel" type="Label" parent="ScrollContainer/MarginContainer/ContentVBox/NavigationContainer" unique_id=1768346589]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(280, 60)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.25, 0.65, 0.96, 1)
+theme_override_colors/font_outline_color = Color(0.019406848, 0.27027866, 0.43863568, 1)
+theme_override_constants/outline_size = 30
+theme_override_font_sizes/font_size = 70
+text = "Trees"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="NextButton" type="Button" parent="ScrollContainer/MarginContainer/ContentVBox/NavigationContainer" unique_id=860527592]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 100)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.2509804, 0.6509804, 0.9607843, 1)
+theme_override_font_sizes/font_size = 65
+theme_override_styles/normal = SubResource("StyleBoxFlat_nav_button")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_next_hover")
+theme_override_styles/hover = SubResource("StyleBoxFlat_next_hover")
+text = ">"
+
+[node name="ObjectGrid" type="GridContainer" parent="ScrollContainer/MarginContainer/ContentVBox" unique_id=1840880426]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/v_separation = 24

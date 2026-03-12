@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://ba036kq57bhe0"]
+[gd_scene format=3 uid="uid://dka45gttx8j"]
 
 [ext_resource type="Texture2D" uid="uid://cbmjrgtoexwle" path="res://assets/svg/stats.svg" id="1_stats"]
 [ext_resource type="Texture2D" uid="uid://jknnhd7en14a" path="res://assets/svg/back_arrow.svg" id="2_back"]
@@ -325,11 +325,6 @@ theme_override_font_sizes/normal_font_size = 55
 bbcode_enabled = true
 text = "[right][color=#4dd98c]Best[/color]  [color=#ffffff]00h 00min 00s[/color][/right]"
 scroll_active = false
-
-[node name="Separator" type="HSeparator" parent="ScrollContainer/MarginContainer/ContentVBox" unique_id=1652630843]
-modulate = Color(0.25, 0.32, 0.45, 0.8)
-custom_minimum_size = Vector2(0, 8)
-layout_mode = 2
 
 [node name="NavigationContainer" type="HBoxContainer" parent="ScrollContainer/MarginContainer/ContentVBox" unique_id=776421136]
 layout_mode = 2

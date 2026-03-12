@@ -3,9 +3,9 @@ extends RefCounted
 ## Scene-based shop panel helper that loads static UI from scene file
 ## and handles dynamic content generation (skin cards, boost cards, crate cards, roulette)
 
-const CONTENT_SCENE := preload("res://scenes/ui/shop_panel_content.tscn")
-const ROULETTE_SPINNER_SCENE := preload("res://scenes/ui/roulette_spinner.tscn")
-const ROULETTE_RESULT_SCENE := preload("res://scenes/ui/roulette_result.tscn")
+const CONTENT_SCENE := preload("res://scenes/ui/menu/shop_panel_content.tscn")
+const ROULETTE_SPINNER_SCENE := preload("res://scenes/ui/menu/roulette_spinner.tscn")
+const ROULETTE_RESULT_SCENE := preload("res://scenes/ui/menu/roulette_result.tscn")
 const ModelRenderer := preload("res://scripts/utils/model_renderer.gd")
 
 # UI Size Constants
