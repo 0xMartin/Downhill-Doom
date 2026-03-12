@@ -97,6 +97,7 @@ func _ready() -> void:
 	# Connect shop manager signals
 	if shop_manager:
 		shop_manager.balance_changed.connect(_on_shop_balance_changed)
+		shop_manager.skin_changed.connect(_on_skin_changed)
 	
 	if animation_player and animation_player.has_animation("enter"):
 		animation_player.play("enter")
@@ -324,8 +325,8 @@ func _load_stats() -> void:
 		stats["total_time"] = secure_stats.get("total_time_played", 0.0)
 		stats["max_time"] = secure_stats.get("best_time", 0.0)
 		stats["coin_balance"] = storage.get_coin_balance()
-		if not stats.has("destroyed_objects"):
-			stats["destroyed_objects"] = {}
+		# Load destroyed objects from persistent storage
+		stats["destroyed_objects"] = storage.get_destroyed_objects()
 
 
 func _save_stats() -> void:
@@ -472,3 +473,7 @@ func _on_balance_update_needed() -> void:
 func _on_shop_balance_changed(_new_balance: int) -> void:
 	_load_stats()
 	_update_balance_display()
+
+
+func _on_skin_changed(_skin_id: String) -> void:
+	_setup_player_model()

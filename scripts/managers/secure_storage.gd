@@ -21,11 +21,14 @@ var _data: Dictionary = {}
 var _is_loaded := false
 
 signal data_changed
+signal storage_ready  # Emitted when initial data load is complete
 
 
 func _ready() -> void:
 	_derive_keys()
 	_load_data()
+	# Emit ready signal after data is loaded
+	storage_ready.emit()
 
 
 # ========== KEY DERIVATION ==========
@@ -213,10 +216,17 @@ func _get_default_data() -> Dictionary:
 		"best_distance": 0.0,
 		"best_coins": 0,
 		"best_time": 0.0,
+		
+		# Kill statistics (object_id -> count)
+		"destroyed_objects": {},
 	}
 
 
 # ========== PUBLIC API - COINS ==========
+
+func is_storage_ready() -> bool:
+	return _is_loaded
+
 
 func get_coin_balance() -> int:
 	return int(_data.get("coin_balance", 0))
@@ -401,6 +411,19 @@ func get_best_coins() -> int:
 
 func get_best_time() -> float:
 	return _data.get("best_time", 0.0)
+
+
+func get_destroyed_objects() -> Dictionary:
+	return _data.get("destroyed_objects", {}).duplicate()
+
+
+func add_destroyed_objects(destroyed: Dictionary) -> void:
+	# Merge game's destroyed objects with persistent stats
+	var current: Dictionary = _data.get("destroyed_objects", {})
+	for object_id in destroyed.keys():
+		current[object_id] = current.get(object_id, 0) + destroyed[object_id]
+	_data["destroyed_objects"] = current
+	save_data()
 
 
 # ========== DEBUG / MIGRATION ==========

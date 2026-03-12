@@ -147,13 +147,26 @@ var shop_data := {
 var _is_saving := false  # Prevent reload loop during save
 
 func _ready() -> void:
-	# Wait for SecureStorage to be ready, then load data
-	_load_shop_data()
-	
 	# Connect to SecureStorage changes
 	var storage := get_node_or_null("/root/SecureStorage")
 	if storage:
 		storage.data_changed.connect(_on_storage_data_changed)
+		# Wait for SecureStorage to be ready before loading
+		if storage.is_storage_ready():
+			_load_shop_data()
+		else:
+			storage.storage_ready.connect(_on_storage_ready, CONNECT_ONE_SHOT)
+	else:
+		# Fallback: try loading anyway
+		_load_shop_data()
+
+func _on_storage_ready() -> void:
+	_load_shop_data()
+	# Emit signals to refresh UI
+	balance_changed.emit(_get_coin_balance())
+	boosts_changed.emit()
+	crates_changed.emit()
+	skin_changed.emit(get_selected_skin())
 
 func _on_storage_data_changed() -> void:
 	# Don't reload if we're in the middle of saving (prevent loop)

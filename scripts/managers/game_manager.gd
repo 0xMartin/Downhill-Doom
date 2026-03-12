@@ -196,6 +196,10 @@ func has_boost(boost_id: String) -> bool:
 func end_game() -> void:
 	is_playing = false
 	
+	# End supercharge if active (stops blinking effect)
+	if is_supercharged:
+		end_supercharge()
+	
 	# Stop rolling sound
 	var audio = get_node_or_null("/root/AudioManager")
 	if audio:
@@ -211,6 +215,11 @@ func end_game() -> void:
 	var MainMenu = load("res://scripts/ui/menu/main_menu.gd")
 	if MainMenu:
 		MainMenu.record_game_stats(coins, distance, game_time)
+	
+	# Save destroyed objects to persistent storage
+	var storage = get_node_or_null("/root/SecureStorage")
+	if storage and destroyed_objects.size() > 0:
+		storage.add_destroyed_objects(destroyed_objects)
 	
 	player_died.emit()
 
