@@ -257,13 +257,13 @@ func die() -> void:
 	freeze = true
 	
 	# Shatter the player model using mesh destruction - fly upward for dramatic effect
-	var player_model: Node3D = get_node_or_null("PlayerModel")
-	if player_model:
+	var model: Node3D = get_node_or_null("PlayerModel")
+	if model:
 		# Impact velocity is downhill direction for debris spread
 		var impact_direction := linear_velocity.normalized()
 		var impact_velocity := impact_direction * 10.0
 		# fly_upward=true makes debris fly up instead of falling
-		DestructionManager.shatter(player_model, impact_velocity, false, true)
+		DestructionManager.shatter(model, impact_velocity, false, true)
 	
 	# Big and long screen shake on death
 	var camera := get_viewport().get_camera_3d()

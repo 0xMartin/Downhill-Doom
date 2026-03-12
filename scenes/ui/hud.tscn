@@ -281,6 +281,9 @@ corner_radius_top_left = 100
 corner_radius_top_right = 100
 
 [sub_resource type="FontFile" id="FontFile_hd3ao"]
+subpixel_positioning = 0
+msdf_pixel_range = 14
+msdf_size = 128
 cache/0/variation_coordinates = {}
 cache/0/face_index = 0
 cache/0/embolden = 0.0
@@ -560,7 +563,6 @@ text = "0 m"
 vertical_alignment = 1
 
 [node name="TimerLabel" type="Label" parent="." unique_id=1304192667]
-visible = false
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5

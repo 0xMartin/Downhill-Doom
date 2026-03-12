@@ -1046,7 +1046,7 @@ func _create_object(obj_data: RefCounted, rng: RandomNumberGenerator, category: 
 		var pooled_obj: Node3D = pool.get_object(model_path, category)
 		if pooled_obj:
 			# Reconfigure pooled object with current data
-			_reconfigure_object(pooled_obj, obj_data, category)
+			_reconfigure_object(pooled_obj, obj_data, category, rng)
 			return pooled_obj
 	
 	# No pooled object available, create new one
@@ -1075,7 +1075,7 @@ func _create_object(obj_data: RefCounted, rng: RandomNumberGenerator, category: 
 	return obj
 
 ## Reconfigure a pooled object with new data
-func _reconfigure_object(obj: Node3D, obj_data: RefCounted, category: int) -> void:
+func _reconfigure_object(obj: Node3D, obj_data: RefCounted, category: int, rng: RandomNumberGenerator) -> void:
 	# Reset transform
 	obj.position = Vector3.ZERO
 	obj.rotation = Vector3.ZERO
@@ -1103,7 +1103,36 @@ func _reconfigure_object(obj: Node3D, obj_data: RefCounted, category: int) -> vo
 		ObjectConfigScript.Category.ROCK:
 			pass  # Rocks don't have special properties
 		
-		ObjectConfigScript.Category.NPC_FRIEND, ObjectConfigScript.Category.NPC_ENEMY:
+		ObjectConfigScript.Category.NPC_FRIEND:
+			# Handle golden variant for friend NPCs
+			var is_golden := rng.randf() < GOLDEN_NPC_CHANCE
+			var coins: int = obj_data.coins * GOLDEN_NPC_COIN_MULTIPLIER if is_golden else obj_data.coins
+			
+			if obj.has_method("set"):
+				obj.set("coin_value", coins)
+				obj.set("object_id", obj_data.id)
+				obj.set("object_name", obj_data.display_name)
+				obj.set("is_golden", is_golden)
+			
+			# Update groups and material for golden status
+			if is_golden:
+				if not obj.is_in_group("golden_npcs"):
+					obj.add_to_group("golden_npcs")
+				var model := obj.get_node_or_null("Model")
+				if model:
+					_apply_golden_material(model)
+			else:
+				if obj.is_in_group("golden_npcs"):
+					obj.remove_from_group("golden_npcs")
+				var model := obj.get_node_or_null("Model")
+				if model:
+					_remove_golden_material(model)
+			
+			# Reset NPC state
+			if obj.has_method("_pool_reset"):
+				obj.call("_pool_reset")
+		
+		ObjectConfigScript.Category.NPC_ENEMY:
 			if obj.has_method("set"):
 				obj.set("coin_value", obj_data.coins)
 				obj.set("object_id", obj_data.id)
@@ -1615,6 +1644,16 @@ func _apply_golden_material(node: Node) -> void:
 	
 	for child in node.get_children():
 		_apply_golden_material(child)
+
+## Remove golden shader material from all mesh instances in a node tree
+func _remove_golden_material(node: Node) -> void:
+	if node is MeshInstance3D:
+		var mesh_instance := node as MeshInstance3D
+		# Clear material override to restore original materials
+		mesh_instance.material_override = null
+	
+	for child in node.get_children():
+		_remove_golden_material(child)
 
 ## Create collision shape from AABB with support for box or sphere
 ## collision_shape: ObjectConfig.CollisionShape.BOX or .SPHERE

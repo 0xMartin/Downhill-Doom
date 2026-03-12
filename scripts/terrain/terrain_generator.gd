@@ -376,7 +376,7 @@ func get_decoration_height(local_x: float, local_z: float, chunk_index: int) -> 
 func get_height_at(world_x: float, world_z: float) -> float:
 	# Guard against null mesh_builder (can happen during initialization or far from spawned chunks)
 	if not mesh_builder:
-		return world_z * tan(deg_to_rad(slope_angle))
+		return global_position.y + world_z * tan(deg_to_rad(slope_angle))
 	
 	var profile_height: float = mesh_builder.get_cross_section_height(world_x, world_z)
 	
@@ -390,7 +390,8 @@ func get_height_at(world_x: float, world_z: float) -> float:
 	var height: float = profile_height + terrain_noise
 	height += world_z * tan(deg_to_rad(slope_angle))
 	
-	return height
+	# Add TerrainGenerator's world position offset
+	return height + global_position.y
 
 ## Get actual ground level accounting for holes (for collision detection)
 func get_ground_level_at(world_x: float, world_z: float) -> float:
