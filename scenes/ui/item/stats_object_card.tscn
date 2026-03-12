@@ -113,22 +113,17 @@ texture = ExtResource("3_shield")
 expand_mode = 1
 stretch_mode = 6
 
-[node name="KillBadge" type="VBoxContainer" parent="HBox" unique_id=483013755]
-custom_minimum_size = Vector2(220, 0)
-layout_mode = 2
-theme_override_constants/separation = 4
-alignment = 1
-
-[node name="Badge" type="PanelContainer" parent="HBox/KillBadge" unique_id=1185161077]
+[node name="Badge" type="PanelContainer" parent="HBox" unique_id=1185161077]
 layout_mode = 2
 mouse_filter = 1
 theme_override_styles/panel = SubResource("StyleBoxFlat_badge")
 
-[node name="VBox" type="VBoxContainer" parent="HBox/KillBadge/Badge" unique_id=406520378]
+[node name="VBox" type="VBoxContainer" parent="HBox/Badge" unique_id=406520378]
 layout_mode = 2
 theme_override_constants/separation = 0
+alignment = 1
 
-[node name="DestroyedLabel" type="Label" parent="HBox/KillBadge/Badge/VBox" unique_id=945166268]
+[node name="DestroyedLabel" type="Label" parent="HBox/Badge/VBox" unique_id=945166268]
 layout_mode = 2
 mouse_filter = 1
 theme_override_constants/outline_size = 15
@@ -136,7 +131,7 @@ theme_override_font_sizes/font_size = 28
 text = "DESTROYED"
 horizontal_alignment = 1
 
-[node name="KillCount" type="Label" parent="HBox/KillBadge/Badge/VBox" unique_id=432539632]
+[node name="KillCount" type="Label" parent="HBox/Badge/VBox" unique_id=432539632]
 layout_mode = 2
 mouse_filter = 1
 theme_override_constants/outline_size = 25

@@ -27,9 +27,9 @@ func setup(obj_data: RefCounted, kill_count: int) -> void:
 	var coin_label: Label = get_node("HBox/Info/StatsRow/LeftStats/CoinRow/CoinLabel")
 	var spawn_label: Label = get_node("HBox/Info/StatsRow/LeftStats/SpawnLabel")
 	var armored_icon: TextureRect = get_node("HBox/Info/StatsRow/ArmoredIcon/Icon")
-	var badge: PanelContainer = get_node("HBox/KillBadge/Badge")
-	var destroyed_label: Label = get_node("HBox/KillBadge/Badge/VBox/DestroyedLabel")
-	var kill_count_label: Label = get_node("HBox/KillBadge/Badge/VBox/KillCount")
+	var badge: PanelContainer = get_node("HBox/Badge")
+	var destroyed_label: Label = get_node("HBox/Badge/VBox/DestroyedLabel")
+	var kill_count_label: Label = get_node("HBox/Badge/VBox/KillCount")
 	
 	# Card border color only (keeps scene-defined shape/size)
 	var panel_style: StyleBoxFlat = get_theme_stylebox("panel").duplicate()
