@@ -1,79 +1,195 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3 uid="uid://cs4yqak6c2h16"]
 
-[ext_resource type="Script" path="res://scripts/ui/item/crate_card.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://ei8tnq1cb0jh" path="res://scripts/ui/item/crate_card.gd" id="1_script"]
 
-[node name="CrateCard" type="PanelContainer"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+content_margin_left = 45.0
+content_margin_top = 20.0
+content_margin_right = 20.0
+content_margin_bottom = 20.0
+bg_color = Color(0.1, 0.1, 0.1, 0.6)
+border_width_left = 16
+border_width_top = 8
+border_width_right = 8
+border_width_bottom = 8
+corner_radius_top_left = 32
+corner_radius_top_right = 32
+corner_radius_bottom_right = 32
+corner_radius_bottom_left = 32
+corner_detail = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_normal"]
+content_margin_left = 16.0
+content_margin_top = 12.0
+content_margin_right = 16.0
+content_margin_bottom = 12.0
+bg_color = Color(0.18, 0.22, 0.28, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 5
+border_color = Color(0.12, 0.14, 0.18, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+corner_detail = 5
+shadow_color = Color(0, 0, 0, 0.3)
+shadow_size = 2
+shadow_offset = Vector2(0, 2)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_pressed"]
+content_margin_left = 16.0
+content_margin_top = 14.0
+content_margin_right = 16.0
+content_margin_bottom = 10.0
+bg_color = Color(0.14, 0.18, 0.22, 1)
+border_width_left = 3
+border_width_top = 5
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.28, 0.76, 0.7, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+corner_detail = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_hover"]
+content_margin_left = 16.0
+content_margin_top = 12.0
+content_margin_right = 16.0
+content_margin_bottom = 12.0
+bg_color = Color(0.24, 0.3, 0.38, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 5
+border_color = Color(0.28, 0.76, 0.7, 0.8)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+corner_detail = 5
+shadow_color = Color(0.28, 0.76, 0.7, 0.2)
+shadow_size = 4
+shadow_offset = Vector2(0, 2)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_disabled"]
+content_margin_left = 16.0
+content_margin_top = 12.0
+content_margin_right = 16.0
+content_margin_bottom = 12.0
+bg_color = Color(0.12, 0.14, 0.16, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 5
+border_color = Color(0.08, 0.1, 0.12, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+corner_detail = 5
+
+[node name="CrateCard" type="PanelContainer" unique_id=826077530]
 custom_minimum_size = Vector2(0, 220)
 size_flags_horizontal = 3
 mouse_filter = 1
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 script = ExtResource("1_script")
 
-[node name="HBox" type="HBoxContainer" parent="."]
+[node name="MainVBox" type="VBoxContainer" parent="." unique_id=1226936908]
 layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TopHBox" type="HBoxContainer" parent="MainVBox" unique_id=1864817855]
+layout_mode = 2
+size_flags_vertical = 3
 theme_override_constants/separation = 20
-mouse_filter = 1
 
-[node name="IconContainer" type="Control" parent="HBox"]
-custom_minimum_size = Vector2(230, 115)
+[node name="IconContainer" type="Control" parent="MainVBox/TopHBox" unique_id=348125785]
+custom_minimum_size = Vector2(184, 184)
 layout_mode = 2
 mouse_filter = 1
 
-[node name="Icon" type="TextureRect" parent="HBox/IconContainer"]
+[node name="Icon" type="TextureRect" parent="MainVBox/TopHBox/IconContainer" unique_id=37352602]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -57.0
-offset_top = -57.0
-offset_right = 57.0
-offset_bottom = 57.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 expand_mode = 1
-stretch_mode = 6
-mouse_filter = 1
+stretch_mode = 5
 
-[node name="InfoVBox" type="VBoxContainer" parent="HBox"]
+[node name="InfoVBox" type="VBoxContainer" parent="MainVBox/TopHBox" unique_id=1255394611]
 layout_mode = 2
 size_flags_horizontal = 3
-mouse_filter = 1
 
-[node name="NameLabel" type="Label" parent="HBox/InfoVBox"]
+[node name="NameLabel" type="Label" parent="MainVBox/TopHBox/InfoVBox" unique_id=2075234823]
 layout_mode = 2
-theme_override_font_sizes/font_size = 34
+mouse_filter = 1
+theme_override_constants/outline_size = 35
+theme_override_font_sizes/font_size = 55
 text = "Crate Name"
-mouse_filter = 1
+autowrap_mode = 2
 
-[node name="OwnedLabel" type="Label" parent="HBox/InfoVBox"]
+[node name="OwnedLabel" type="Label" parent="MainVBox/TopHBox/InfoVBox" unique_id=1923228511]
 layout_mode = 2
-theme_override_font_sizes/font_size = 26
+mouse_filter = 1
+theme_override_constants/outline_size = 25
+theme_override_font_sizes/font_size = 45
 text = "Owned: 0"
-mouse_filter = 1
+autowrap_mode = 2
 
-[node name="ChancesLabel" type="Label" parent="HBox/InfoVBox"]
+[node name="PriceLabel" type="Label" parent="MainVBox/TopHBox/InfoVBox" unique_id=2043862526]
 layout_mode = 2
-theme_override_font_sizes/font_size = 22
-text = "Boost: 70% | Crate: 20% | Skin: 10%"
 mouse_filter = 1
-
-[node name="PriceLabel" type="Label" parent="HBox/InfoVBox"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 26
+theme_override_constants/outline_size = 25
+theme_override_font_sizes/font_size = 45
 text = "500 coins"
-mouse_filter = 1
+autowrap_mode = 2
 
-[node name="ButtonVBox" type="VBoxContainer" parent="HBox"]
+[node name="ButtonVBox" type="VBoxContainer" parent="MainVBox/TopHBox" unique_id=897242637]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="OpenButton" type="Button" parent="HBox/ButtonVBox"]
-custom_minimum_size = Vector2(130, 56)
+[node name="OpenButton" type="Button" parent="MainVBox/TopHBox/ButtonVBox" unique_id=1039322216]
+custom_minimum_size = Vector2(220, 100)
 layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(0.28, 0.76, 0.7, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/font_disabled_color = Color(0.4, 0.45, 0.5, 1)
+theme_override_constants/outline_size = 30
+theme_override_font_sizes/font_size = 50
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
 text = "OPEN"
 
-[node name="BuyButton" type="Button" parent="HBox/ButtonVBox"]
-custom_minimum_size = Vector2(130, 56)
+[node name="BuyButton" type="Button" parent="MainVBox/TopHBox/ButtonVBox" unique_id=2050773621]
+custom_minimum_size = Vector2(220, 100)
 layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(0.28, 0.76, 0.7, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/font_disabled_color = Color(0.4, 0.45, 0.5, 1)
+theme_override_constants/outline_size = 30
+theme_override_font_sizes/font_size = 50
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
 text = "BUY"
+
+[node name="ChancesLabel" type="Label" parent="MainVBox" unique_id=122305271]
+layout_mode = 2
+mouse_filter = 1
+theme_override_constants/outline_size = 20
+theme_override_font_sizes/font_size = 35
+text = "Boost: 70% | Crate: 20% | Skin: 10%"
+horizontal_alignment = 1
+autowrap_mode = 2

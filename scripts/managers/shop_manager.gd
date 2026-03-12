@@ -14,14 +14,27 @@ const SHOP_DATA_PATH := "user://shop_data.json"
 # Skin prices (player_1 is free, others cost progressively more)
 const SKIN_PRICES := {
 	"player_1": 0,      # Default - free
-	"player_2": 50000,
-	"player_3": 75000,
-	"player_4": 100000,
-	"player_5": 150000,
-	"player_6": 200000,
+	"player_2": 300000,
+	"player_3": 300000,
+	"player_4": 300000,
+	"player_5": 300000,
+	"player_6": 300000,
 	"player_7": 300000,
-	"player_8": 450000,
-	"player_9": 600000,
+	"player_8": 300000,
+	"player_9": 300000,
+}
+
+# Skin display names
+const SKIN_NAMES := {
+	"player_1": "Default",
+	"player_2": "Dark & Red",
+	"player_3": "Green & Orange",
+	"player_4": "Blue & Red",
+	"player_5": "Blue & Purple",
+	"player_6": "Purple & Red",
+	"player_7": "Red & White",
+	"player_8": "Gray & Black",
+	"player_9": "Pink & Purple",
 }
 
 # Texture skins from crates (cannot be bought directly)

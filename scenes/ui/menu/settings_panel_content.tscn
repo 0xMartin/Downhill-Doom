@@ -228,9 +228,9 @@ horizontal_scroll_mode = 0
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_constants/margin_left = 74
+theme_override_constants/margin_left = 50
 theme_override_constants/margin_top = 40
-theme_override_constants/margin_right = 74
+theme_override_constants/margin_right = 50
 theme_override_constants/margin_bottom = 40
 
 [node name="ContentVBox" type="VBoxContainer" parent="ScrollContainer/MarginContainer" unique_id=711399750]

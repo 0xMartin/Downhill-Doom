@@ -153,7 +153,8 @@ layout_mode = 2
 mouse_filter = 1
 theme_override_constants/outline_size = 35
 theme_override_font_sizes/font_size = 50
-text = "Skin Name ★"
+text = "Skin Name"
+autowrap_mode = 2
 
 [node name="StatusLabel" type="Label" parent="HBox/NameVBox" unique_id=1220156221]
 layout_mode = 2
@@ -161,6 +162,7 @@ mouse_filter = 1
 theme_override_constants/outline_size = 25
 theme_override_font_sizes/font_size = 45
 text = "CRATE ONLY"
+autowrap_mode = 2
 
 [node name="ActionButton" type="Button" parent="HBox" unique_id=2110588149]
 custom_minimum_size = Vector2(220, 100)

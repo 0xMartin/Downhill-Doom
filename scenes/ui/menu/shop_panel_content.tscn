@@ -162,9 +162,9 @@ layout_mode = 2
 [node name="ContentMargin" type="MarginContainer" parent="." unique_id=1541498259]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_constants/margin_left = 74
+theme_override_constants/margin_left = 50
 theme_override_constants/margin_top = 40
-theme_override_constants/margin_right = 74
+theme_override_constants/margin_right = 50
 theme_override_constants/margin_bottom = 40
 
 [node name="ContentVBox" type="VBoxContainer" parent="ContentMargin" unique_id=1072092013]

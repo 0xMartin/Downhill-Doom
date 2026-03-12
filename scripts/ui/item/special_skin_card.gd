@@ -48,8 +48,8 @@ func setup(p_skin_id: String, display_name: String, is_owned: bool, is_selected:
 		lock_label.visible = true
 		lock_label.add_theme_color_override("font_color", COLOR_TEXT_MUTED)
 	
-	# Name with star
-	name_label.text = display_name + " ★"
+	# Name
+	name_label.text = display_name
 	name_label.add_theme_color_override("font_color", COLOR_TEXT_PRIMARY if is_owned else COLOR_TEXT_MUTED)
 	
 	# Status

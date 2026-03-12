@@ -196,7 +196,7 @@ func _populate_skins_section() -> void:
 	for skin_id in model_skins:
 		var card = MODEL_SKIN_CARD_SCENE.instantiate()
 		shop_content_container.add_child(card)
-		var display_name: String = skin_id.replace("_", " ").capitalize()
+		var display_name: String = shop_manager.SKIN_NAMES.get(skin_id, skin_id)
 		var is_owned: bool = shop_manager.is_skin_owned(skin_id)
 		var is_selected: bool = shop_manager.get_selected_skin() == skin_id
 		var price: int = shop_manager.get_skin_price(skin_id)
