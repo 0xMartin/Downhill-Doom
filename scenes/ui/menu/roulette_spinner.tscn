@@ -1,9 +1,9 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://ccwjnf7grna21"]
 
-[ext_resource type="Texture2D" path="res://assets/svg/roulette_frame.svg" id="1_frame"]
-[ext_resource type="Texture2D" path="res://assets/svg/roulette_glow.svg" id="2_glow"]
-[ext_resource type="Texture2D" path="res://assets/svg/roulette_indicator.svg" id="3_indicator"]
-[ext_resource type="Texture2D" path="res://assets/svg/roulette_speed_lines.svg" id="4_speed_lines"]
+[ext_resource type="Texture2D" uid="uid://cyffi88ht5p5f" path="res://assets/svg/roulette_frame.svg" id="1_frame"]
+[ext_resource type="Texture2D" uid="uid://bhw6m11v7my4o" path="res://assets/svg/roulette_glow.svg" id="2_glow"]
+[ext_resource type="Texture2D" uid="uid://hrf3c1rw21pi" path="res://assets/svg/roulette_indicator.svg" id="3_indicator"]
+[ext_resource type="Texture2D" uid="uid://bb1xxaik50yfj" path="res://assets/svg/roulette_speed_lines.svg" id="4_speed_lines"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
 bg_color = Color(0, 0, 0, 0.9)
@@ -11,7 +11,7 @@ bg_color = Color(0, 0, 0, 0.9)
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_window_bg"]
 bg_color = Color(0.05, 0.08, 0.15, 1)
 
-[node name="RouletteSpinner" type="PanelContainer"]
+[node name="RouletteSpinner" type="PanelContainer" unique_id=1373509334]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -19,32 +19,35 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_bg")
 
-[node name="CenterContainer" type="VBoxContainer" parent="."]
+[node name="CenterContainer" type="VBoxContainer" parent="." unique_id=732230300]
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 theme_override_constants/separation = 20
 alignment = 1
 
-[node name="Title" type="Label" parent="CenterContainer"]
+[node name="Title" type="Label" parent="CenterContainer" unique_id=1886611980]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.82, 0.25, 1)
-theme_override_font_sizes/font_size = 42
+theme_override_colors/font_outline_color = Color(0.32497174, 0.16267309, 0, 1)
+theme_override_constants/outline_size = 30
+theme_override_font_sizes/font_size = 80
 text = "OPENING CRATE"
 horizontal_alignment = 1
+autowrap_mode = 3
 
-[node name="WindowWrapper" type="CenterContainer" parent="CenterContainer"]
+[node name="WindowWrapper" type="CenterContainer" parent="CenterContainer" unique_id=421992955]
 layout_mode = 2
 
-[node name="WindowContainer" type="Control" parent="CenterContainer/WindowWrapper"]
+[node name="WindowContainer" type="Control" parent="CenterContainer/WindowWrapper" unique_id=1112339565]
 unique_name_in_owner = true
 clip_contents = true
 custom_minimum_size = Vector2(980, 280)
 layout_mode = 2
 size_flags_horizontal = 4
 
-[node name="Background" type="PanelContainer" parent="CenterContainer/WindowWrapper/WindowContainer"]
+[node name="Background" type="PanelContainer" parent="CenterContainer/WindowWrapper/WindowContainer" unique_id=1377723639]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -53,14 +56,14 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_window_bg")
 
-[node name="ItemsContainer" type="HBoxContainer" parent="CenterContainer/WindowWrapper/WindowContainer"]
+[node name="ItemsContainer" type="HBoxContainer" parent="CenterContainer/WindowWrapper/WindowContainer" unique_id=1436737641]
 unique_name_in_owner = true
 layout_mode = 1
 offset_top = 30.0
 offset_bottom = 250.0
 theme_override_constants/separation = 16
 
-[node name="SpeedLines" type="TextureRect" parent="CenterContainer/WindowWrapper/WindowContainer"]
+[node name="SpeedLines" type="TextureRect" parent="CenterContainer/WindowWrapper/WindowContainer" unique_id=728425330]
 unique_name_in_owner = true
 modulate = Color(1, 1, 1, 0)
 layout_mode = 1
@@ -74,7 +77,7 @@ expand_mode = 1
 stretch_mode = 1
 metadata/_edit_lock_ = true
 
-[node name="Frame" type="TextureRect" parent="CenterContainer/WindowWrapper/WindowContainer"]
+[node name="Frame" type="TextureRect" parent="CenterContainer/WindowWrapper/WindowContainer" unique_id=832817085]
 z_index = 5
 layout_mode = 1
 anchors_preset = 15
@@ -84,22 +87,21 @@ grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("1_frame")
 expand_mode = 1
-stretch_mode = 1
 metadata/_edit_lock_ = true
 
-[node name="MarkerContainer" type="Control" parent="CenterContainer/WindowWrapper/WindowContainer"]
+[node name="MarkerContainer" type="Control" parent="CenterContainer/WindowWrapper/WindowContainer" unique_id=748357387]
 z_index = 15
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -24.0
-offset_right = 24.0
 offset_top = -8.0
+offset_right = 24.0
 offset_bottom = 64.0
 grow_horizontal = 2
 
-[node name="MarkerGlow" type="TextureRect" parent="CenterContainer/WindowWrapper/WindowContainer/MarkerContainer"]
+[node name="MarkerGlow" type="TextureRect" parent="CenterContainer/WindowWrapper/WindowContainer/MarkerContainer" unique_id=737762413]
 unique_name_in_owner = true
 modulate = Color(1, 1, 1, 0.6)
 layout_mode = 1
@@ -112,7 +114,7 @@ texture = ExtResource("2_glow")
 expand_mode = 1
 stretch_mode = 6
 
-[node name="MarkerIndicator" type="TextureRect" parent="CenterContainer/WindowWrapper/WindowContainer/MarkerContainer"]
+[node name="MarkerIndicator" type="TextureRect" parent="CenterContainer/WindowWrapper/WindowContainer/MarkerContainer" unique_id=1598830682]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
