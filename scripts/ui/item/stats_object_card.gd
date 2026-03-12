@@ -79,7 +79,7 @@ func setup(obj_data: RefCounted, kill_count: int) -> void:
 	kill_label.add_theme_color_override("font_color", COLOR_ACCENT_SECONDARY if discovered else COLOR_TEXT_MUTED)
 	
 	# 3D Preview
-	viewport_container = _create_3d_preview(obj_data, kill_count)
+	viewport_container = _create_3d_preview(preview_container, obj_data, kill_count)
 	preview_container.add_child(viewport_container)
 
 
@@ -87,9 +87,9 @@ func get_viewport_container() -> SubViewportContainer:
 	return viewport_container
 
 
-func _create_3d_preview(obj_data: RefCounted, kill_count: int) -> SubViewportContainer:
-	var preview_width := 156
-	var preview_height := 156
+func _create_3d_preview(preview_container: Control, obj_data: RefCounted, kill_count: int) -> SubViewportContainer:
+	var preview_width: float = preview_container.size.x if preview_container else 220.0
+	var preview_height: float = preview_container.size.y if preview_container else 220.0
 	
 	var container := SubViewportContainer.new()
 	container.custom_minimum_size = Vector2(preview_width, preview_height)
@@ -99,7 +99,7 @@ func _create_3d_preview(obj_data: RefCounted, kill_count: int) -> SubViewportCon
 	var viewport := SubViewport.new()
 	viewport.name = "SubViewport"
 	viewport.transparent_bg = true
-	viewport.size = Vector2i(preview_width, preview_height)
+	viewport.size = Vector2i(int(preview_width), int(preview_height))
 	viewport.render_target_update_mode = SubViewport.UPDATE_WHEN_VISIBLE
 	viewport.own_world_3d = true
 	container.add_child(viewport)

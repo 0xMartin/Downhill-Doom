@@ -1,79 +1,85 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene format=3 uid="uid://bqeh6euucaf7b"]
 
-[ext_resource type="Script" path="res://scripts/ui/item/stats_object_card.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://gwc3lrndi2uo" path="res://scripts/ui/item/stats_object_card.gd" id="1_script"]
 [ext_resource type="Texture2D" uid="uid://jepsdf0och2h" path="res://assets/svg/coin.svg" id="2_coin"]
 
-[node name="StatsObjectCard" type="PanelContainer"]
-custom_minimum_size = Vector2(0, 180)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ym6mc"]
+content_margin_left = 5.0
+content_margin_top = 5.0
+content_margin_right = 5.0
+content_margin_bottom = 10.0
+bg_color = Color(0.1, 0.1, 0.1, 0.6)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+corner_detail = 5
+
+[node name="StatsObjectCard" type="PanelContainer" unique_id=1691270443]
+custom_minimum_size = Vector2(600, 220)
 size_flags_horizontal = 3
 mouse_filter = 1
+theme_override_styles/panel = SubResource("StyleBoxFlat_ym6mc")
 script = ExtResource("1_script")
 
-[node name="HBox" type="HBoxContainer" parent="."]
+[node name="HBox" type="HBoxContainer" parent="." unique_id=396672340]
+layout_mode = 2
+theme_override_constants/separation = 48
+
+[node name="PreviewContainer" type="Control" parent="HBox" unique_id=1563609597]
+custom_minimum_size = Vector2(220, 220)
 layout_mode = 2
 mouse_filter = 1
-theme_override_constants/separation = 24
 
-[node name="PreviewContainer" type="Control" parent="HBox" unique_name_in_owner=true]
-custom_minimum_size = Vector2(156, 156)
-layout_mode = 2
-mouse_filter = 1
-
-[node name="Info" type="VBoxContainer" parent="HBox"]
+[node name="Info" type="VBoxContainer" parent="HBox" unique_id=558700793]
 layout_mode = 2
 size_flags_horizontal = 3
-mouse_filter = 1
-theme_override_constants/separation = 8
+theme_override_constants/separation = 10
 
-[node name="NameLabel" type="Label" parent="HBox/Info" unique_name_in_owner=true]
+[node name="NameLabel" type="Label" parent="HBox/Info" unique_id=883382946]
 layout_mode = 2
-theme_override_font_sizes/font_size = 44
+theme_override_font_sizes/font_size = 60
 text = "???"
 
-[node name="StatsRow" type="HBoxContainer" parent="HBox/Info"]
+[node name="StatsRow" type="HBoxContainer" parent="HBox/Info" unique_id=1604178031]
 layout_mode = 2
-mouse_filter = 1
 theme_override_constants/separation = 24
 
-[node name="CoinRow" type="HBoxContainer" parent="HBox/Info/StatsRow"]
+[node name="CoinRow" type="HBoxContainer" parent="HBox/Info/StatsRow" unique_id=1813873636]
 layout_mode = 2
-mouse_filter = 1
 theme_override_constants/separation = 8
 
-[node name="CoinIcon" type="TextureRect" parent="HBox/Info/StatsRow/CoinRow" unique_name_in_owner=true]
-custom_minimum_size = Vector2(36, 36)
+[node name="CoinIcon" type="TextureRect" parent="HBox/Info/StatsRow/CoinRow" unique_id=571973807]
+custom_minimum_size = Vector2(45, 45)
 layout_mode = 2
 texture = ExtResource("2_coin")
 expand_mode = 1
 stretch_mode = 6
-mouse_filter = 1
 
-[node name="CoinLabel" type="Label" parent="HBox/Info/StatsRow/CoinRow" unique_name_in_owner=true]
+[node name="CoinLabel" type="Label" parent="HBox/Info/StatsRow/CoinRow" unique_id=803203983]
 layout_mode = 2
-theme_override_font_sizes/font_size = 36
+theme_override_font_sizes/font_size = 45
 text = "?"
 
-[node name="SpawnLabel" type="Label" parent="HBox/Info/StatsRow" unique_name_in_owner=true]
+[node name="SpawnLabel" type="Label" parent="HBox/Info/StatsRow" unique_id=1851392651]
 layout_mode = 2
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 45
 text = "Spawn: ?%"
 
-[node name="ArmoredLabel" type="Label" parent="HBox/Info/StatsRow" unique_name_in_owner=true]
-visible = false
+[node name="ArmoredLabel" type="Label" parent="HBox/Info/StatsRow" unique_id=928391897]
 layout_mode = 2
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 45
 text = "ARMORED"
 
-[node name="BadgeContainer" type="HBoxContainer" parent="HBox/Info"]
+[node name="BadgeContainer" type="HBoxContainer" parent="HBox/Info" unique_id=400090695]
 layout_mode = 2
-mouse_filter = 1
 theme_override_constants/separation = 12
 
-[node name="Badge" type="PanelContainer" parent="HBox/Info/BadgeContainer" unique_name_in_owner=true]
+[node name="Badge" type="PanelContainer" parent="HBox/Info/BadgeContainer" unique_id=405679427]
 layout_mode = 2
 mouse_filter = 1
 
-[node name="KillLabel" type="Label" parent="HBox/Info/BadgeContainer/Badge" unique_name_in_owner=true]
+[node name="KillLabel" type="Label" parent="HBox/Info/BadgeContainer/Badge" unique_id=1608617288]
 layout_mode = 2
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 45
 text = "Destroyed: 0"
