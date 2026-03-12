@@ -26,9 +26,10 @@ func setup(obj_data: RefCounted, kill_count: int) -> void:
 	var coin_icon: TextureRect = get_node("HBox/Info/StatsRow/CoinRow/CoinIcon")
 	var coin_label: Label = get_node("HBox/Info/StatsRow/CoinRow/CoinLabel")
 	var spawn_label: Label = get_node("HBox/Info/StatsRow/SpawnLabel")
-	var armored_label: Label = get_node("HBox/Info/StatsRow/ArmoredLabel")
-	var badge: PanelContainer = get_node("HBox/Info/BadgeContainer/Badge")
-	var kill_label: Label = get_node("HBox/Info/BadgeContainer/Badge/KillLabel")
+	var armored_icon: TextureRect = get_node("HBox/Info/StatsRow/ArmoredIcon/Icon")
+	var badge: PanelContainer = get_node("HBox/KillBadge/Badge")
+	var destroyed_label: Label = get_node("HBox/KillBadge/Badge/VBox/DestroyedLabel")
+	var kill_count_label: Label = get_node("HBox/KillBadge/Badge/VBox/KillCount")
 	
 	# Card style
 	var style := StyleBoxFlat.new()
@@ -54,29 +55,29 @@ func setup(obj_data: RefCounted, kill_count: int) -> void:
 	
 	# Armored indicator for large buildings and enemy buildings
 	if obj_data.category == ObjectConfigScript.Category.BUILDING_LARGE or obj_data.category == ObjectConfigScript.Category.BUILDING_ENEMY:
-		armored_label.visible = true
-		armored_label.text = "ARMORED" if discovered else "???"
-		armored_label.add_theme_color_override("font_color", COLOR_ACCENT_GOLD if discovered else COLOR_TEXT_MUTED)
+		armored_icon.visible = true
+		armored_icon.modulate = COLOR_ACCENT_GOLD if discovered else COLOR_TEXT_MUTED
 	else:
-		armored_label.visible = false
+		armored_icon.visible = false
 	
 	# Kill badge
 	var badge_style := StyleBoxFlat.new()
-	badge_style.set_corner_radius_all(10)
-	badge_style.set_content_margin_all(8)
-	badge_style.content_margin_left = 16
-	badge_style.content_margin_right = 16
+	badge_style.set_corner_radius_all(12)
+	badge_style.set_content_margin_all(12)
+	badge_style.content_margin_left = 20
+	badge_style.content_margin_right = 20
 	if discovered:
 		badge_style.bg_color = COLOR_ACCENT_SECONDARY.darkened(0.5)
 		badge_style.border_color = COLOR_ACCENT_SECONDARY
 	else:
 		badge_style.bg_color = COLOR_BG_LIGHT
 		badge_style.border_color = COLOR_BORDER
-	badge_style.set_border_width_all(1)
+	badge_style.set_border_width_all(2)
 	badge.add_theme_stylebox_override("panel", badge_style)
 	
-	kill_label.text = "Destroyed: %d" % kill_count
-	kill_label.add_theme_color_override("font_color", COLOR_ACCENT_SECONDARY if discovered else COLOR_TEXT_MUTED)
+	destroyed_label.add_theme_color_override("font_color", COLOR_ACCENT_SECONDARY if discovered else COLOR_TEXT_MUTED)
+	kill_count_label.text = _format_number(kill_count)
+	kill_count_label.add_theme_color_override("font_color", COLOR_ACCENT_SECONDARY if discovered else COLOR_TEXT_MUTED)
 	
 	# 3D Preview
 	viewport_container = _create_3d_preview(preview_container, obj_data, kill_count)
@@ -189,3 +190,11 @@ func _apply_silhouette_material(node: Node) -> void:
 	
 	for mesh_inst: MeshInstance3D in _find_all_mesh_instances(node):
 		mesh_inst.material_override = silhouette_mat
+
+
+func _format_number(amount: int) -> String:
+	if amount >= 1000000:
+		return "%.3fM" % (amount / 1000000.0)
+	elif amount >= 1000:
+		return "%.3fk" % (amount / 1000.0)
+	return str(amount)
