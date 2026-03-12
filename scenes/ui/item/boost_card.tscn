@@ -1,0 +1,75 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/item/boost_card.gd" id="1_script"]
+
+[node name="BoostCard" type="PanelContainer"]
+custom_minimum_size = Vector2(0, 184)
+size_flags_horizontal = 3
+mouse_filter = 1
+script = ExtResource("1_script")
+
+[node name="HBox" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 20
+mouse_filter = 1
+
+[node name="IconContainer" type="Control" parent="HBox"]
+custom_minimum_size = Vector2(230, 115)
+layout_mode = 2
+mouse_filter = 1
+
+[node name="Icon" type="TextureRect" parent="HBox/IconContainer"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -57.0
+offset_top = -57.0
+offset_right = 57.0
+offset_bottom = 57.0
+grow_horizontal = 2
+grow_vertical = 2
+expand_mode = 1
+stretch_mode = 6
+mouse_filter = 1
+
+[node name="InfoVBox" type="VBoxContainer" parent="HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 1
+
+[node name="NameLabel" type="Label" parent="HBox/InfoVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 44
+text = "Boost Name"
+mouse_filter = 1
+
+[node name="OwnedLabel" type="Label" parent="HBox/InfoVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "Owned: 0"
+mouse_filter = 1
+
+[node name="PriceLabel" type="Label" parent="HBox/InfoVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "100 coins"
+mouse_filter = 1
+
+[node name="ButtonVBox" type="VBoxContainer" parent="HBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="SelectButton" type="Button" parent="HBox/ButtonVBox"]
+custom_minimum_size = Vector2(150, 72)
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "USE"
+
+[node name="BuyButton" type="Button" parent="HBox/ButtonVBox"]
+custom_minimum_size = Vector2(150, 72)
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "BUY"

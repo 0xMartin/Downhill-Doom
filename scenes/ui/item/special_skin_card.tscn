@@ -1,0 +1,76 @@
+[gd_scene format=3 uid="uid://bx721sj6tspqv"]
+
+[ext_resource type="Script" uid="uid://xaxwtexwrhcy" path="res://scripts/ui/item/special_skin_card.gd" id="1_script"]
+
+[node name="SpecialSkinCard" type="PanelContainer" unique_id=1045515658]
+custom_minimum_size = Vector2(0, 184)
+size_flags_horizontal = 3
+mouse_filter = 1
+script = ExtResource("1_script")
+
+[node name="HBox" type="HBoxContainer" parent="." unique_id=1656199668]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="PreviewClip" type="Control" parent="HBox" unique_id=536316234]
+clip_contents = true
+custom_minimum_size = Vector2(160, 80)
+layout_mode = 2
+mouse_filter = 1
+
+[node name="Preview" type="TextureRect" parent="HBox/PreviewClip" unique_id=1052463273]
+visible = false
+custom_minimum_size = Vector2(200, 200)
+layout_mode = 0
+offset_left = -20.0
+offset_top = -60.0
+offset_right = 180.0
+offset_bottom = 140.0
+expand_mode = 1
+stretch_mode = 6
+
+[node name="LockedBg" type="ColorRect" parent="HBox/PreviewClip" unique_id=23010884]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+color = Color(0.05, 0.05, 0.08, 1)
+
+[node name="LockLabel" type="Label" parent="HBox/PreviewClip" unique_id=1896990703]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 28
+text = "?"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="NameVBox" type="VBoxContainer" parent="HBox" unique_id=1371904278]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="NameLabel" type="Label" parent="HBox/NameVBox" unique_id=1192733739]
+layout_mode = 2
+mouse_filter = 1
+theme_override_font_sizes/font_size = 44
+text = "Skin Name ★"
+
+[node name="StatusLabel" type="Label" parent="HBox/NameVBox" unique_id=1220156221]
+layout_mode = 2
+mouse_filter = 1
+theme_override_font_sizes/font_size = 36
+text = "CRATE ONLY"
+
+[node name="ActionButton" type="Button" parent="HBox" unique_id=2110588149]
+custom_minimum_size = Vector2(160, 88)
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "LOCKED"

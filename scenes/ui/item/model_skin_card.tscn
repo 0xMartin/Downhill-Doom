@@ -1,0 +1,37 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/item/model_skin_card.gd" id="1_script"]
+
+[node name="ModelSkinCard" type="PanelContainer"]
+custom_minimum_size = Vector2(0, 184)
+size_flags_horizontal = 3
+mouse_filter = 1
+script = ExtResource("1_script")
+
+[node name="HBox" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 20
+mouse_filter = 1
+
+[node name="NameVBox" type="VBoxContainer" parent="HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 1
+
+[node name="NameLabel" type="Label" parent="HBox/NameVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 44
+text = "Skin Name"
+mouse_filter = 1
+
+[node name="StatusLabel" type="Label" parent="HBox/NameVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "OWNED"
+mouse_filter = 1
+
+[node name="ActionButton" type="Button" parent="HBox"]
+custom_minimum_size = Vector2(160, 88)
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "SELECT"
