@@ -61,11 +61,12 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_bg")
 
-[node name="BurstContainer" type="Control" parent="." unique_id=1046027698]
+[node name="BurstContainer" type="Control" parent="."]
 z_index = -1
 layout_mode = 2
+mouse_filter = 2
 
-[node name="BurstTexture" type="TextureRect" parent="BurstContainer" unique_id=1499574083]
+[node name="BurstTexture" type="TextureRect" parent="BurstContainer"]
 unique_name_in_owner = true
 modulate = Color(1, 1, 1, 0)
 layout_mode = 1
@@ -74,6 +75,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 pivot_offset = Vector2(200, 200)
 texture = ExtResource("1_burst")
 expand_mode = 1

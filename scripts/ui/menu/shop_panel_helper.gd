@@ -445,52 +445,66 @@ func _animate_marker_glow(glow: TextureRect) -> void:
 
 
 func _add_win_sparkles(container: Control) -> void:
-	var sparkle_positions := [
-		Vector2(-200, -180), Vector2(200, -180),
-		Vector2(-250, 0), Vector2(250, 0),
-		Vector2(-200, 180), Vector2(200, 180),
-		Vector2(-100, -250), Vector2(100, -250),
-		Vector2(0, 220), Vector2(-150, 120), Vector2(150, 120),
-	]
+	# Create a full-screen container for particles centered on screen
+	var particle_holder := Control.new()
+	particle_holder.set_anchors_preset(Control.PRESET_FULL_RECT)
+	particle_holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	container.add_child(particle_holder)
 	
-	var sparkle_size := 40
-	var half_size := sparkle_size / 2
+	# Create multiple waves of particles
+	for wave in range(5):
+		var wave_delay := float(wave) * 0.8
+		_spawn_sparkle_wave(particle_holder, wave_delay)
+
+
+func _spawn_sparkle_wave(holder: Control, delay: float) -> void:
+	var sparkle_count := 20
 	
-	for i in range(sparkle_positions.size()):
-		var sparkle := TextureRect.new()
-		if ResourceLoader.exists("res://assets/svg/roulette_sparkle.svg"):
-			sparkle.texture = load("res://assets/svg/roulette_sparkle.svg")
-		sparkle.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		sparkle.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		sparkle.custom_minimum_size = Vector2(sparkle_size, sparkle_size)
-		sparkle.set_anchors_preset(Control.PRESET_CENTER)
-		sparkle.anchor_left = 0.5
-		sparkle.anchor_right = 0.5
-		sparkle.anchor_top = 0.5
-		sparkle.anchor_bottom = 0.5
-		sparkle.offset_left = sparkle_positions[i].x - half_size
-		sparkle.offset_right = sparkle_positions[i].x + half_size
-		sparkle.offset_top = sparkle_positions[i].y - half_size
-		sparkle.offset_bottom = sparkle_positions[i].y + half_size
-		sparkle.modulate = COLOR_ACCENT_GOLD
-		sparkle.modulate.a = 0.0
-		sparkle.pivot_offset = Vector2(half_size, half_size)
-		container.add_child(sparkle)
+	# Get center of screen
+	var viewport_size := holder.get_viewport_rect().size
+	var center := viewport_size / 2.0
+	
+	for i in range(sparkle_count):
+		var sparkle := ColorRect.new()
 		
-		var delay := float(i) * 0.1
-		var sparkle_tween := shop_panel.create_tween()
-		sparkle_tween.set_loops()
-		sparkle_tween.tween_interval(delay)
-		sparkle_tween.tween_property(sparkle, "modulate:a", 1.0, 0.3)
-		sparkle_tween.tween_property(sparkle, "modulate:a", 0.3, 0.5)
-		roulette_looping_tweens.append(sparkle_tween)
+		# Larger sparkles
+		var size := randf_range(14.0, 34.0)
+		sparkle.size = Vector2(size, size)
+		sparkle.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		
-		var rotation_speed := 2.0 + randf() * 2.0
-		var rotation_dir := 1.0 if i % 2 == 0 else -1.0
-		var rotate_tween := shop_panel.create_tween()
-		rotate_tween.set_loops()
-		rotate_tween.tween_property(sparkle, "rotation", rotation_dir * TAU, rotation_speed).from(0.0)
-		roulette_looping_tweens.append(rotate_tween)
+		# Random starting position around center of screen
+		var angle := randf() * TAU
+		var radius := randf_range(150.0, 350.0)
+		var start_pos := center + Vector2(cos(angle), sin(angle)) * radius
+		sparkle.position = start_pos - Vector2(size / 2.0, size / 2.0)
+		
+		# Random gold/white color
+		if randf() > 0.4:
+			sparkle.color = COLOR_ACCENT_GOLD
+		else:
+			sparkle.color = Color(1.0, 0.95, 0.85, 1.0)
+		sparkle.color.a = 0.0
+		
+		holder.add_child(sparkle)
+		
+		# Animation - fade in, move outward in random direction, fade out
+		var particle_delay := delay + float(i) * 0.04
+		var duration := randf_range(2.5, 4.0)
+		
+		# End position - move outward much further
+		var move_dist := randf_range(150.0, 350.0)
+		var drift_angle := angle + randf_range(-0.4, 0.4)  # Slight angle variation
+		var end_pos := start_pos + Vector2(cos(drift_angle), sin(drift_angle)) * move_dist
+		end_pos.y -= randf_range(60.0, 150.0)  # Float upward
+		
+		var tween := shop_panel.create_tween()
+		tween.tween_interval(particle_delay)
+		tween.set_parallel(true)
+		tween.tween_property(sparkle, "color:a", 1.0, 0.2)
+		tween.tween_property(sparkle, "position", end_pos - Vector2(size / 2.0, size / 2.0), duration).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tween.tween_property(sparkle, "color:a", 0.0, duration * 0.4).set_delay(duration * 0.6)
+		tween.set_parallel(false)
+		tween.tween_callback(sparkle.queue_free)
 
 
 func _animate_win_label(label: Label) -> void:
@@ -506,8 +520,7 @@ func _animate_win_label(label: Label) -> void:
 	
 	var pulse_tween := shop_panel.create_tween()
 	pulse_tween.set_loops()
-	pulse_tween.tween_interval(0.5)
-	pulse_tween.tween_property(label, "scale", Vector2(1.05, 1.05), 0.6).set_trans(Tween.TRANS_SINE)
+	pulse_tween.tween_property(label, "scale", Vector2(1.05, 1.05), 0.6).set_trans(Tween.TRANS_SINE).set_delay(0.5)
 	pulse_tween.tween_property(label, "scale", Vector2(1.0, 1.0), 0.6).set_trans(Tween.TRANS_SINE)
 	roulette_looping_tweens.append(pulse_tween)
 
@@ -527,8 +540,7 @@ func _animate_preview_container(container: CenterContainer) -> void:
 	# Continuous pulsing animation
 	var pulse_tween := shop_panel.create_tween()
 	pulse_tween.set_loops()
-	pulse_tween.tween_interval(0.7)
-	pulse_tween.tween_property(container, "scale", Vector2(1.08, 1.08), 0.8).set_trans(Tween.TRANS_SINE)
+	pulse_tween.tween_property(container, "scale", Vector2(1.08, 1.08), 0.8).set_trans(Tween.TRANS_SINE).set_delay(0.7)
 	pulse_tween.tween_property(container, "scale", Vector2(1.0, 1.0), 0.8).set_trans(Tween.TRANS_SINE)
 	roulette_looping_tweens.append(pulse_tween)
 

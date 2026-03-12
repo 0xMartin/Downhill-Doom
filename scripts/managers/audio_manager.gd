@@ -483,8 +483,26 @@ func _on_supercharge_ended() -> void:
 
 
 func _apply_music_volume() -> void:
-	var target_db := _get_music_db(-5.0)
+	var music_vol := get_music_volume()
+	
+	if music_vol <= 0.0:
+		# Mute - just set volumes to silent
+		if menu_music_player.playing:
+			menu_music_player.volume_db = -80.0
+		if game_music_player.playing:
+			game_music_player.volume_db = -80.0
+		return
+	
+	# Volume > 0 - update playing music or start if not playing
 	if menu_music_player.playing:
-		menu_music_player.volume_db = target_db
+		menu_music_player.volume_db = _get_music_db(-5.0)
 	if game_music_player.playing:
 		game_music_player.volume_db = _get_music_db(-8.0)
+	
+	# If in game but music not playing, start it
+	if is_in_game and not game_music_player.playing:
+		_play_random_game_track()
+	# If in menu but music not playing, start it
+	elif not is_in_game and not menu_music_player.playing:
+		menu_music_player.volume_db = _get_music_db(-5.0)
+		menu_music_player.play()
