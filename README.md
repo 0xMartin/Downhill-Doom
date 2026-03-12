@@ -2,8 +2,9 @@
 
 ## Prioritni
  
-* bug: 
-- objekty se často zabořuji do terenu, nedrži rovinu
+* bug:
+- kdyz zemru z aktivnim superchrage tak screen blika pak už pořad
+- v shop menu by nejak lepe mohl byt zvyrazněny vybrany boost
 
 * reklamy:
 - moznost 1x oživeni za slednuti reklamy (dobije zivoty na max) mozne jen 1x za 30 min (prida 200 tisic)

@@ -1,12 +1,11 @@
 extends Node
 ## ShopManager - Handles shop data, purchases, and persistence
+## Uses SecureStorage for encrypted tamper-resistant save/load
 
 signal balance_changed(new_balance: int)
 signal skin_changed(skin_id: String)
 signal boosts_changed
 signal crates_changed
-
-const SHOP_DATA_PATH := "user://shop_data.json"
 
 # ========== PRICING ==========
 # Based on ~100k average earnings per game
@@ -145,7 +144,22 @@ var shop_data := {
 	"owned_crates": {},  # {crate_type: count}
 }
 
+var _is_saving := false  # Prevent reload loop during save
+
 func _ready() -> void:
+	# Wait for SecureStorage to be ready, then load data
+	_load_shop_data()
+	
+	# Connect to SecureStorage changes
+	var storage := get_node_or_null("/root/SecureStorage")
+	if storage:
+		storage.data_changed.connect(_on_storage_data_changed)
+
+func _on_storage_data_changed() -> void:
+	# Don't reload if we're in the middle of saving (prevent loop)
+	if _is_saving:
+		return
+	# Sync local cache with SecureStorage
 	_load_shop_data()
 
 
@@ -275,13 +289,12 @@ func buy_crate(crate_type: String) -> bool:
 	if crate_type not in CRATE_PRICES:
 		return false
 	
-	if false:
-		var price: int = CRATE_PRICES[crate_type]
-		var balance := _get_coin_balance()
-		if balance < price:
-			return false
-		
-		_set_coin_balance(balance - price)
+	var price: int = CRATE_PRICES[crate_type]
+	var balance := _get_coin_balance()
+	if balance < price:
+		return false
+	
+	_set_coin_balance(balance - price)
 	
 	var owned: Dictionary = shop_data.get("owned_crates", {})
 	owned[crate_type] = owned.get(crate_type, 0) + 1
@@ -442,67 +455,66 @@ func get_selected_skin_texture_path() -> String:
 	else:
 		return "res://assets/skins/%s.png" % skin_id
 
-# ========== PERSISTENCE ==========
+# ========== PERSISTENCE (via SecureStorage) ==========
 
 func _get_coin_balance() -> int:
-	# Read from stats file (same as main_menu uses)
-	const STATS_FILE := "user://stats.json"
-	if FileAccess.file_exists(STATS_FILE):
-		var file := FileAccess.open(STATS_FILE, FileAccess.READ)
-		if file:
-			var json_string := file.get_as_text()
-			file.close()
-			var json := JSON.new()
-			if json.parse(json_string) == OK:
-				var data = json.get_data()
-				if data is Dictionary:
-					return int(data.get("coin_balance", 0))
+	var storage := get_node_or_null("/root/SecureStorage")
+	if storage:
+		return storage.get_coin_balance()
 	return 0
 
 func _set_coin_balance(new_balance: int) -> void:
-	const STATS_FILE := "user://stats.json"
-	var stats_data := {}
-	
-	if FileAccess.file_exists(STATS_FILE):
-		var read_file := FileAccess.open(STATS_FILE, FileAccess.READ)
-		if read_file:
-			var json_string := read_file.get_as_text()
-			read_file.close()
-			var json := JSON.new()
-			if json.parse(json_string) == OK:
-				var data = json.get_data()
-				if data is Dictionary:
-					stats_data = data
-	
-	stats_data["coin_balance"] = new_balance
-	
-	var write_file := FileAccess.open(STATS_FILE, FileAccess.WRITE)
-	if write_file:
-		write_file.store_string(JSON.stringify(stats_data))
-		write_file.close()
+	var storage := get_node_or_null("/root/SecureStorage")
+	if storage:
+		storage.set_coin_balance(new_balance)
 
 func _load_shop_data() -> void:
-	if FileAccess.file_exists(SHOP_DATA_PATH):
-		var file := FileAccess.open(SHOP_DATA_PATH, FileAccess.READ)
-		if file:
-			var json_string := file.get_as_text()
-			file.close()
-			var json := JSON.new()
-			if json.parse(json_string) == OK:
-				var data = json.get_data()
-				if data is Dictionary:
-					# Merge with defaults
-					for key in data.keys():
-						shop_data[key] = data[key]
-					
-					# Ensure player_1 is always owned
-					var owned_models: Array = shop_data.get("owned_model_skins", [])
-					if "player_1" not in owned_models:
-						owned_models.insert(0, "player_1")
-						shop_data["owned_model_skins"] = owned_models
+	var storage := get_node_or_null("/root/SecureStorage")
+	if not storage:
+		push_warning("[ShopManager] SecureStorage not available, using defaults")
+		return
+	
+	# Sync from SecureStorage
+	shop_data["selected_skin"] = storage.get_selected_skin()
+	shop_data["owned_model_skins"] = storage.get_owned_model_skins()
+	shop_data["owned_texture_skins"] = storage.get_owned_texture_skins()
+	shop_data["owned_boosts"] = storage.get_owned_boosts()
+	shop_data["selected_boosts"] = storage.get_selected_boosts()
+	shop_data["owned_crates"] = storage.get_owned_crates()
+	
+	# Ensure player_1 is always owned
+	var owned_models: Array = shop_data.get("owned_model_skins", [])
+	if "player_1" not in owned_models:
+		owned_models.insert(0, "player_1")
+		shop_data["owned_model_skins"] = owned_models
+		storage.add_owned_model_skin("player_1")
 
 func _save_shop_data() -> void:
-	var file := FileAccess.open(SHOP_DATA_PATH, FileAccess.WRITE)
-	if file:
-		file.store_string(JSON.stringify(shop_data))
-		file.close()
+	var storage := get_node_or_null("/root/SecureStorage")
+	if not storage:
+		push_warning("[ShopManager] SecureStorage not available, cannot save")
+		return
+	
+	_is_saving = true  # Prevent reload loop
+	
+	# Sync to SecureStorage
+	storage.set_selected_skin(shop_data.get("selected_skin", "player_1"))
+	
+	# Model skins - sync entire array
+	var current_model_skins: Array = storage.get_owned_model_skins()
+	for skin_id in shop_data.get("owned_model_skins", []):
+		if skin_id not in current_model_skins:
+			storage.add_owned_model_skin(skin_id)
+	
+	# Texture skins - sync entire array  
+	var current_texture_skins: Array = storage.get_owned_texture_skins()
+	for skin_id in shop_data.get("owned_texture_skins", []):
+		if skin_id not in current_texture_skins:
+			storage.add_owned_texture_skin(skin_id)
+	
+	# Boosts, selected boosts, crates - direct sync
+	storage.set_owned_boosts(shop_data.get("owned_boosts", {}))
+	storage.set_selected_boosts(shop_data.get("selected_boosts", []))
+	storage.set_owned_crates(shop_data.get("owned_crates", {}))
+	
+	_is_saving = false

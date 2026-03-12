@@ -1,8 +1,8 @@
 extends Control
 ## Main Menu with modern Roblox-style UI design
 ## Uses helper classes for panel management
+## Stats use SecureStorage for encrypted persistence
 
-const STATS_FILE := "user://stats.json"
 const PLAYER_MODEL_SCENE := preload("res://assets/models/players/player_1.blend")
 
 # ========== COLOR PALETTE ==========
@@ -310,88 +310,39 @@ func _apply_safe_area_offset() -> void:
 			balance_card.offset_bottom = 80 + top_inset
 
 
-# ========== STATS MANAGEMENT ==========
+# ========== STATS MANAGEMENT (via SecureStorage) ==========
 
 func _load_stats() -> void:
-	if FileAccess.file_exists(STATS_FILE):
-		var file := FileAccess.open(STATS_FILE, FileAccess.READ)
-		if file:
-			var json_string := file.get_as_text()
-			file.close()
-			var json := JSON.new()
-			if json.parse(json_string) == OK:
-				var data = json.get_data()
-				if data is Dictionary:
-					stats = data
-					if not stats.has("destroyed_objects"):
-						stats["destroyed_objects"] = {}
+	var storage := get_node_or_null("/root/SecureStorage")
+	if storage:
+		var secure_stats: Dictionary = storage.get_stats()
+		stats["games_played"] = secure_stats.get("total_games", 0)
+		stats["total_coins"] = secure_stats.get("total_coins_earned", 0)
+		stats["max_coins"] = secure_stats.get("best_coins", 0)
+		stats["total_distance"] = secure_stats.get("total_distance", 0.0)
+		stats["max_distance"] = secure_stats.get("best_distance", 0.0)
+		stats["total_time"] = secure_stats.get("total_time_played", 0.0)
+		stats["max_time"] = secure_stats.get("best_time", 0.0)
+		stats["coin_balance"] = storage.get_coin_balance()
+		if not stats.has("destroyed_objects"):
+			stats["destroyed_objects"] = {}
 
 
 func _save_stats() -> void:
-	var file := FileAccess.open(STATS_FILE, FileAccess.WRITE)
-	if file:
-		file.store_string(JSON.stringify(stats))
-		file.close()
+	# Stats are saved through SecureStorage automatically
+	# This function is kept for compatibility but does nothing
+	pass
 
 
 static func record_game_stats(coins: int, distance: float, game_time: float = 0.0) -> void:
-	var stats_data := {}
+	# Use SecureStorage for recording stats
+	var tree: SceneTree = Engine.get_main_loop() as SceneTree
+	if not tree:
+		return
 	
-	if FileAccess.file_exists(STATS_FILE):
-		var read_file := FileAccess.open(STATS_FILE, FileAccess.READ)
-		if read_file:
-			var json_string := read_file.get_as_text()
-			read_file.close()
-			var json := JSON.new()
-			if json.parse(json_string) == OK:
-				var data = json.get_data()
-				if data is Dictionary:
-					stats_data = data
-	
-	var prev_games: int = int(stats_data.get("games_played", 0))
-	var prev_coins: int = int(stats_data.get("total_coins", 0))
-	var prev_max_coins: int = int(stats_data.get("max_coins", 0))
-	var prev_distance: float = float(stats_data.get("total_distance", 0.0))
-	var prev_max_distance: float = float(stats_data.get("max_distance", 0.0))
-	var prev_time: float = float(stats_data.get("total_time", 0.0))
-	var prev_max_time: float = float(stats_data.get("max_time", 0.0))
-	var prev_balance: int = int(stats_data.get("coin_balance", 0))
-	
-	stats_data["games_played"] = prev_games + 1
-	stats_data["total_coins"] = prev_coins + coins
-	stats_data["max_coins"] = max(prev_max_coins, coins)
-	stats_data["total_distance"] = prev_distance + distance
-	stats_data["max_distance"] = max(prev_max_distance, distance)
-	stats_data["total_time"] = prev_time + game_time
-	stats_data["max_time"] = max(prev_max_time, game_time)
-	stats_data["coin_balance"] = prev_balance + coins
-	
-	var gm: Object = Engine.get_singleton("GameManager") if Engine.has_singleton("GameManager") else null
-	if not gm:
-		gm = (func() -> Node:
-			var tree: SceneTree = Engine.get_main_loop() as SceneTree
-			if tree:
-				return tree.root.get_node_or_null("/root/GameManager")
-			return null
-		).call()
-	
-	if gm:
-		var destroyed: Dictionary = gm.get("destroyed_objects")
-		if destroyed:
-			var prev_destroyed: Dictionary = stats_data.get("destroyed_objects", {})
-			for obj_id: String in destroyed.keys():
-				var count: int = destroyed[obj_id]
-				var prev_count: int = prev_destroyed.get(obj_id, 0)
-				prev_destroyed[obj_id] = prev_count + count
-			stats_data["destroyed_objects"] = prev_destroyed
-	
-	if not stats_data.has("destroyed_objects"):
-		stats_data["destroyed_objects"] = {}
-	
-	var file := FileAccess.open(STATS_FILE, FileAccess.WRITE)
-	if file:
-		file.store_string(JSON.stringify(stats_data))
-		file.close()
+	var storage: Node = tree.root.get_node_or_null("/root/SecureStorage")
+	if storage:
+		storage.record_game_stats(coins, distance, game_time)
 
 
 # ========== BUTTON ACTIONS ==========
