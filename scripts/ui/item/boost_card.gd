@@ -27,13 +27,23 @@ func setup(p_boost_id: String, display_name: String, icon_path: String, owned_co
 	var select_btn: Button = get_node("HBox/ButtonVBox/SelectButton")
 	var buy_btn: Button = get_node("HBox/ButtonVBox/BuyButton")
 	
-	# Card border color only (keeps scene-defined shape/size)
+	# Card styling - enhanced selection visibility
 	var style: StyleBoxFlat = get_theme_stylebox("panel").duplicate()
 	if is_selected:
+		# Selected: purple background glow + thick purple border
+		style.bg_color = Color(0.25, 0.15, 0.35, 0.85)
 		style.border_color = COLOR_ACCENT_SECONDARY
+		style.border_width_left = 20
+		style.border_width_top = 10
+		style.border_width_right = 10
+		style.border_width_bottom = 10
+		style.shadow_color = Color(0.62, 0.32, 0.82, 0.4)
+		style.shadow_size = 12
 	elif owned_count > 0:
+		style.bg_color = Color(0.1, 0.1, 0.1, 0.6)
 		style.border_color = COLOR_ACCENT_PRIMARY.darkened(0.3)
 	else:
+		style.bg_color = Color(0.1, 0.1, 0.1, 0.6)
 		style.border_color = COLOR_BORDER
 	add_theme_stylebox_override("panel", style)
 	

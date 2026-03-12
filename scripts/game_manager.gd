@@ -93,6 +93,10 @@ func start_game() -> void:
 func end_game() -> void:
 	is_playing = false
 	
+	# End supercharge if active (stops blinking effect)
+	if is_supercharged:
+		end_supercharge()
+	
 	# Stop rolling sound
 	var audio = get_node_or_null("/root/AudioManager")
 	if audio:

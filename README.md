@@ -3,8 +3,9 @@
 ## Prioritni
  
 * bug:
-- kdyz zemru z aktivnim superchrage tak screen blika pak už pořad
-- v shop menu by nejak lepe mohl byt zvyrazněny vybrany boost
+~~- kdyz zemru z aktivnim superchrage tak screen blika pak už pořad~~ (opraveno)
+~~- v shop menu by nejak lepe mohl byt zvyrazněny vybrany boost~~ (opraveno)
+~~- odstrani neomezene bezplatne kupovani truhel~~ (opraveno)
 
 * reklamy:
 - moznost 1x oživeni za slednuti reklamy (dobije zivoty na max) mozne jen 1x za 30 min (prida 200 tisic)
