@@ -10,7 +10,6 @@ const MODEL_SKIN_CARD_SCENE := preload("res://scenes/ui/item/model_skin_card.tsc
 const SPECIAL_SKIN_CARD_SCENE := preload("res://scenes/ui/item/special_skin_card.tscn")
 const BOOST_CARD_SCENE := preload("res://scenes/ui/item/boost_card.tscn")
 const CRATE_CARD_SCENE := preload("res://scenes/ui/item/crate_card.tscn")
-const ModelRenderer := preload("res://scripts/utils/model_renderer.gd")
 
 # UI Size Constants
 const LIST_ITEM_HEIGHT := 184
@@ -118,7 +117,7 @@ func _find_ui_references() -> void:
 
 
 func _connect_signals() -> void:
-	var back_button := content_instance.get_node("%BackButton") as Button
+	var _back_button := content_instance.get_node("%BackButton") as Button
 	# Back button signal connected in main_menu.gd
 	
 	var prev_button := content_instance.get_node("%PrevButton") as Button

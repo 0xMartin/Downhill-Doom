@@ -1,37 +1,137 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3 uid="uid://beb7maa3u4e0g"]
 
-[ext_resource type="Script" path="res://scripts/ui/item/model_skin_card.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://dd224olctvyln" path="res://scripts/ui/item/model_skin_card.gd" id="1_script"]
 
-[node name="ModelSkinCard" type="PanelContainer"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6kbfw"]
+content_margin_left = 45.0
+content_margin_top = 20.0
+content_margin_right = 20.0
+content_margin_bottom = 20.0
+bg_color = Color(0.1, 0.1, 0.1, 0.6)
+border_width_left = 16
+border_width_top = 8
+border_width_right = 8
+border_width_bottom = 8
+corner_radius_top_left = 32
+corner_radius_top_right = 32
+corner_radius_bottom_right = 32
+corner_radius_bottom_left = 32
+corner_detail = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_normal"]
+content_margin_left = 16.0
+content_margin_top = 12.0
+content_margin_right = 16.0
+content_margin_bottom = 12.0
+bg_color = Color(0.18, 0.22, 0.28, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 5
+border_color = Color(0.12, 0.14, 0.18, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+corner_detail = 5
+shadow_color = Color(0, 0, 0, 0.3)
+shadow_size = 2
+shadow_offset = Vector2(0, 2)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_pressed"]
+content_margin_left = 16.0
+content_margin_top = 14.0
+content_margin_right = 16.0
+content_margin_bottom = 10.0
+bg_color = Color(0.14, 0.18, 0.22, 1)
+border_width_left = 3
+border_width_top = 5
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.28, 0.76, 0.7, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+corner_detail = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_hover"]
+content_margin_left = 16.0
+content_margin_top = 12.0
+content_margin_right = 16.0
+content_margin_bottom = 12.0
+bg_color = Color(0.24, 0.3, 0.38, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 5
+border_color = Color(0.28, 0.76, 0.7, 0.8)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+corner_detail = 5
+shadow_color = Color(0.28, 0.76, 0.7, 0.2)
+shadow_size = 4
+shadow_offset = Vector2(0, 2)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_disabled"]
+content_margin_left = 16.0
+content_margin_top = 12.0
+content_margin_right = 16.0
+content_margin_bottom = 12.0
+bg_color = Color(0.12, 0.14, 0.16, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 5
+border_color = Color(0.08, 0.1, 0.12, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+corner_detail = 5
+
+[node name="ModelSkinCard" type="PanelContainer" unique_id=628067375]
 custom_minimum_size = Vector2(0, 184)
 size_flags_horizontal = 3
 mouse_filter = 1
+theme_override_styles/panel = SubResource("StyleBoxFlat_6kbfw")
 script = ExtResource("1_script")
 
-[node name="HBox" type="HBoxContainer" parent="."]
+[node name="HBox" type="HBoxContainer" parent="." unique_id=1153522556]
 layout_mode = 2
 theme_override_constants/separation = 20
-mouse_filter = 1
 
-[node name="NameVBox" type="VBoxContainer" parent="HBox"]
+[node name="NameVBox" type="VBoxContainer" parent="HBox" unique_id=1983047008]
 layout_mode = 2
 size_flags_horizontal = 3
-mouse_filter = 1
 
-[node name="NameLabel" type="Label" parent="HBox/NameVBox"]
+[node name="NameLabel" type="Label" parent="HBox/NameVBox" unique_id=987509706]
 layout_mode = 2
-theme_override_font_sizes/font_size = 44
+mouse_filter = 1
+theme_override_constants/outline_size = 35
+theme_override_font_sizes/font_size = 60
 text = "Skin Name"
-mouse_filter = 1
 
-[node name="StatusLabel" type="Label" parent="HBox/NameVBox"]
+[node name="StatusLabel" type="Label" parent="HBox/NameVBox" unique_id=1906047142]
 layout_mode = 2
-theme_override_font_sizes/font_size = 36
+mouse_filter = 1
+theme_override_constants/outline_size = 25
+theme_override_font_sizes/font_size = 45
 text = "OWNED"
-mouse_filter = 1
 
-[node name="ActionButton" type="Button" parent="HBox"]
-custom_minimum_size = Vector2(160, 88)
+[node name="ActionButton" type="Button" parent="HBox" unique_id=1411321873]
+custom_minimum_size = Vector2(220, 100)
 layout_mode = 2
-theme_override_font_sizes/font_size = 36
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(0.28, 0.76, 0.7, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/font_disabled_color = Color(0.4, 0.45, 0.5, 1)
+theme_override_constants/outline_size = 30
+theme_override_font_sizes/font_size = 50
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_btn_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
 text = "SELECT"
