@@ -109,6 +109,17 @@ func play_button_click() -> void:
 		sfx_player.volume_db = _get_sfx_db(-5.0)
 		sfx_player.play()
 
+
+func play_ui_sound(path: String, volume_offset: float = 0.0) -> void:
+	if not ResourceLoader.exists(path):
+		return
+	var stream := load(path) as AudioStream
+	if stream:
+		sfx_player.stream = stream
+		sfx_player.volume_db = _get_sfx_db(volume_offset)
+		sfx_player.play()
+
+
 # ========== Menu Music ==========
 
 func play_menu_music() -> void:
@@ -117,21 +128,26 @@ func play_menu_music() -> void:
 
 func stop_menu_music() -> void:
 	var tween := create_tween()
-	tween.tween_property(menu_music_player, "volume_db", -40.0, 0.5)
+	tween.tween_property(menu_music_player, "volume_db", -80.0, 0.5)
 	tween.tween_callback(menu_music_player.stop)
 
 func _crossfade_to_menu() -> void:
 	# Fade out game music
 	if game_music_player.playing:
 		var tween := create_tween()
-		tween.tween_property(game_music_player, "volume_db", -40.0, 1.0)
+		tween.tween_property(game_music_player, "volume_db", -80.0, 1.0)
 		tween.tween_callback(game_music_player.stop)
 	
+	# Don't play if music is muted
+	var target_db := _get_music_db(-5.0)
+	if music_volume <= 0.0:
+		return
+	
 	# Fade in menu music
-	menu_music_player.volume_db = -40.0
+	menu_music_player.volume_db = -80.0
 	menu_music_player.play()
 	var tween2 := create_tween()
-	tween2.tween_property(menu_music_player, "volume_db", _get_music_db(-5.0), 1.0)
+	tween2.tween_property(menu_music_player, "volume_db", target_db, 1.0)
 
 # ========== Game Music ==========
 
@@ -141,7 +157,7 @@ func start_game_music() -> void:
 
 func stop_game_music() -> void:
 	var tween := create_tween()
-	tween.tween_property(game_music_player, "volume_db", -40.0, 0.5)
+	tween.tween_property(game_music_player, "volume_db", -80.0, 0.5)
 	tween.tween_callback(game_music_player.stop)
 
 func _crossfade_to_game() -> void:
@@ -158,6 +174,11 @@ func _play_random_game_track() -> void:
 	if game_music_tracks.is_empty():
 		return
 	
+	# Don't play if music is muted
+	var target_db := _get_music_db(-8.0)
+	if music_volume <= 0.0:
+		return
+	
 	# Pick a different track than the current one
 	var new_index := randi() % game_music_tracks.size()
 	if game_music_tracks.size() > 1:
@@ -168,10 +189,10 @@ func _play_random_game_track() -> void:
 	var stream := load(game_music_tracks[new_index]) as AudioStream
 	if stream:
 		game_music_player.stream = stream
-		game_music_player.volume_db = -40.0
+		game_music_player.volume_db = -80.0
 		game_music_player.play()
 		var tween := create_tween()
-		tween.tween_property(game_music_player, "volume_db", _get_music_db(-8.0), 1.0)
+		tween.tween_property(game_music_player, "volume_db", target_db, 1.0)
 
 func _on_game_music_finished() -> void:
 	if is_in_game:

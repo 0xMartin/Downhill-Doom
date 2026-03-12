@@ -446,11 +446,15 @@ func _animate_marker_glow(glow: TextureRect) -> void:
 
 func _add_win_sparkles(container: Control) -> void:
 	var sparkle_positions := [
-		Vector2(-150, -100), Vector2(150, -100),
-		Vector2(-180, 50), Vector2(180, 50),
-		Vector2(-100, -150), Vector2(100, -150),
-		Vector2(-120, 100), Vector2(120, 100),
+		Vector2(-200, -180), Vector2(200, -180),
+		Vector2(-250, 0), Vector2(250, 0),
+		Vector2(-200, 180), Vector2(200, 180),
+		Vector2(-100, -250), Vector2(100, -250),
+		Vector2(0, 220), Vector2(-150, 120), Vector2(150, 120),
 	]
+	
+	var sparkle_size := 40
+	var half_size := sparkle_size / 2
 	
 	for i in range(sparkle_positions.size()):
 		var sparkle := TextureRect.new()
@@ -458,32 +462,35 @@ func _add_win_sparkles(container: Control) -> void:
 			sparkle.texture = load("res://assets/svg/roulette_sparkle.svg")
 		sparkle.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		sparkle.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		sparkle.custom_minimum_size = Vector2(24, 24)
+		sparkle.custom_minimum_size = Vector2(sparkle_size, sparkle_size)
 		sparkle.set_anchors_preset(Control.PRESET_CENTER)
 		sparkle.anchor_left = 0.5
 		sparkle.anchor_right = 0.5
 		sparkle.anchor_top = 0.5
 		sparkle.anchor_bottom = 0.5
-		sparkle.offset_left = sparkle_positions[i].x - 12
-		sparkle.offset_right = sparkle_positions[i].x + 12
-		sparkle.offset_top = sparkle_positions[i].y - 12
-		sparkle.offset_bottom = sparkle_positions[i].y + 12
+		sparkle.offset_left = sparkle_positions[i].x - half_size
+		sparkle.offset_right = sparkle_positions[i].x + half_size
+		sparkle.offset_top = sparkle_positions[i].y - half_size
+		sparkle.offset_bottom = sparkle_positions[i].y + half_size
+		sparkle.modulate = COLOR_ACCENT_GOLD
 		sparkle.modulate.a = 0.0
-		sparkle.pivot_offset = Vector2(12, 12)
+		sparkle.pivot_offset = Vector2(half_size, half_size)
 		container.add_child(sparkle)
 		
-		var delay := float(i) * 0.15
+		var delay := float(i) * 0.1
 		var sparkle_tween := shop_panel.create_tween()
+		sparkle_tween.set_loops()
 		sparkle_tween.tween_interval(delay)
 		sparkle_tween.tween_property(sparkle, "modulate:a", 1.0, 0.3)
-		sparkle_tween.tween_property(sparkle, "modulate:a", 0.0, 0.5)
-		sparkle_tween.tween_callback(sparkle.queue_free)
+		sparkle_tween.tween_property(sparkle, "modulate:a", 0.3, 0.5)
+		roulette_looping_tweens.append(sparkle_tween)
 		
-		var rotation_speed := 1.5 + randf() * 1.5
+		var rotation_speed := 2.0 + randf() * 2.0
 		var rotation_dir := 1.0 if i % 2 == 0 else -1.0
 		var rotate_tween := shop_panel.create_tween()
-		rotate_tween.tween_interval(delay)
+		rotate_tween.set_loops()
 		rotate_tween.tween_property(sparkle, "rotation", rotation_dir * TAU, rotation_speed).from(0.0)
+		roulette_looping_tweens.append(rotate_tween)
 
 
 func _animate_win_label(label: Label) -> void:
@@ -502,6 +509,27 @@ func _animate_win_label(label: Label) -> void:
 	pulse_tween.tween_interval(0.5)
 	pulse_tween.tween_property(label, "scale", Vector2(1.05, 1.05), 0.6).set_trans(Tween.TRANS_SINE)
 	pulse_tween.tween_property(label, "scale", Vector2(1.0, 1.0), 0.6).set_trans(Tween.TRANS_SINE)
+	roulette_looping_tweens.append(pulse_tween)
+
+
+func _animate_preview_container(container: CenterContainer) -> void:
+	container.pivot_offset = container.size / 2
+	container.scale = Vector2(0.5, 0.5)
+	container.modulate.a = 0.0
+	
+	# Initial pop-in animation
+	var tween := shop_panel.create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(container, "scale", Vector2(1.1, 1.1), 0.4).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(container, "modulate:a", 1.0, 0.3)
+	tween.chain().tween_property(container, "scale", Vector2(1.0, 1.0), 0.2).set_trans(Tween.TRANS_SINE)
+	
+	# Continuous pulsing animation
+	var pulse_tween := shop_panel.create_tween()
+	pulse_tween.set_loops()
+	pulse_tween.tween_interval(0.7)
+	pulse_tween.tween_property(container, "scale", Vector2(1.08, 1.08), 0.8).set_trans(Tween.TRANS_SINE)
+	pulse_tween.tween_property(container, "scale", Vector2(1.0, 1.0), 0.8).set_trans(Tween.TRANS_SINE)
 	roulette_looping_tweens.append(pulse_tween)
 
 
@@ -714,6 +742,10 @@ func _on_roulette_finished() -> void:
 		roulette_container = ROULETTE_RESULT_SCENE.instantiate()
 		shop_panel.add_child(roulette_container)
 		
+		# Play lootbox win sound
+		if audio_manager and audio_manager.has_method("play_ui_sound"):
+			audio_manager.play_ui_sound("res://assets/sounds/ui/lootbox.mp3")
+		
 		# Get scene references
 		var win_label: Label = roulette_container.get_node("%WinLabel")
 		var preview_container: CenterContainer = roulette_container.get_node("%PreviewContainer")
@@ -792,6 +824,9 @@ func _on_roulette_finished() -> void:
 			preview_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 			preview_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 			preview_container.add_child(preview_icon)
+		
+		# Animate preview container with pulsing effect
+		_animate_preview_container(preview_container)
 		
 		# Set item label text
 		item_label.text = result_text
