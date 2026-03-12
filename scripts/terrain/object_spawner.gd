@@ -79,13 +79,20 @@ var spike_wall_max_angle: float = 25.0  # Maximum angle deviation per segment (d
 # Minimum distance between objects to prevent overlap
 var min_object_distance: float = 2.5
 
-# Height offsets per category to compensate for lowpoly terrain
-# Trees have roots so they can sink a bit, buildings need more clearance
-var height_offset_tree: float = 0.0  # Trees look fine slightly embedded
-var height_offset_rock: float = 0.1  # Rocks can be partially buried
-var height_offset_building: float = 0.25  # Buildings need to sit on surface
-var height_offset_npc: float = 0.15  # NPCs should be on surface
-var height_offset_spike: float = 0.2  # Spikes need clearance
+# Height offsets per category to compensate for lowpoly terrain noise and grid jitter
+# Base values - will be combined with noise_compensation at runtime
+var height_offset_tree: float = 0.0  # Trees can be slightly embedded (roots)
+var height_offset_rock: float = 0.05  # Rocks sit on surface
+var height_offset_building: float = 0.1  # Buildings need slight clearance
+var height_offset_npc: float = 0.08  # NPCs on surface
+var height_offset_spike: float = 0.1  # Spikes need small clearance
+
+# Compensation for terrain mesh noise/jitter that causes height discrepancy
+# This is added to all height offsets to prevent objects sinking into terrain variations
+var noise_compensation: float = 0.3  # Loaded from config based on noise_height
+
+# Terrain slope angle for tilting objects
+var slope_angle: float = 12.0  # Default, loaded from config
 
 # Player spawn safe zone - no objects spawn in this circle where player lands
 var player_spawn_position: Vector3 = Vector3(0.0, 0.0, -25.0)  # From game.tscn
@@ -123,6 +130,21 @@ func _init(config: Dictionary) -> void:
 	tree_density = config.get("tree_density", 0.5)
 	num_lanes = config.get("num_lanes", 5)
 	rock_safe_chunks = config.get("rock_safe_chunks", 2)
+	slope_angle = config.get("slope_angle", 12.0)
+	
+	# Calculate noise compensation based on terrain noise settings
+	# noise_height affects terrain variation, grid_jitter adds more uncertainty
+	var noise_height: float = config.get("noise_height", 1.0)
+	var grid_jitter: float = config.get("grid_jitter", 0.35)
+	# Compensation = base noise variation + jitter effect
+	noise_compensation = noise_height * 0.25 + grid_jitter * 0.15
+	
+	# Apply noise compensation to all height offsets
+	height_offset_tree += noise_compensation
+	height_offset_rock += noise_compensation
+	height_offset_building += noise_compensation
+	height_offset_npc += noise_compensation
+	height_offset_spike += noise_compensation
 	
 	# Create zone manager with noise-based zones
 	var ZoneManagerScript := preload("res://scripts/terrain/zone_manager.gd")
@@ -330,6 +352,9 @@ func _spawn_rocks_async(chunk: Node3D, chunk_index: int, get_height_func: Callab
 			continue
 		
 		obj.position = Vector3(x, height + height_offset_rock, local_z)
+		# Rocks can have slight random tilt for natural look
+		obj.rotation.x = rng.randf_range(-0.15, 0.15)
+		obj.rotation.z = rng.randf_range(-0.15, 0.15)
 		obj.rotation.y = rng.randf_range(0, TAU)
 		
 		var variation: float = obj_data.height_variation
@@ -586,6 +611,9 @@ func _spawn_rocks(chunk: Node3D, chunk_index: int, get_height_func: Callable) ->
 			continue
 		
 		obj.position = Vector3(x, height + height_offset_rock, local_z)
+		# Rocks can have slight random tilt for natural look
+		obj.rotation.x = rng.randf_range(-0.15, 0.15)
+		obj.rotation.z = rng.randf_range(-0.15, 0.15)
 		obj.rotation.y = rng.randf_range(0, TAU)
 		
 		var variation: float = obj_data.height_variation
@@ -995,6 +1023,7 @@ func _try_spawn_at_position(chunk: Node3D, chunk_index: int, get_height_func: Ca
 		return false
 	
 	obj.position = Vector3(x, height + height_offset, local_z)
+	# Objects stand upright (vertical) - only Y rotation for random facing direction
 	obj.rotation.y = rng.randf_range(0, TAU)
 	
 	# Scale to target height
