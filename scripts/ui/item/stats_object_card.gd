@@ -23,22 +23,18 @@ func setup(obj_data: RefCounted, kill_count: int) -> void:
 	# Get UI references (cannot use @onready since setup is called before _ready)
 	var preview_container: Control = get_node("HBox/PreviewContainer")
 	var name_label: Label = get_node("HBox/Info/NameLabel")
-	var coin_icon: TextureRect = get_node("HBox/Info/StatsRow/CoinRow/CoinIcon")
-	var coin_label: Label = get_node("HBox/Info/StatsRow/CoinRow/CoinLabel")
-	var spawn_label: Label = get_node("HBox/Info/StatsRow/SpawnLabel")
+	var coin_icon: TextureRect = get_node("HBox/Info/StatsRow/LeftStats/CoinRow/CoinIcon")
+	var coin_label: Label = get_node("HBox/Info/StatsRow/LeftStats/CoinRow/CoinLabel")
+	var spawn_label: Label = get_node("HBox/Info/StatsRow/LeftStats/SpawnLabel")
 	var armored_icon: TextureRect = get_node("HBox/Info/StatsRow/ArmoredIcon/Icon")
 	var badge: PanelContainer = get_node("HBox/KillBadge/Badge")
 	var destroyed_label: Label = get_node("HBox/KillBadge/Badge/VBox/DestroyedLabel")
 	var kill_count_label: Label = get_node("HBox/KillBadge/Badge/VBox/KillCount")
 	
-	# Card style
-	var style := StyleBoxFlat.new()
-	style.bg_color = COLOR_BG_DARK
-	style.set_corner_radius_all(16)
-	style.set_border_width_all(2)
-	style.border_color = COLOR_BORDER if discovered else Color(0.3, 0.3, 0.35, 0.5)
-	style.set_content_margin_all(16)
-	add_theme_stylebox_override("panel", style)
+	# Card border color only (keeps scene-defined shape/size)
+	var panel_style: StyleBoxFlat = get_theme_stylebox("panel").duplicate()
+	panel_style.border_color = COLOR_BORDER if discovered else Color(0.3, 0.3, 0.35, 0.5)
+	add_theme_stylebox_override("panel", panel_style)
 	
 	# Name
 	name_label.text = obj_data.display_name if discovered else "???"
@@ -60,19 +56,14 @@ func setup(obj_data: RefCounted, kill_count: int) -> void:
 	else:
 		armored_icon.visible = false
 	
-	# Kill badge
-	var badge_style := StyleBoxFlat.new()
-	badge_style.set_corner_radius_all(12)
-	badge_style.set_content_margin_all(12)
-	badge_style.content_margin_left = 20
-	badge_style.content_margin_right = 20
+	# Kill badge - border color only (keeps scene-defined shape/size)
+	var badge_style: StyleBoxFlat = badge.get_theme_stylebox("panel").duplicate()
 	if discovered:
 		badge_style.bg_color = COLOR_ACCENT_SECONDARY.darkened(0.5)
 		badge_style.border_color = COLOR_ACCENT_SECONDARY
 	else:
 		badge_style.bg_color = COLOR_BG_LIGHT
 		badge_style.border_color = COLOR_BORDER
-	badge_style.set_border_width_all(2)
 	badge.add_theme_stylebox_override("panel", badge_style)
 	
 	destroyed_label.add_theme_color_override("font_color", COLOR_ACCENT_SECONDARY if discovered else COLOR_TEXT_MUTED)

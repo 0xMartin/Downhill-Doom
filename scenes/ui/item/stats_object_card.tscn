@@ -4,102 +4,142 @@
 [ext_resource type="Texture2D" uid="uid://jepsdf0och2h" path="res://assets/svg/coin.svg" id="2_coin"]
 [ext_resource type="Texture2D" uid="uid://c86gomyjjis5p" path="res://assets/svg/shield.svg" id="3_shield"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ym6mc"]
-content_margin_left = 5.0
-content_margin_top = 5.0
-content_margin_right = 5.0
-content_margin_bottom = 10.0
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+content_margin_left = 45.0
+content_margin_top = 20.0
+content_margin_right = 20.0
+content_margin_bottom = 20.0
 bg_color = Color(0.1, 0.1, 0.1, 0.6)
-corner_radius_top_left = 3
-corner_radius_top_right = 3
-corner_radius_bottom_right = 3
-corner_radius_bottom_left = 3
+border_width_left = 16
+border_width_top = 8
+border_width_right = 8
+border_width_bottom = 8
+corner_radius_top_left = 32
+corner_radius_top_right = 32
+corner_radius_bottom_right = 32
+corner_radius_bottom_left = 32
 corner_detail = 5
 
-[node name="StatsObjectCard" type="PanelContainer" unique_id=2116351549]
-custom_minimum_size = Vector2(600, 220)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_badge"]
+content_margin_left = 20.0
+content_margin_top = 12.0
+content_margin_right = 20.0
+content_margin_bottom = 12.0
+bg_color = Color(0.14, 0.18, 0.26, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.25, 0.32, 0.45, 0.8)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+corner_detail = 5
+
+[node name="StatsObjectCard" type="PanelContainer" unique_id=1840249523]
+custom_minimum_size = Vector2(900, 220)
 size_flags_horizontal = 3
 mouse_filter = 1
-theme_override_styles/panel = SubResource("StyleBoxFlat_ym6mc")
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 script = ExtResource("1_script")
 
-[node name="HBox" type="HBoxContainer" parent="." unique_id=309896549]
+[node name="HBox" type="HBoxContainer" parent="." unique_id=1573837093]
 layout_mode = 2
 theme_override_constants/separation = 24
 
-[node name="PreviewContainer" type="Control" parent="HBox" unique_id=1305113636]
+[node name="PreviewContainer" type="Control" parent="HBox" unique_id=1195196549]
 custom_minimum_size = Vector2(180, 180)
 layout_mode = 2
 mouse_filter = 1
 
-[node name="Info" type="VBoxContainer" parent="HBox" unique_id=1050885404]
+[node name="Info" type="VBoxContainer" parent="HBox" unique_id=231962895]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 16
 alignment = 1
 
-[node name="NameLabel" type="Label" parent="HBox/Info" unique_id=588964373]
+[node name="NameLabel" type="Label" parent="HBox/Info" unique_id=1768067227]
 layout_mode = 2
+mouse_filter = 1
+theme_override_constants/outline_size = 35
 theme_override_font_sizes/font_size = 60
 text = "???"
+autowrap_mode = 2
 
-[node name="StatsRow" type="HBoxContainer" parent="HBox/Info" unique_id=1315388802]
+[node name="StatsRow" type="HBoxContainer" parent="HBox/Info" unique_id=2565818]
 layout_mode = 2
 theme_override_constants/separation = 24
 
-[node name="CoinRow" type="HBoxContainer" parent="HBox/Info/StatsRow" unique_id=115710891]
+[node name="LeftStats" type="VBoxContainer" parent="HBox/Info/StatsRow" unique_id=2135239043]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="CoinRow" type="HBoxContainer" parent="HBox/Info/StatsRow/LeftStats" unique_id=2091169600]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="CoinIcon" type="TextureRect" parent="HBox/Info/StatsRow/CoinRow" unique_id=583922065]
+[node name="CoinIcon" type="TextureRect" parent="HBox/Info/StatsRow/LeftStats/CoinRow" unique_id=182962910]
 custom_minimum_size = Vector2(45, 45)
 layout_mode = 2
+size_flags_vertical = 4
 texture = ExtResource("2_coin")
 expand_mode = 1
-stretch_mode = 6
+stretch_mode = 4
 
-[node name="CoinLabel" type="Label" parent="HBox/Info/StatsRow/CoinRow" unique_id=149363931]
+[node name="CoinLabel" type="Label" parent="HBox/Info/StatsRow/LeftStats/CoinRow" unique_id=1405764822]
 layout_mode = 2
+mouse_filter = 1
+theme_override_constants/outline_size = 25
 theme_override_font_sizes/font_size = 45
 text = "?"
 
-[node name="SpawnLabel" type="Label" parent="HBox/Info/StatsRow" unique_id=911230574]
+[node name="SpawnLabel" type="Label" parent="HBox/Info/StatsRow/LeftStats" unique_id=1434661477]
 layout_mode = 2
+mouse_filter = 1
+theme_override_constants/outline_size = 25
 theme_override_font_sizes/font_size = 45
 text = "Spawn: ?%"
 
-[node name="ArmoredIcon" type="AspectRatioContainer" parent="HBox/Info/StatsRow" unique_id=79492762]
-custom_minimum_size = Vector2(70, 50)
+[node name="ArmoredIcon" type="AspectRatioContainer" parent="HBox/Info/StatsRow" unique_id=1134613497]
+custom_minimum_size = Vector2(70, 70)
 layout_mode = 2
+size_flags_vertical = 4
 
-[node name="Icon" type="TextureRect" parent="HBox/Info/StatsRow/ArmoredIcon" unique_id=359603449]
+[node name="Icon" type="TextureRect" parent="HBox/Info/StatsRow/ArmoredIcon" unique_id=1916638132]
 layout_mode = 2
 texture = ExtResource("3_shield")
 expand_mode = 1
 stretch_mode = 6
 
-[node name="KillBadge" type="VBoxContainer" parent="HBox" unique_id=596515829]
-custom_minimum_size = Vector2(160, 0)
+[node name="KillBadge" type="VBoxContainer" parent="HBox" unique_id=483013755]
+custom_minimum_size = Vector2(220, 0)
 layout_mode = 2
 theme_override_constants/separation = 4
 alignment = 1
 
-[node name="Badge" type="PanelContainer" parent="HBox/KillBadge" unique_id=998429431]
+[node name="Badge" type="PanelContainer" parent="HBox/KillBadge" unique_id=1185161077]
 layout_mode = 2
 mouse_filter = 1
+theme_override_styles/panel = SubResource("StyleBoxFlat_badge")
 
-[node name="VBox" type="VBoxContainer" parent="HBox/KillBadge/Badge" unique_id=955437508]
+[node name="VBox" type="VBoxContainer" parent="HBox/KillBadge/Badge" unique_id=406520378]
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="DestroyedLabel" type="Label" parent="HBox/KillBadge/Badge/VBox" unique_id=2090771427]
+[node name="DestroyedLabel" type="Label" parent="HBox/KillBadge/Badge/VBox" unique_id=945166268]
 layout_mode = 2
-theme_override_font_sizes/font_size = 30
+mouse_filter = 1
+theme_override_constants/outline_size = 15
+theme_override_font_sizes/font_size = 28
 text = "DESTROYED"
 horizontal_alignment = 1
 
-[node name="KillCount" type="Label" parent="HBox/KillBadge/Badge/VBox" unique_id=516279642]
+[node name="KillCount" type="Label" parent="HBox/KillBadge/Badge/VBox" unique_id=432539632]
 layout_mode = 2
-theme_override_font_sizes/font_size = 56
+mouse_filter = 1
+theme_override_constants/outline_size = 25
+theme_override_font_sizes/font_size = 50
 text = "0"
 horizontal_alignment = 1

@@ -93,7 +93,7 @@ corner_radius_bottom_left = 16
 corner_detail = 5
 
 [node name="SpecialSkinCard" type="PanelContainer" unique_id=1045515658]
-custom_minimum_size = Vector2(0, 184)
+custom_minimum_size = Vector2(700, 184)
 size_flags_horizontal = 3
 mouse_filter = 1
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
