@@ -12,16 +12,6 @@ const MAX_SLOTS: int = 3
 # Inventory slots - each slot stores an item ID or empty string
 var _slots: Array[String] = ["", "", ""]
 
-func _ready() -> void:
-	# Add test items for debugging
-	call_deferred("_add_test_items")
-
-func _add_test_items() -> void:
-	# Add 3 different items for testing
-	var test_items: Array[String] = ["super_supercharge", "explosion", "time_stop"]
-	for item_id in test_items:
-		add_item(item_id)
-
 ## Try to add an item to the inventory
 ## Returns the slot index if successful, -1 if inventory is full
 func add_item(item_id: String) -> int:
