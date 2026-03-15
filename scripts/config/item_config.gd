@@ -163,7 +163,7 @@ static func _init_items() -> void:
 		"name": "Speed Boost",
 		"rarity": Rarity.COMMON,
 		"effect": EffectType.SPEED_BOOST,
-		"value": 1.3,  # 30% faster
+		"value": 1.4,  # 40% faster
 		"duration": 5.0,
 		"icon": "res://assets/textures/items/boots_winged.png",
 		"model": "res://assets/models/items/boots_winged.blend",
@@ -225,7 +225,7 @@ static func _init_items() -> void:
 		"rarity": Rarity.RARE,
 		"effect": EffectType.SLOW_MOTION,
 		"value": 0.5,  # 50% time scale
-		"duration": 4.0,
+		"duration": 15.0,
 		"icon": "res://assets/textures/items/hourglass.png",
 		"model": "res://assets/models/items/hourglass.blend",
 		"spawn_weight": 0.6,
@@ -235,7 +235,7 @@ static func _init_items() -> void:
 		"name": "Explosion",
 		"rarity": Rarity.LEGENDARY,
 		"effect": EffectType.EXPLOSION,
-		"value": 15.0,  # 15m radius
+		"value": 35.0,  # 35m radius
 		"duration": 0.0,
 		"icon": "res://assets/textures/items/bomb.png",
 		"model": "res://assets/models/items/bomb.blend",

@@ -18,7 +18,7 @@ func _ready() -> void:
 
 func _add_test_items() -> void:
 	# Add 3 different items for testing
-	var test_items: Array[String] = ["speed_boost", "heal_potion_small", "double_coins"]
+	var test_items: Array[String] = ["power_shield", "explosion", "time_stop"]
 	for item_id in test_items:
 		add_item(item_id)
 		print("[InventoryManager] Added test item: ", item_id)
@@ -32,6 +32,10 @@ func add_item(item_id: String) -> int:
 			_slots[i] = item_id
 			item_added.emit(i, item_id)
 			inventory_changed.emit()
+			# Play pickup sound
+			var audio := get_node_or_null("/root/AudioManager")
+			if audio:
+				audio.play_item_pickup_sound()
 			return i
 	
 	# Inventory is full
@@ -59,6 +63,10 @@ func use_item(slot_index: int) -> bool:
 		_slots[slot_index] = ""
 		item_removed.emit(slot_index, item_id)
 		inventory_changed.emit()
+		# Play use sound
+		var audio := get_node_or_null("/root/AudioManager")
+		if audio:
+			audio.play_item_use_sound()
 	
 	return success
 

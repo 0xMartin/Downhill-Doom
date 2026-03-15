@@ -11,6 +11,8 @@ const DEATH_SOUND := "res://assets/sounds/player/death.mp3"
 const SHOCK_WAVE_SOUND := "res://assets/sounds/sfx/shock_wave.mp3"
 const SUPERCHARGE_SOUND := "res://assets/sounds/player/supercharge.mp3"
 const SPELL_CAST_SOUND := "res://assets/sounds/sfx/spell_cast.mp3"
+const ITEM_PICKUP_SOUND := "res://assets/sounds/player/item_pickup.mp3"
+const ITEM_USE_SOUND := "res://assets/sounds/player/item_use.mp3"
 
 var game_music_tracks: Array[String] = [
 	"res://assets/sounds/music/music_1.mp3",
@@ -326,6 +328,28 @@ func play_spell_cast_sound() -> void:
 		var player := AudioStreamPlayer.new()
 		player.stream = stream
 		player.volume_db = _get_sfx_db(-3.0)
+		player.pitch_scale = _get_sfx_pitch(randf_range(0.95, 1.05))
+		add_child(player)
+		player.play()
+		player.finished.connect(player.queue_free)
+
+func play_item_pickup_sound() -> void:
+	var stream := load(ITEM_PICKUP_SOUND) as AudioStream
+	if stream:
+		var player := AudioStreamPlayer.new()
+		player.stream = stream
+		player.volume_db = _get_sfx_db(-2.0)
+		player.pitch_scale = _get_sfx_pitch(randf_range(0.95, 1.05))
+		add_child(player)
+		player.play()
+		player.finished.connect(player.queue_free)
+
+func play_item_use_sound() -> void:
+	var stream := load(ITEM_USE_SOUND) as AudioStream
+	if stream:
+		var player := AudioStreamPlayer.new()
+		player.stream = stream
+		player.volume_db = _get_sfx_db(-1.0)
 		player.pitch_scale = _get_sfx_pitch(randf_range(0.95, 1.05))
 		add_child(player)
 		player.play()

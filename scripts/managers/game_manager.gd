@@ -302,6 +302,15 @@ func take_damage(amount: int) -> void:
 	if infinite_health or is_supercharged:
 		return
 	
+	# Check if shield blocks the damage
+	var item_manager := get_node_or_null("/root/ItemManager")
+	if item_manager and item_manager.try_block_damage():
+		# Shield blocked the hit - play shield sound and return
+		var audio = get_node_or_null("/root/AudioManager")
+		if audio and audio.has_method("play_shock_wave_sound"):
+			audio.play_shock_wave_sound()
+		return
+	
 	health = max(0, health - amount)
 	health_changed.emit(health, max_health)
 	player_hit.emit(amount)

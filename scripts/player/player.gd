@@ -91,6 +91,11 @@ var edge_warning_material: StandardMaterial3D
 const EDGE_WARNING_DISTANCE: float = 6.0  # Start showing warning at this distance from edge
 const TERRAIN_HALF_WIDTH: float = 18.0  # Half of terrain_width (36/2)
 
+# Shield bubble effect
+var shield_bubble: MeshInstance3D
+var shield_bubble_material: StandardMaterial3D
+var shield_pulse_tween: Tween
+
 func _ready() -> void:
 	# Get autoload references
 	game_manager = get_node("/root/GameManager")
@@ -114,6 +119,13 @@ func _ready() -> void:
 	if game_manager:
 		game_manager.supercharge_activated.connect(_on_supercharge_activated)
 		game_manager.supercharge_ended.connect(_on_supercharge_ended)
+	
+	# Connect to ItemManager shield signals
+	if item_manager:
+		if item_manager.has_signal("shield_activated"):
+			item_manager.shield_activated.connect(_on_shield_activated)
+		if item_manager.has_signal("shield_hit"):
+			item_manager.shield_hit.connect(_on_shield_hit)
 	
 	# Load selected skin from ShopManager
 	_load_selected_skin()
@@ -1401,3 +1413,108 @@ func _create_outline_from_node(source: Node, target: Node) -> void:
 			sub_container.transform = child.transform
 			target.add_child(sub_container)
 			_create_outline_from_node(child, sub_container)
+
+# ========== SHIELD BUBBLE EFFECT ==========
+
+func _create_shield_bubble() -> void:
+	if shield_bubble:
+		return
+	
+	# Create a transparent blue sphere around the player
+	shield_bubble = MeshInstance3D.new()
+	shield_bubble.name = "ShieldBubble"
+	
+	var sphere := SphereMesh.new()
+	sphere.radius = 1.2
+	sphere.height = 2.4
+	sphere.radial_segments = 32
+	sphere.rings = 16
+	shield_bubble.mesh = sphere
+	
+	# Create transparent blue material
+	shield_bubble_material = StandardMaterial3D.new()
+	shield_bubble_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	shield_bubble_material.albedo_color = Color(0.2, 0.5, 1.0, 0.25)  # Light blue, 25% opacity
+	shield_bubble_material.emission_enabled = true
+	shield_bubble_material.emission = Color(0.3, 0.6, 1.0)
+	shield_bubble_material.emission_energy_multiplier = 0.5
+	shield_bubble_material.cull_mode = BaseMaterial3D.CULL_FRONT  # Render inside faces
+	shield_bubble_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	
+	shield_bubble.material_override = shield_bubble_material
+	shield_bubble.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	shield_bubble.visible = false
+	
+	add_child(shield_bubble)
+
+func _show_shield_bubble() -> void:
+	if not shield_bubble:
+		_create_shield_bubble()
+	
+	shield_bubble.visible = true
+	shield_bubble.scale = Vector3.ZERO
+	
+	# Kill existing tween
+	if shield_pulse_tween:
+		shield_pulse_tween.kill()
+	
+	# Pop-in animation
+	shield_pulse_tween = create_tween()
+	shield_pulse_tween.tween_property(shield_bubble, "scale", Vector3.ONE, 0.3).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+	
+	# Start gentle pulsing
+	shield_pulse_tween.tween_callback(_start_shield_pulse)
+
+func _start_shield_pulse() -> void:
+	if shield_pulse_tween:
+		shield_pulse_tween.kill()
+	
+	shield_pulse_tween = create_tween().set_loops()
+	shield_pulse_tween.tween_property(shield_bubble, "scale", Vector3.ONE * 1.05, 0.8).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
+	shield_pulse_tween.tween_property(shield_bubble, "scale", Vector3.ONE, 0.8).set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
+
+func _hide_shield_bubble() -> void:
+	if not shield_bubble:
+		return
+	
+	if shield_pulse_tween:
+		shield_pulse_tween.kill()
+	
+	# Pop-out animation
+	shield_pulse_tween = create_tween()
+	shield_pulse_tween.tween_property(shield_bubble, "scale", Vector3.ZERO, 0.2).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_BACK)
+	shield_pulse_tween.tween_callback(func(): shield_bubble.visible = false)
+
+func _flash_shield_bubble() -> void:
+	if not shield_bubble or not shield_bubble.visible:
+		return
+	
+	# Flash effect when hit
+	var original_color: Color = shield_bubble_material.albedo_color
+	shield_bubble_material.albedo_color = Color(1.0, 1.0, 1.0, 0.6)
+	shield_bubble_material.emission_energy_multiplier = 2.0
+	
+	var flash_tween := create_tween()
+	flash_tween.tween_property(shield_bubble_material, "albedo_color", original_color, 0.3)
+	flash_tween.parallel().tween_property(shield_bubble_material, "emission_energy_multiplier", 0.5, 0.3)
+
+func _on_shield_hit(remaining_charges: int) -> void:
+	_flash_shield_bubble()
+	
+	if remaining_charges <= 0:
+		_hide_shield_bubble()
+
+func _on_shield_activated(_charges: int) -> void:
+	_show_shield_bubble()
+
+func update_shield_visual() -> void:
+	# Called to sync shield visual with ItemManager state
+	if not item_manager:
+		return
+	
+	if item_manager.shield_charges > 0:
+		if not shield_bubble or not shield_bubble.visible:
+			_show_shield_bubble()
+	else:
+		if shield_bubble and shield_bubble.visible:
+			_hide_shield_bubble()
