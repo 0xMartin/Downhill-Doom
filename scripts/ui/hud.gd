@@ -29,12 +29,12 @@ var sparkle_tween: Tween  # Track sparkle tween to prevent stacking
 var current_multiplier: int = 1
 
 # Supercharge UI
-@onready var supercharge_panel: PanelContainer = $SuperchargePanel
-@onready var supercharge_container: VBoxContainer = $SuperchargePanel/SuperchargeContainer
-@onready var supercharge_bar: Control = $SuperchargePanel/SuperchargeContainer/SuperchargeBar
-@onready var supercharge_bar_fill: PanelContainer = $SuperchargePanel/SuperchargeContainer/SuperchargeBar/BarBackground/BarFill
-@onready var supercharge_button: TextureButton = $SuperchargePanel/SuperchargeContainer/ButtonContainer/SuperchargeButton
-@onready var supercharge_count_label: Label = $SuperchargePanel/SuperchargeContainer/SuperchargeBar/SuperchargeCountLabel
+@onready var supercharge_panel: PanelContainer = $SideBar/SuperchargePanel
+@onready var supercharge_container: VBoxContainer = $SideBar/SuperchargePanel/SuperchargeContainer
+@onready var supercharge_bar: Control = $SideBar/SuperchargePanel/SuperchargeContainer/SuperchargeBar
+@onready var supercharge_bar_fill: PanelContainer = $SideBar/SuperchargePanel/SuperchargeContainer/SuperchargeBar/BarBackground/BarFill
+@onready var supercharge_button: TextureButton = $SideBar/SuperchargePanel/SuperchargeContainer/ButtonContainer/SuperchargeButton
+@onready var supercharge_count_label: Label = $SideBar/SuperchargePanel/SuperchargeContainer/SuperchargeBar/SuperchargeCountLabel
 var supercharge_bar_value: float = 0.0
 var supercharge_bar_max: float = 100.0
 var supercharge_display_value: float = 0.0  # Smoothly animated display value
@@ -44,12 +44,12 @@ var supercharge_bar_glow_tween: Tween
 var supercharge_ready: bool = false
 
 # Multiplier UI
-@onready var multiplier_panel: Control = $MultiplierPanel
-@onready var multiplier_label: Label = $MultiplierPanel/MultiplierLabel
+@onready var multiplier_panel: Control = $SideBar/MultiplierPanel
+@onready var multiplier_label: Label = $SideBar/MultiplierPanel/MultiplierLabel
 var multiplier_tween: Tween
 
 # Settings button UI (floating)
-@onready var settings_button: TextureButton = $SettingsButtonPanel/ButtonContainer/SettingsButton
+@onready var settings_button: TextureButton = $SideBar/SettingsButtonPanel/ButtonContainer/SettingsButton
 
 # Touch controls UI (visible in touch mode only)
 @onready var touch_controls_container: Control = $TouchControls

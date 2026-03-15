@@ -5,7 +5,7 @@ extends Node
 signal slot_clicked(slot_index: int)
 
 const SLOT_COUNT: int = 3
-const SLOT_NAMES: Array[String] = ["InvSlot1", "InvSlot2", "InvSlot3"]
+const SLOT_NAMES: Array[String] = ["SideBar/InvSlot1", "SideBar/InvSlot2", "SideBar/InvSlot3"]
 
 var _slot_buttons: Array[TextureButton] = []
 var _slot_borders: Array[PanelContainer] = []
