@@ -63,7 +63,7 @@ var npc_enemy_density: float = 0.012  # Was 0.021 → 0.017 → 0.012
 # Item spawning configuration
 var item_density: float = 0.008  # ~1 item per 125 units
 var item_safe_chunks: int = 2  # No items in first 2 chunks
-var item_min_spacing: float = 350.0  # Minimum distance between items in Z (~8-9 items per 3km)
+var item_min_spacing: float = 175.0  # Minimum distance between items in Z (~16-18 items per 3km)
 var item_last_spawn_z: float = -999999.0  # Track last item spawn position
 var height_offset_item: float = 0.8  # Items float above ground (higher to be visible)
 
@@ -711,8 +711,11 @@ func _spawn_items_async(chunk: Node3D, chunk_index: int, get_height_func: Callab
 			if model_node:
 				var model_instance := model_scene.instantiate()
 				model_node.add_child(model_instance)
-				# Scale model to reasonable size
-				_scale_to_target_height(model_instance, 0.8, item_data.model_path)
+				# Scale model - coin items are larger
+				var target_scale := 0.8
+				if item_data.id.contains("coin"):
+					target_scale = 1.2  # 50% larger for coin items
+				_scale_to_target_height(model_instance, target_scale, item_data.model_path)
 	
 	chunk.add_child.call_deferred(item)
 	_register_spawn_position(x, local_z, chunk_index)
