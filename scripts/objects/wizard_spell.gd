@@ -14,11 +14,11 @@ const MIN_TERRAIN_HEIGHT: float = 1.5  # Height above terrain
 const HIT_RADIUS: float = 1.8  # Collision radius with player
 
 var velocity: Vector3 = Vector3.ZERO
-var speed: float = 23.4  # 18 * 1.3 = 30% faster
+var speed: float = 23.4 
 var damage: int = 22
 var shooter: Node3D = null
 var target: Node3D = null
-var lifetime: float = 5.0
+var lifetime: float = 4.0
 var time_alive: float = 0.0
 var ground_level: float = 0.0  # Y level of ground at spawn
 
