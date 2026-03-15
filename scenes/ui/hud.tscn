@@ -867,7 +867,6 @@ anchor_bottom = 0.85
 [node name="SettingsButtonPanel" type="AspectRatioContainer" parent="SideBar" unique_id=1190683243]
 layout_mode = 2
 size_flags_vertical = 3
-size_flags_stretch_ratio = 1.1
 
 [node name="ButtonBackground" type="PanelContainer" parent="SideBar/SettingsButtonPanel" unique_id=153768116]
 layout_mode = 2
@@ -893,7 +892,6 @@ stretch_mode = 4
 [node name="MultiplierPanel" type="AspectRatioContainer" parent="SideBar" unique_id=221905119]
 layout_mode = 2
 size_flags_vertical = 3
-size_flags_stretch_ratio = 1.1
 
 [node name="CoinFrame" type="TextureRect" parent="SideBar/MultiplierPanel" unique_id=1788210684]
 layout_mode = 2
@@ -984,6 +982,11 @@ layout_mode = 2
 texture_normal = ExtResource("8_fire_button")
 ignore_texture_size = true
 stretch_mode = 5
+
+[node name="Control" type="Control" parent="SideBar" unique_id=1644731846]
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 0.5
 
 [node name="InvSlot1" type="AspectRatioContainer" parent="SideBar" unique_id=1567775481]
 layout_mode = 2
