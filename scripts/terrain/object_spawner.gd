@@ -63,9 +63,9 @@ var npc_enemy_density: float = 0.012  # Was 0.021 → 0.017 → 0.012
 # Item spawning configuration
 var item_density: float = 0.008  # ~1 item per 125 units
 var item_safe_chunks: int = 2  # No items in first 2 chunks
-var item_min_spacing: float = 125.0  # Minimum distance between items in Z
+var item_min_spacing: float = 350.0  # Minimum distance between items in Z (~8-9 items per 3km)
 var item_last_spawn_z: float = -999999.0  # Track last item spawn position
-var height_offset_item: float = 0.5  # Items float above ground
+var height_offset_item: float = 0.8  # Items float above ground (higher to be visible)
 
 # Urban zone multiplier
 var urban_density_multiplier: float = 2.0
@@ -642,8 +642,8 @@ func _spawn_items_async(chunk: Node3D, chunk_index: int, get_height_func: Callab
 	var rng := RandomNumberGenerator.new()
 	rng.seed = hash(chunk_index * 88888)
 	
-	# Only try to spawn ONE item per chunk with low probability
-	if rng.randf() > 0.25:  # 25% chance per chunk to have an item
+	# 75% chance per chunk to attempt item spawn
+	if rng.randf() > 0.75:
 		return
 	
 	# Calculate chunk Z position (world space)
@@ -662,20 +662,34 @@ func _spawn_items_async(chunk: Node3D, chunk_index: int, get_height_func: Callab
 	if not item_data:
 		return
 	
-	var margin := 2.0  # Keep items away from edges
-	var x := rng.randf_range(-terrain_width / 2 + margin, terrain_width / 2 - margin)
-	var local_z := rng.randf_range(-chunk_size.y + margin, -margin)
+	var margin := 3.0  # Keep items away from edges
+	var item_clear_radius := 4.0  # Larger radius to avoid buildings
 	
-	# Skip if near hole
-	if _is_near_hole(x, local_z, chunk_index):
-		return
+	# Try multiple positions to find a clear spot
+	var x := 0.0
+	var local_z := 0.0
+	var found_position := false
 	
-	# Skip if too close to player spawn
-	if _is_near_player_spawn(x, local_z, chunk_index):
-		return
+	for attempt in range(5):  # Try up to 5 positions
+		x = rng.randf_range(-terrain_width / 2 + margin, terrain_width / 2 - margin)
+		local_z = rng.randf_range(-chunk_size.y + margin, -margin)
+		
+		# Skip if near hole
+		if _is_near_hole(x, local_z, chunk_index):
+			continue
+		
+		# Skip if too close to player spawn
+		if _is_near_player_spawn(x, local_z, chunk_index):
+			continue
+		
+		# Check minimum distance from other spawned objects (larger radius for items)
+		if not _is_position_available(x, local_z, chunk_index, item_clear_radius):
+			continue
+		
+		found_position = true
+		break
 	
-	# Check minimum distance from other spawned objects
-	if not _is_position_available(x, local_z, chunk_index, min_object_distance):
+	if not found_position:
 		return
 	
 	var height: float = get_height_func.call(x, local_z, chunk_index)
