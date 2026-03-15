@@ -190,9 +190,13 @@ func take_damage(amount: int) -> void:
 		Input.vibrate_handheld(75)  # Shorter vibration for blocked hit
 		return
 	
-	health = max(0, health - amount)
+	# Apply distance-based damage multiplier
+	var damage_multiplier: float = DistanceConfig.get_enemy_damage_multiplier(distance)
+	var final_damage: int = int(ceil(amount * damage_multiplier))
+	
+	health = max(0, health - final_damage)
 	health_changed.emit(health, max_health)
-	player_hit.emit(amount)
+	player_hit.emit(final_damage)
 	
 	# Vibrate on mobile devices
 	Input.vibrate_handheld(150)  # 150ms vibration (longer for better feel)

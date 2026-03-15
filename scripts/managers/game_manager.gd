@@ -311,9 +311,13 @@ func take_damage(amount: int) -> void:
 			audio.play_shock_wave_sound()
 		return
 	
-	health = max(0, health - amount)
+	# Apply distance-based damage multiplier
+	var damage_multiplier: float = DistanceConfig.get_enemy_damage_multiplier(distance)
+	var final_damage: int = int(ceil(amount * damage_multiplier))
+	
+	health = max(0, health - final_damage)
 	health_changed.emit(health, max_health)
-	player_hit.emit(amount)
+	player_hit.emit(final_damage)
 	
 	# Vibrate on mobile devices (respects haptic setting)
 	var audio = get_node_or_null("/root/AudioManager")

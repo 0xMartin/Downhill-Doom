@@ -54,6 +54,9 @@ func _setup_slots() -> void:
 		_slot_borders.append(border)
 		_slot_buttons.append(button)
 		
+		# Disable keyboard focus so spacebar doesn't trigger items
+		button.focus_mode = Control.FOCUS_NONE
+		
 		# Connect button press
 		var slot_index := i
 		button.pressed.connect(func(): _on_slot_pressed(slot_index))

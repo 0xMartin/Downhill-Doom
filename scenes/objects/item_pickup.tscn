@@ -30,22 +30,33 @@ uniform vec4 glow_color : source_color = vec4(1.0, 0.84, 0.0, 1.0);
 uniform float intensity : hint_range(0.0, 5.0) = 1.5;
 uniform float pulse_speed : hint_range(0.0, 10.0) = 2.0;
 uniform float pulse_amount : hint_range(0.0, 1.0) = 0.3;
+uniform float cylinder_height : hint_range(1.0, 20.0) = 8.0;
+
+varying float local_y;
+
+void vertex() {
+	// Pass local Y position to fragment shader (normalized 0-1)
+	local_y = (VERTEX.y + cylinder_height * 0.5) / cylinder_height;
+}
 
 void fragment() {
-	// UV.y: 0 at top, 1 at bottom on cylinder
-	// We want: full opacity at bottom (UV.y=1), transparent at top (UV.y=0)
-	float height_fade = UV.y;  // 1 at bottom, 0 at top
-	height_fade = pow(height_fade, 0.7); // Faster fade toward top
+	// local_y: 0 at bottom, 1 at top
+	// Very long gradual fade from bottom to top
+	float height_fade = 1.0 - local_y;
+	height_fade = pow(height_fade, 0.15); // Ultra gradual fade
+	
+	// Extra smoothing for the top portion - starts fading from the very beginning
+	float top_fade = smoothstep(1.0, 0.2, local_y);
 	
 	// Edge fade - softer edges on sides
 	float edge = abs(UV.x - 0.5) * 2.0;
-	float edge_fade = 1.0 - pow(edge, 1.5);
+	float edge_fade = 1.0 - pow(edge, 1.2);
 	
 	// Pulsing glow
 	float pulse = 1.0 + sin(TIME * pulse_speed) * pulse_amount;
 	
 	// Combine all factors
-	float alpha = height_fade * edge_fade * glow_color.a * pulse * 0.6;
+	float alpha = height_fade * top_fade * edge_fade * glow_color.a * pulse * 0.7;
 	
 	ALBEDO = glow_color.rgb * intensity * pulse;
 	ALPHA = clamp(alpha, 0.0, 1.0);
@@ -59,13 +70,14 @@ shader_parameter/glow_color = Color(1, 0.84, 0, 1)
 shader_parameter/intensity = 1.5
 shader_parameter/pulse_speed = 2.0
 shader_parameter/pulse_amount = 0.3
+shader_parameter/cylinder_height = 8.0
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_glow"]
-top_radius = 0.6
+top_radius = 1.0
 bottom_radius = 1.0
 height = 8.0
 radial_segments = 16
-rings = 8
+rings = 16
 
 [node name="ItemPickup" type="Node3D"]
 script = ExtResource("1_item_pickup")

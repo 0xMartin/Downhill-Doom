@@ -18,6 +18,22 @@ const HOLES_START_DISTANCE: float = 2400.0
 ## Distance at which aerial enemies start appearing
 const AERIAL_START_DISTANCE: float = 4800.0
 
+# ========== ENEMY DAMAGE SCALING ==========
+## Enemy damage increases based on distance traveled
+
+## Distance interval for damage scaling (in meters)
+## Every ENEMY_DAMAGE_SCALE_DISTANCE meters, damage increases by ENEMY_DAMAGE_SCALE_INCREMENT
+const ENEMY_DAMAGE_SCALE_DISTANCE: float = 10000.0
+
+## Damage multiplier increment per distance interval (0.5 = +50%)
+const ENEMY_DAMAGE_SCALE_INCREMENT: float = 0.5
+
+## Base multiplier (starting damage multiplier at 0m)
+const ENEMY_DAMAGE_BASE_MULTIPLIER: float = 1.0
+
+## Maximum damage multiplier cap (0.0 = no cap)
+const ENEMY_DAMAGE_MAX_MULTIPLIER: float = 0.0
+
 # ========== SPAWN MILESTONES ==========
 ## Organized by distance threshold for easy reading
 
@@ -165,3 +181,29 @@ static func print_unlock_summary() -> void:
 		for obj_id in _min_distances:
 			if _min_distances[obj_id] == milestone:
 				print("  ", obj_id)
+
+# ========== ENEMY DAMAGE SCALING API ==========
+
+## Get the enemy damage multiplier at a given distance
+## Example: At 0-9999m = 1.0x, 10000-19999m = 1.5x, 20000-29999m = 2.0x, etc.
+static func get_enemy_damage_multiplier(current_distance: float) -> float:
+	if ENEMY_DAMAGE_SCALE_DISTANCE <= 0.0:
+		return ENEMY_DAMAGE_BASE_MULTIPLIER
+	
+	# Calculate how many full intervals have been reached
+	var intervals: int = int(current_distance / ENEMY_DAMAGE_SCALE_DISTANCE)
+	
+	# Calculate multiplier
+	var multiplier: float = ENEMY_DAMAGE_BASE_MULTIPLIER + (intervals * ENEMY_DAMAGE_SCALE_INCREMENT)
+	
+	# Apply cap if set
+	if ENEMY_DAMAGE_MAX_MULTIPLIER > 0.0:
+		multiplier = minf(multiplier, ENEMY_DAMAGE_MAX_MULTIPLIER)
+	
+	return multiplier
+
+## Get the current damage tier (0, 1, 2, ...) based on distance
+static func get_enemy_damage_tier(current_distance: float) -> int:
+	if ENEMY_DAMAGE_SCALE_DISTANCE <= 0.0:
+		return 0
+	return int(current_distance / ENEMY_DAMAGE_SCALE_DISTANCE)
