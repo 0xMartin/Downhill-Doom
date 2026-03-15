@@ -29,6 +29,7 @@ var terrain_slope: float = 15.0  # Will be set from terrain generator
 var terrain_generator: Node  # Reference to terrain for height queries
 var audio_manager: Node
 var settings_manager: Node  # Reference to SettingsManager
+var item_manager: Node  # Reference to ItemManager for buffs
 var hud: Node  # Reference to HUD for touch controls
 var jump_cooldown: float = 0.0  # Time until next jump allowed
 var is_on_ground: bool = true  # Track if player is touching ground
@@ -95,6 +96,7 @@ func _ready() -> void:
 	game_manager = get_node("/root/GameManager")
 	audio_manager = get_node("/root/AudioManager")
 	settings_manager = get_node("/root/SettingsManager")
+	item_manager = get_node_or_null("/root/ItemManager")
 	
 	# Get HUD reference (will be available after game scene loads)
 	hud = get_node_or_null("/root/Game/HUD")
@@ -256,6 +258,13 @@ func _physics_process(delta: float) -> void:
 	# Apply constant forward force only if below max speed
 	var current_forward_speed := -linear_velocity.z  # Negative Z is forward
 	
+	# Get item speed multiplier (speed boost effect)
+	var item_speed_mult: float = 1.0
+	if item_manager:
+		item_speed_mult = item_manager.speed_multiplier
+	
+	var effective_max_speed := max_speed * item_speed_mult
+	
 	# Update slam slowdown recovery
 	if slam_slowdown_active:
 		slam_slowdown_timer += delta
@@ -263,11 +272,18 @@ func _physics_process(delta: float) -> void:
 			slam_slowdown_active = false
 			slam_slowdown_timer = 0.0
 	
-	if current_forward_speed < max_speed:
+	if current_forward_speed < effective_max_speed:
 		# Apply more force when slow, less when approaching max speed
-		var speed_factor := 1.0 - (current_forward_speed / max_speed)
+		var speed_factor := 1.0 - (current_forward_speed / effective_max_speed)
 		speed_factor = clamp(speed_factor, 0.2, 1.0)
-		apply_central_force(Vector3(0, 0, -forward_force * speed_factor))
+		apply_central_force(Vector3(0, 0, -forward_force * item_speed_mult * speed_factor))
+		
+		# When speed boosted, directly accelerate velocity to overcome physics drag
+		if item_speed_mult > 1.0 and current_forward_speed < effective_max_speed * 0.95:
+			var target_speed := effective_max_speed * 0.9
+			var speed_diff := target_speed - current_forward_speed
+			# Smoothly accelerate towards boosted speed
+			linear_velocity.z = linear_velocity.z - speed_diff * delta * 2.0
 	
 	# Get horizontal input (A/D or arrow keys) - for desktop testing
 	# Inverted and reduced to 60% intensity compared to tilt

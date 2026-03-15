@@ -225,9 +225,13 @@ func end_game() -> void:
 
 func add_coin(amount: int = 1) -> void:
 	var multiplied_amount := amount * coin_multiplier
-	# Apply double coins boost
+	# Apply double coins boost (old boost system)
 	if has_boost("double_coins"):
 		multiplied_amount *= 2
+	# Apply item coin multiplier (new item system)
+	var item_manager := get_node_or_null("/root/ItemManager")
+	if item_manager:
+		multiplied_amount = int(multiplied_amount * item_manager.coin_multiplier)
 	coins += multiplied_amount
 	coins_changed.emit(coins)
 
@@ -236,6 +240,10 @@ func get_multiplied_coins(base_amount: int) -> int:
 	var result := base_amount * coin_multiplier
 	if has_boost("double_coins"):
 		result *= 2
+	# Apply item coin multiplier (new item system)
+	var item_manager := get_node_or_null("/root/ItemManager")
+	if item_manager:
+		result = int(result * item_manager.coin_multiplier)
 	return result
 
 ## Record a destroyed object for statistics

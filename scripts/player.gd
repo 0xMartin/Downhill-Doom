@@ -30,6 +30,7 @@ var hit_cooldown: float = 0.0  # Prevent multiple hits from same rock
 
 var terrain_slope: float = 15.0  # Will be set from terrain generator
 var audio_manager: Node
+var item_manager: Node  # Cached reference for item effects
 var jump_cooldown: float = 0.0  # Time until next jump allowed
 var is_on_ground: bool = true  # Track if player is touching ground
 
@@ -50,6 +51,8 @@ func _ready() -> void:
 	# Get autoload references
 	game_manager = get_node("/root/GameManager")
 	audio_manager = get_node("/root/AudioManager")
+	item_manager = get_node_or_null("/root/ItemManager")
+	print("[Player] ItemManager reference: ", item_manager)
 	
 	# Store base values for supercharge
 	base_forward_force = forward_force
@@ -134,11 +137,22 @@ func _physics_process(delta: float) -> void:
 	
 	# Apply constant forward force only if below max speed
 	var current_forward_speed := -linear_velocity.z  # Negative Z is forward
-	if current_forward_speed < max_speed:
+	
+	# Get item speed multiplier (speed boost item effect)
+	var item_speed_mult: float = 1.0
+	if item_manager:
+		item_speed_mult = item_manager.speed_multiplier
+		if item_speed_mult != 1.0:
+			print("[Player] Applying speed multiplier: ", item_speed_mult, " to max_speed: ", max_speed * item_speed_mult)
+	else:
+		print("[Player] WARNING: item_manager is null!")
+	
+	var effective_max_speed := max_speed * item_speed_mult
+	if current_forward_speed < effective_max_speed:
 		# Apply more force when slow, less when approaching max speed
-		var speed_factor := 1.0 - (current_forward_speed / max_speed)
+		var speed_factor := 1.0 - (current_forward_speed / effective_max_speed)
 		speed_factor = clamp(speed_factor, 0.2, 1.0)
-		apply_central_force(Vector3(0, 0, -forward_force * speed_factor))
+		apply_central_force(Vector3(0, 0, -forward_force * item_speed_mult * speed_factor))
 	
 	# Get horizontal input (A/D or arrow keys) - for desktop testing
 	var keyboard_input: float = 0.0

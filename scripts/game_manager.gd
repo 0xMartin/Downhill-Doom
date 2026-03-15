@@ -80,6 +80,14 @@ func start_game() -> void:
 	destroyed_objects.clear()
 	destroyed_objects_details.clear()
 	
+	# Reset item system
+	var item_manager := get_node_or_null("/root/ItemManager")
+	if item_manager:
+		item_manager.reset()
+	var inventory_manager := get_node_or_null("/root/InventoryManager")
+	if inventory_manager:
+		inventory_manager.reset()
+	
 	coins_changed.emit(coins)
 	distance_changed.emit(distance)
 	health_changed.emit(health, max_health)
@@ -115,7 +123,14 @@ func end_game() -> void:
 	player_died.emit()
 
 func add_coin(amount: int = 1) -> void:
-	coins += amount
+	# Apply ItemManager coin multiplier if active
+	var item_manager := get_node_or_null("/root/ItemManager")
+	var multiplier: float = 1.0
+	if item_manager:
+		multiplier = item_manager.coin_multiplier
+	
+	var final_amount := int(amount * multiplier)
+	coins += final_amount
 	coins_changed.emit(coins)
 
 ## Record a destroyed object for statistics
@@ -166,6 +181,13 @@ func take_damage(amount: int) -> void:
 	
 	# Skip damage if infinite health enabled or supercharged
 	if infinite_health or is_supercharged:
+		return
+	
+	# Check if ItemManager shield blocks the damage
+	var item_manager := get_node_or_null("/root/ItemManager")
+	if item_manager and item_manager.try_block_damage():
+		# Shield blocked the hit
+		Input.vibrate_handheld(75)  # Shorter vibration for blocked hit
 		return
 	
 	health = max(0, health - amount)

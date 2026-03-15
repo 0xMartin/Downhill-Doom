@@ -15,6 +15,7 @@ extends RefCounted
 
 const ObjectConfigScript := preload("res://scripts/config/object_config.gd")
 const DistanceConfigScript := preload("res://scripts/config/distance_config.gd")
+const ItemConfigScript := preload("res://scripts/config/item_config.gd")
 
 # Preloaded scripts for objects
 const TreeScript := preload("res://scripts/objects/tree.gd")
@@ -26,6 +27,8 @@ const EnemyNPCScript := preload("res://scripts/objects/enemy_npc.gd")
 const CatapultNPCScript := preload("res://scripts/objects/catapult_npc.gd")
 const WizardNPCScript := preload("res://scripts/objects/wizard_npc.gd")
 const PlaneNPCScript := preload("res://scripts/objects/plane.gd")
+const ItemPickupScript := preload("res://scripts/objects/item_pickup.gd")
+const ItemPickupScene := preload("res://scenes/objects/item_pickup.tscn")
 
 # Golden NPC shader
 const GoldenShader := preload("res://scripts/shaders/golden_npc.gdshader")
@@ -56,6 +59,13 @@ var building_density: float = 0.10  # Was 0.2 → 0.16 → 0.10
 var enemy_density: float = 0.12  # Was 0.24 → 0.19 → 0.12
 var npc_friend_density: float = 0.015  # Was 0.03 → 0.024 → 0.015
 var npc_enemy_density: float = 0.012  # Was 0.021 → 0.017 → 0.012
+
+# Item spawning configuration
+var item_density: float = 0.004  # Very low - ~1 item per 250 units
+var item_safe_chunks: int = 2  # No items in first 2 chunks
+var item_min_spacing: float = 250.0  # Minimum distance between items in Z
+var item_last_spawn_z: float = -999999.0  # Track last item spawn position
+var height_offset_item: float = 0.5  # Items float above ground
 
 # Urban zone multiplier
 var urban_density_multiplier: float = 2.0
@@ -298,6 +308,10 @@ func spawn_objects_async(chunk: Node3D, chunk_index: int, get_height_func: Calla
 	
 	# Spawn trees, buildings, and building enemies based on position-level zone checking
 	await _spawn_zone_objects_async(chunk, chunk_index, get_height_func)
+	
+	# Spawn collectible items
+	if chunk_index >= item_safe_chunks:
+		await _spawn_items_async(chunk, chunk_index, get_height_func)
 
 ## Helper function to check if chunk is still valid
 func _is_chunk_valid(chunk: Node3D) -> bool:
@@ -622,6 +636,77 @@ func _spawn_rocks(chunk: Node3D, chunk_index: int, get_height_func: Callable) ->
 		
 		chunk.add_child.call_deferred(obj)
 		_register_spawn_position(x, local_z, chunk_index)
+
+## Async item spawning - spawns collectible items based on distance-unlocked rarity
+func _spawn_items_async(chunk: Node3D, chunk_index: int, get_height_func: Callable) -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(chunk_index * 88888)
+	
+	# Only try to spawn ONE item per chunk with low probability
+	if rng.randf() > 0.25:  # 25% chance per chunk to have an item
+		return
+	
+	# Calculate chunk Z position (world space)
+	var chunk_start_z := -chunk_index * chunk_size.y
+	
+	# Check minimum spacing from last item
+	var distance_from_last := absf(chunk_start_z - item_last_spawn_z)
+	if distance_from_last < item_min_spacing:
+		return
+	
+	# Calculate current distance for item unlocking
+	var current_distance := _get_distance_from_chunk(chunk_index)
+	
+	# Get random item based on distance-unlocked rarities
+	var item_data = ItemConfigScript.get_random_item_for_distance(current_distance, rng)
+	if not item_data:
+		return
+	
+	var margin := 2.0  # Keep items away from edges
+	var x := rng.randf_range(-terrain_width / 2 + margin, terrain_width / 2 - margin)
+	var local_z := rng.randf_range(-chunk_size.y + margin, -margin)
+	
+	# Skip if near hole
+	if _is_near_hole(x, local_z, chunk_index):
+		return
+	
+	# Skip if too close to player spawn
+	if _is_near_player_spawn(x, local_z, chunk_index):
+		return
+	
+	# Check minimum distance from other spawned objects
+	if not _is_position_available(x, local_z, chunk_index, min_object_distance):
+		return
+	
+	var height: float = get_height_func.call(x, local_z, chunk_index)
+	
+	# Create item pickup instance
+	var item: Node3D = ItemPickupScene.instantiate()
+	if not item:
+		return
+	
+	# Configure the item
+	item.item_id = item_data.id
+	item.position = Vector3(x, height + height_offset_item, local_z)
+	
+	# Load and set the 3D model if available
+	if item_data.model_path != "":
+		var model_scene := _get_cached_scene(item_data.model_path)
+		if model_scene:
+			var model_node: Node3D = item.get_node_or_null("Model")
+			if model_node:
+				var model_instance := model_scene.instantiate()
+				model_node.add_child(model_instance)
+				# Scale model to reasonable size
+				_scale_to_target_height(model_instance, 0.8, item_data.model_path)
+	
+	chunk.add_child.call_deferred(item)
+	_register_spawn_position(x, local_z, chunk_index)
+	
+	# Track this spawn position for minimum spacing
+	item_last_spawn_z = chunk_start_z + local_z
+	
+	print("[ItemSpawner] Spawned %s at distance %.0fm" % [item_data.id, current_distance])
 
 ## Spawn NPC clusters - random meadows with groups of same-type animals
 func _spawn_npc_clusters(chunk: Node3D, chunk_index: int, get_height_func: Callable) -> void:

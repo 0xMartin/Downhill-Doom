@@ -25,6 +25,8 @@ DestructionManager="*res://scripts/managers/destruction_manager.gd"
 ObjectPool="*res://scripts/managers/object_pool.gd"
 SecureStorage="*res://scripts/managers/secure_storage.gd"
 ShopManager="*res://scripts/managers/shop_manager.gd"
+ItemManager="*res://scripts/managers/item_manager.gd"
+InventoryManager="*res://scripts/managers/inventory_manager.gd"
 
 [display]
 
