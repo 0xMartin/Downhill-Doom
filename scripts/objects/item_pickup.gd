@@ -17,6 +17,7 @@ var _is_picked_up: bool = false
 var _model: Node3D
 var _particles: GPUParticles3D
 var _area: Area3D
+var _glow_beam: MeshInstance3D
 
 func _ready() -> void:
 	_initial_y = position.y
@@ -25,6 +26,7 @@ func _ready() -> void:
 	_model = get_node_or_null("Model")
 	_particles = get_node_or_null("Particles")
 	_area = get_node_or_null("PickupArea")
+	_glow_beam = get_node_or_null("GlowBeam")
 	
 	if _area:
 		_area.body_entered.connect(_on_body_entered)
@@ -40,12 +42,17 @@ func _process(delta: float) -> void:
 	
 	_time += delta
 	
-	# Rotate
+	# Rotate model
 	if _model:
 		_model.rotate_y(rotation_speed * delta)
 	
 	# Bob up and down
-	position.y = _initial_y + sin(_time * bob_speed) * bob_height
+	var bob_offset := sin(_time * bob_speed) * bob_height
+	position.y = _initial_y + bob_offset
+	
+	# Keep glow beam anchored to ground (compensate for bob)
+	if _glow_beam:
+		_glow_beam.position.y = 3.2 - bob_offset
 
 func _update_rarity_visuals() -> void:
 	var item_data: ItemConfig.ItemData = ItemConfig.get_item(item_id)
@@ -61,6 +68,21 @@ func _update_rarity_visuals() -> void:
 			mat = mat.duplicate()
 			mat.color = rarity_color
 			_particles.process_material = mat
+	
+	# Update glow beam color
+	if _glow_beam:
+		var mat: ShaderMaterial = _glow_beam.get_surface_override_material(0) as ShaderMaterial
+		if mat:
+			mat = mat.duplicate()
+			mat.set_shader_parameter("glow_color", rarity_color)
+			# Increase intensity for higher rarity
+			if item_data.rarity == ItemConfig.Rarity.LEGENDARY:
+				mat.set_shader_parameter("intensity", 2.5)
+				mat.set_shader_parameter("pulse_amount", 0.5)
+			elif item_data.rarity == ItemConfig.Rarity.RARE:
+				mat.set_shader_parameter("intensity", 2.0)
+				mat.set_shader_parameter("pulse_amount", 0.4)
+			_glow_beam.set_surface_override_material(0, mat)
 
 func _on_body_entered(body: Node) -> void:
 	if _is_picked_up:

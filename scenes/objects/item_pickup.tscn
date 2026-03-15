@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3 uid="uid://item3d001"]
+[gd_scene load_steps=7 format=3 uid="uid://item3d001"]
 
 [ext_resource type="Script" path="res://scripts/objects/item_pickup.gd" id="1_item_pickup"]
 
@@ -22,10 +22,60 @@ emission_enabled = true
 emission = Color(1, 0.84, 0, 1)
 emission_energy_multiplier = 2.0
 
+[sub_resource type="Shader" id="Shader_glow_cylinder"]
+code = "shader_type spatial;
+render_mode blend_add, depth_draw_never, cull_disabled, unshaded;
+
+uniform vec4 glow_color : source_color = vec4(1.0, 0.84, 0.0, 1.0);
+uniform float intensity : hint_range(0.0, 5.0) = 1.5;
+uniform float pulse_speed : hint_range(0.0, 10.0) = 2.0;
+uniform float pulse_amount : hint_range(0.0, 1.0) = 0.3;
+
+void fragment() {
+	// UV.y: 0 at top, 1 at bottom on cylinder
+	// We want: full opacity at bottom (UV.y=1), transparent at top (UV.y=0)
+	float height_fade = UV.y;  // 1 at bottom, 0 at top
+	height_fade = pow(height_fade, 0.7); // Faster fade toward top
+	
+	// Edge fade - softer edges on sides
+	float edge = abs(UV.x - 0.5) * 2.0;
+	float edge_fade = 1.0 - pow(edge, 1.5);
+	
+	// Pulsing glow
+	float pulse = 1.0 + sin(TIME * pulse_speed) * pulse_amount;
+	
+	// Combine all factors
+	float alpha = height_fade * edge_fade * glow_color.a * pulse * 0.6;
+	
+	ALBEDO = glow_color.rgb * intensity * pulse;
+	ALPHA = clamp(alpha, 0.0, 1.0);
+}
+"
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_glow"]
+render_priority = 1
+shader = SubResource("Shader_glow_cylinder")
+shader_parameter/glow_color = Color(1, 0.84, 0, 1)
+shader_parameter/intensity = 1.5
+shader_parameter/pulse_speed = 2.0
+shader_parameter/pulse_amount = 0.3
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_glow"]
+top_radius = 0.6
+bottom_radius = 1.0
+height = 8.0
+radial_segments = 16
+rings = 8
+
 [node name="ItemPickup" type="Node3D"]
 script = ExtResource("1_item_pickup")
 
 [node name="Model" type="Node3D" parent="."]
+
+[node name="GlowBeam" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.2, 0)
+mesh = SubResource("CylinderMesh_glow")
+surface_material_override/0 = SubResource("ShaderMaterial_glow")
 
 [node name="PickupArea" type="Area3D" parent="."]
 collision_layer = 0
