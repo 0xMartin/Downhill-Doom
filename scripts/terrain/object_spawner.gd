@@ -705,8 +705,6 @@ func _spawn_items_async(chunk: Node3D, chunk_index: int, get_height_func: Callab
 	
 	# Track this spawn position for minimum spacing
 	item_last_spawn_z = chunk_start_z + local_z
-	
-	print("[ItemSpawner] Spawned %s at distance %.0fm" % [item_data.id, current_distance])
 
 ## Spawn NPC clusters - random meadows with groups of same-type animals
 func _spawn_npc_clusters(chunk: Node3D, chunk_index: int, get_height_func: Callable) -> void:

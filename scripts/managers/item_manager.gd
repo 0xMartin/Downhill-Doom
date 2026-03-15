@@ -120,15 +120,12 @@ func _end_buff(effect_type: int) -> void:
 
 ## Use an item by its ID
 func use_item(item_id: String) -> bool:
-	print("[ItemManager] use_item called with: ", item_id)
 	var item: ItemConfig.ItemData = ItemConfig.get_item(item_id)
 	if item == null:
 		push_warning("ItemManager: Unknown item ID: " + item_id)
 		return false
 	
-	print("[ItemManager] Found item: ", item.display_name, " effect_type: ", item.effect_type)
 	var success := _apply_effect(item)
-	print("[ItemManager] Effect applied: ", success)
 	if success:
 		item_used.emit(item.id, item.display_name)
 	
@@ -211,7 +208,6 @@ func _apply_super_supercharge(duration_multiplier: float) -> bool:
 	return true
 
 func _apply_speed_boost(multiplier: float, duration: float) -> bool:
-	print("[ItemManager] _apply_speed_boost: mult=", multiplier, " dur=", duration)
 	# Refresh timer if already active, don't stack multipliers
 	_active_buffs[ItemConfig.EffectType.SPEED_BOOST] = {
 		"timer": duration,
@@ -219,7 +215,6 @@ func _apply_speed_boost(multiplier: float, duration: float) -> bool:
 	}
 	
 	speed_multiplier = multiplier
-	print("[ItemManager] speed_multiplier set to: ", speed_multiplier)
 	speed_multiplier_changed.emit(speed_multiplier)
 	buff_started.emit(ItemConfig.EffectType.SPEED_BOOST, duration)
 	
@@ -339,7 +334,6 @@ func _apply_explosion(radius: float) -> bool:
 	if audio and audio.has_method("play_shock_wave_sound"):
 		audio.play_shock_wave_sound()
 	
-	print("[ItemManager] Explosion destroyed ", destroyed_count, " objects")
 	return true
 
 func _is_in_radius(node: Node, center: Vector3, radius: float) -> bool:

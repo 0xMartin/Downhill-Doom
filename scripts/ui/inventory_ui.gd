@@ -22,10 +22,8 @@ func _ready() -> void:
 	# Wait for scene to be ready
 	await get_tree().process_frame
 	_find_hud()
-	print("InventoryUI: HUD found: ", _hud != null, " - ", _hud)
 	if _hud:
 		_setup_slots()
-		print("InventoryUI: Slots setup complete. Buttons: ", _slot_buttons.size(), ", Borders: ", _slot_borders.size())
 		_connect_signals()
 		_update_all_slots()
 
@@ -70,7 +68,6 @@ func _connect_signals() -> void:
 func _update_all_slots() -> void:
 	var inventory := get_node_or_null("/root/InventoryManager")
 	if inventory == null:
-		print("InventoryUI: InventoryManager not found!")
 		return
 	
 	for i in range(_slot_buttons.size()):
@@ -88,8 +85,6 @@ func _update_slot(slot_index: int) -> void:
 	var button: TextureButton = _slot_buttons[slot_index]
 	var border: PanelContainer = _slot_borders[slot_index]
 	
-	print("InventoryUI: Updating slot ", slot_index, " - item_data: ", item_data)
-	
 	if item_data == null:
 		# Empty slot
 		button.texture_normal = null
@@ -97,9 +92,7 @@ func _update_slot(slot_index: int) -> void:
 		_set_border_color(border, Color(0.3, 0.3, 0.3, 0.5))
 	else:
 		# Has item - load icon
-		print("InventoryUI: Loading icon: ", item_data.icon_path)
 		var icon := load(item_data.icon_path) as Texture2D
-		print("InventoryUI: Icon loaded: ", icon)
 		button.texture_normal = icon
 		button.modulate = Color.WHITE
 		_set_border_color(border, RARITY_COLORS.get(item_data.rarity, Color.WHITE))
