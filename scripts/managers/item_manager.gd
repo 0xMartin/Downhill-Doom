@@ -176,16 +176,15 @@ func _apply_heal(percent: float) -> bool:
 	
 	return true
 
-func _apply_instant_supercharge(duration: float) -> bool:
+func _apply_instant_supercharge(duration_multiplier: float) -> bool:
 	var gm := _get_game_manager()
 	if gm == null:
 		return false
 	
-	# Force activate supercharge with standard duration
+	# Force activate supercharge with normal duration (affected by boosts)
+	var actual_duration: float = gm.supercharge_duration * duration_multiplier
 	gm.is_supercharged = true
-	gm.supercharge = gm.max_supercharge
-	gm.supercharge_timer = duration
-	gm.supercharge_changed.emit(gm.supercharge, gm.max_supercharge)
+	gm.supercharge_timer = actual_duration
 	gm.supercharge_activated.emit()
 	
 	var audio := get_node_or_null("/root/AudioManager")
@@ -194,17 +193,15 @@ func _apply_instant_supercharge(duration: float) -> bool:
 	
 	return true
 
-func _apply_super_supercharge(duration: float) -> bool:
+func _apply_super_supercharge(duration_multiplier: float) -> bool:
 	var gm := _get_game_manager()
 	if gm == null:
 		return false
 	
-	# Force activate with extended duration
+	# Force activate with extended duration (affected by boosts, then multiplied)
+	var actual_duration: float = gm.supercharge_duration * duration_multiplier
 	gm.is_supercharged = true
-	gm.supercharge = gm.max_supercharge
-	gm.supercharge_timer = duration
-	gm.supercharge_duration = duration  # Temporarily override duration for gradual drain
-	gm.supercharge_changed.emit(gm.supercharge, gm.max_supercharge)
+	gm.supercharge_timer = actual_duration
 	gm.supercharge_activated.emit()
 	
 	var audio := get_node_or_null("/root/AudioManager")

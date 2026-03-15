@@ -18,7 +18,7 @@ func _ready() -> void:
 
 func _add_test_items() -> void:
 	# Add 3 different items for testing
-	var test_items: Array[String] = ["power_shield", "explosion", "time_stop"]
+	var test_items: Array[String] = ["super_supercharge", "explosion", "time_stop"]
 	for item_id in test_items:
 		add_item(item_id)
 		print("[InventoryManager] Added test item: ", item_id)

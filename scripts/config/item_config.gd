@@ -139,7 +139,7 @@ static func _init_items() -> void:
 		"name": "Instant Supercharge",
 		"rarity": Rarity.RARE,
 		"effect": EffectType.INSTANT_SUPERCHARGE,
-		"value": 6.0,  # Standard 6 second duration
+		"value": 1.0,  # 100% of normal supercharge duration
 		"duration": 0.0,
 		"icon": "res://assets/textures/items/crystal_orange.png",
 		"model": "res://assets/models/items/crystal_orange.blend",
@@ -150,7 +150,7 @@ static func _init_items() -> void:
 		"name": "Super Supercharge",
 		"rarity": Rarity.LEGENDARY,
 		"effect": EffectType.SUPER_SUPERCHARGE,
-		"value": 12.0,  # Extended 12 second duration
+		"value": 1.5,  # 150% of normal supercharge duration
 		"duration": 0.0,
 		"icon": "res://assets/textures/items/crystal_gold.png",
 		"model": "res://assets/models/items/crystal_gold.blend",
@@ -177,7 +177,7 @@ static func _init_items() -> void:
 		"rarity": Rarity.COMMON,
 		"effect": EffectType.DOUBLE_COINS,
 		"value": 2.0,  # 2x multiplier
-		"duration": 10.0,
+		"duration": 12.0,
 		"icon": "res://assets/textures/items/coin_stack.png",
 		"model": "res://assets/models/items/coin_stack.blend",
 		"spawn_weight": 0.8,
@@ -188,7 +188,7 @@ static func _init_items() -> void:
 		"rarity": Rarity.RARE,
 		"effect": EffectType.TRIPLE_COINS,
 		"value": 3.0,  # 3x multiplier
-		"duration": 8.0,
+		"duration": 10.0,
 		"icon": "res://assets/textures/items/coin_pile.png",
 		"model": "res://assets/models/items/coin_pile.blend",
 		"spawn_weight": 0.7,
