@@ -314,11 +314,14 @@ func _apply_explosion(radius: float) -> bool:
 	# Destroy enemy buildings
 	for enemy in gm.player.get_tree().get_nodes_in_group("building_enemies"):
 		if _is_in_radius(enemy, player_pos, radius):
-			if enemy.has_method("die"):
+			if enemy.has_method("destroy"):
+				enemy.destroy(Vector3.ZERO)
+				destroyed_count += 1
+			elif enemy.has_method("die"):
 				enemy.die(null)
 				destroyed_count += 1
-			elif enemy.has_method("destroy"):
-				enemy.destroy()
+			else:
+				enemy.queue_free()
 				destroyed_count += 1
 	
 	# Visual explosion effect

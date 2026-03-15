@@ -106,6 +106,12 @@ func _spawn_impact_particles(spawn_pos: Vector3) -> void:
 	)
 
 func _destroy_by_supercharge() -> void:
+	destroy()
+
+## Public destroy method - called by explosion, supercharge, etc.
+func destroy(_direction: Vector3 = Vector3.ZERO) -> void:
+	if is_destroyed:
+		return
 	is_destroyed = true
 	
 	# Disable collision immediately so player passes through
