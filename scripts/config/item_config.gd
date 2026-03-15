@@ -235,7 +235,7 @@ static func _init_items() -> void:
 		"name": "Explosion",
 		"rarity": Rarity.LEGENDARY,
 		"effect": EffectType.EXPLOSION,
-		"value": 35.0,  # 35m radius
+		"value": 45.0, 
 		"duration": 0.0,
 		"icon": "res://assets/textures/items/bomb.png",
 		"model": "res://assets/models/items/bomb.blend",

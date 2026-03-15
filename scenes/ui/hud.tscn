@@ -14,8 +14,8 @@
 [ext_resource type="Texture2D" uid="uid://dudld3gxi6r0v" path="res://assets/svg/resume.svg" id="14_resume"]
 [ext_resource type="Texture2D" uid="uid://cyueu8pu5k7ju" path="res://assets/svg/restart.svg" id="15_restart"]
 [ext_resource type="Texture2D" uid="uid://xanf0j8uiiwn" path="res://assets/svg/home.svg" id="16_home"]
-[ext_resource type="Script" path="res://scripts/ui/inventory_ui.gd" id="17_inventory_ui"]
-[ext_resource type="Script" path="res://scripts/ui/buff_indicator_ui.gd" id="18_buff_indicator"]
+[ext_resource type="Script" uid="uid://4g6cbrei7yao" path="res://scripts/ui/buff_indicator_ui.gd" id="18_buff_indicator"]
+[ext_resource type="Script" uid="uid://wt20hguh3vpg" path="res://scripts/ui/inventory_ui.gd" id="19_inventory_ui"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
 bg_color = Color(0.1, 0.08, 0.18, 0.92)
@@ -421,25 +421,6 @@ border_color = Color(0, 0, 0, 1)
 corner_radius_bottom_right = 100
 corner_radius_bottom_left = 100
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_inventory_panel"]
-content_margin_left = 8.0
-content_margin_top = 8.0
-content_margin_right = 8.0
-content_margin_bottom = 8.0
-bg_color = Color(0.08, 0.06, 0.14, 0.75)
-border_width_left = 8
-border_width_top = 8
-border_width_right = 8
-border_width_bottom = 8
-border_color = Color(0.91, 0.27, 0.38, 0.6)
-corner_radius_top_left = 100
-corner_radius_top_right = 100
-corner_radius_bottom_right = 100
-corner_radius_bottom_left = 100
-shadow_color = Color(0, 0, 0, 0.5)
-shadow_size = 8
-shadow_offset = Vector2(0, 4)
-
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_inventory_slot"]
 content_margin_left = 4.0
 content_margin_top = 4.0
@@ -451,10 +432,10 @@ border_width_top = 4
 border_width_right = 4
 border_width_bottom = 4
 border_color = Color(0.3, 0.3, 0.3, 0.5)
-corner_radius_top_left = 12
-corner_radius_top_right = 12
-corner_radius_bottom_right = 12
-corner_radius_bottom_left = 12
+corner_radius_top_left = 100
+corner_radius_top_right = 100
+corner_radius_bottom_right = 100
+corner_radius_bottom_left = 100
 
 [node name="HUD" type="CanvasLayer" unique_id=304451578]
 script = ExtResource("1_hud")
@@ -879,9 +860,9 @@ text = "Vibration"
 [node name="SettingsButtonPanel" type="AspectRatioContainer" parent="." unique_id=1190683243]
 anchors_preset = -1
 anchor_left = 0.86
-anchor_top = 0.27
+anchor_top = 0.21
 anchor_right = 0.98
-anchor_bottom = 0.35
+anchor_bottom = 0.29
 
 [node name="ButtonBackground" type="PanelContainer" parent="SettingsButtonPanel" unique_id=153768116]
 layout_mode = 2
@@ -907,9 +888,9 @@ stretch_mode = 4
 [node name="MultiplierPanel" type="AspectRatioContainer" parent="." unique_id=221905119]
 anchors_preset = -1
 anchor_left = 0.86
-anchor_top = 0.35
+anchor_top = 0.29
 anchor_right = 0.98
-anchor_bottom = 0.44
+anchor_bottom = 0.38
 offset_left = 0.2000122
 offset_top = 1.2000122
 offset_right = 0.20007324
@@ -937,9 +918,9 @@ vertical_alignment = 1
 [node name="SuperchargePanel" type="PanelContainer" parent="." unique_id=670504692]
 anchors_preset = -1
 anchor_left = 0.86
-anchor_top = 0.46
+anchor_top = 0.4
 anchor_right = 0.98
-anchor_bottom = 0.73
+anchor_bottom = 0.7
 offset_left = 0.2000122
 offset_top = 0.4000244
 offset_right = 0.20007324
@@ -1012,92 +993,69 @@ texture_normal = ExtResource("8_fire_button")
 ignore_texture_size = true
 stretch_mode = 5
 
-[node name="InventoryPanel" type="PanelContainer" parent="."]
+[node name="InvSlot1" type="AspectRatioContainer" parent="." unique_id=1567775481]
+anchors_preset = -1
+anchor_left = 0.86
+anchor_top = 0.7
+anchor_right = 0.98
+anchor_bottom = 0.77
+
+[node name="Border" type="PanelContainer" parent="InvSlot1" unique_id=157644710]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_inventory_slot")
+
+[node name="ItemButton" type="TextureButton" parent="InvSlot1/Border" unique_id=1177721444]
+modulate = Color(1, 1, 1, 0.3)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="InvSlot2" type="AspectRatioContainer" parent="." unique_id=1856971790]
+anchors_preset = -1
+anchor_left = 0.86
+anchor_top = 0.77
+anchor_right = 0.98
+anchor_bottom = 0.85
+
+[node name="Border" type="PanelContainer" parent="InvSlot2" unique_id=1185446982]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_inventory_slot")
+
+[node name="ItemButton" type="TextureButton" parent="InvSlot2/Border" unique_id=1781312538]
+modulate = Color(1, 1, 1, 0.3)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="InvSlot3" type="AspectRatioContainer" parent="." unique_id=375466828]
+anchors_preset = -1
+anchor_left = 0.86
+anchor_top = 0.85
+anchor_right = 0.98
+anchor_bottom = 0.92
+
+[node name="Border" type="PanelContainer" parent="InvSlot3" unique_id=381246126]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_inventory_slot")
+
+[node name="ItemButton" type="TextureButton" parent="InvSlot3/Border" unique_id=785807776]
+modulate = Color(1, 1, 1, 0.3)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="BuffIndicator" type="HBoxContainer" parent="." unique_id=592979380]
 anchors_preset = -1
 anchor_left = 0.02
-anchor_top = 0.27
-anchor_right = 0.14
-anchor_bottom = 0.70
-grow_horizontal = 1
-theme_override_styles/panel = SubResource("StyleBoxFlat_inventory_panel")
-script = ExtResource("17_inventory_ui")
-
-[node name="SlotContainer" type="VBoxContainer" parent="InventoryPanel"]
-layout_mode = 2
-size_flags_vertical = 3
-theme_override_constants/separation = 8
-alignment = 1
-
-[node name="Slot0" type="Control" parent="InventoryPanel/SlotContainer"]
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="Border" type="PanelContainer" parent="InventoryPanel/SlotContainer/Slot0"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_inventory_slot")
-
-[node name="ItemButton" type="TextureButton" parent="InventoryPanel/SlotContainer/Slot0/Border"]
-modulate = Color(1, 1, 1, 0.3)
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-ignore_texture_size = true
-stretch_mode = 5
-
-[node name="Slot1" type="Control" parent="InventoryPanel/SlotContainer"]
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="Border" type="PanelContainer" parent="InventoryPanel/SlotContainer/Slot1"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_inventory_slot")
-
-[node name="ItemButton" type="TextureButton" parent="InventoryPanel/SlotContainer/Slot1/Border"]
-modulate = Color(1, 1, 1, 0.3)
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-ignore_texture_size = true
-stretch_mode = 5
-
-[node name="Slot2" type="Control" parent="InventoryPanel/SlotContainer"]
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="Border" type="PanelContainer" parent="InventoryPanel/SlotContainer/Slot2"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_inventory_slot")
-
-[node name="ItemButton" type="TextureButton" parent="InventoryPanel/SlotContainer/Slot2/Border"]
-modulate = Color(1, 1, 1, 0.3)
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-ignore_texture_size = true
-stretch_mode = 5
-
-[node name="BuffIndicator" type="HBoxContainer" parent="."]
-anchors_preset = -1
-anchor_left = 0.02
-anchor_top = 0.20
-anchor_right = 0.30
+anchor_top = 0.2
+anchor_right = 0.3
 anchor_bottom = 0.26
-grow_horizontal = 1
 theme_override_constants/separation = 8
 script = ExtResource("18_buff_indicator")
 
@@ -1173,6 +1131,9 @@ mouse_filter = 2
 texture = ExtResource("13_touch_knob")
 expand_mode = 1
 stretch_mode = 5
+
+[node name="InventoryUI" type="Node" parent="."]
+script = ExtResource("19_inventory_ui")
 
 [connection signal="pressed" from="PauseMenu/PanelContainer/VBoxContainer/HBoxContainer/ResumeButton" to="." method="_on_resume_pressed"]
 [connection signal="pressed" from="PauseMenu/PanelContainer/VBoxContainer/HBoxContainer/RestartButton" to="." method="_on_restart_pressed"]
