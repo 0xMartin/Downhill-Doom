@@ -21,7 +21,6 @@ func _add_test_items() -> void:
 	var test_items: Array[String] = ["super_supercharge", "explosion", "time_stop"]
 	for item_id in test_items:
 		add_item(item_id)
-		print("[InventoryManager] Added test item: ", item_id)
 
 ## Try to add an item to the inventory
 ## Returns the slot index if successful, -1 if inventory is full

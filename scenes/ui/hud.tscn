@@ -427,10 +427,10 @@ content_margin_top = 4.0
 content_margin_right = 4.0
 content_margin_bottom = 4.0
 bg_color = Color(0.05, 0.03, 0.08, 0.9)
-border_width_left = 4
-border_width_top = 4
-border_width_right = 4
-border_width_bottom = 4
+border_width_left = 8
+border_width_top = 8
+border_width_right = 8
+border_width_bottom = 8
 border_color = Color(0.3, 0.3, 0.3, 0.5)
 corner_radius_top_left = 100
 corner_radius_top_right = 100
@@ -991,7 +991,7 @@ size_flags_stretch_ratio = 0.5
 [node name="InvSlot1" type="AspectRatioContainer" parent="SideBar" unique_id=1567775481]
 layout_mode = 2
 size_flags_vertical = 3
-size_flags_stretch_ratio = 0.8
+size_flags_stretch_ratio = 0.85
 
 [node name="Border" type="PanelContainer" parent="SideBar/InvSlot1" unique_id=157644710]
 layout_mode = 2
@@ -999,6 +999,7 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_inventory_slot")
 
 [node name="ItemButton" type="TextureButton" parent="SideBar/InvSlot1/Border" unique_id=1177721444]
 modulate = Color(1, 1, 1, 0.3)
+texture_filter = 4
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -1008,7 +1009,7 @@ stretch_mode = 5
 [node name="InvSlot2" type="AspectRatioContainer" parent="SideBar" unique_id=1856971790]
 layout_mode = 2
 size_flags_vertical = 3
-size_flags_stretch_ratio = 0.8
+size_flags_stretch_ratio = 0.85
 
 [node name="Border" type="PanelContainer" parent="SideBar/InvSlot2" unique_id=1185446982]
 layout_mode = 2
@@ -1016,6 +1017,7 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_inventory_slot")
 
 [node name="ItemButton" type="TextureButton" parent="SideBar/InvSlot2/Border" unique_id=1781312538]
 modulate = Color(1, 1, 1, 0.3)
+texture_filter = 4
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -1025,7 +1027,7 @@ stretch_mode = 5
 [node name="InvSlot3" type="AspectRatioContainer" parent="SideBar" unique_id=375466828]
 layout_mode = 2
 size_flags_vertical = 3
-size_flags_stretch_ratio = 0.8
+size_flags_stretch_ratio = 0.85
 
 [node name="Border" type="PanelContainer" parent="SideBar/InvSlot3" unique_id=381246126]
 layout_mode = 2
@@ -1033,6 +1035,7 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_inventory_slot")
 
 [node name="ItemButton" type="TextureButton" parent="SideBar/InvSlot3/Border" unique_id=785807776]
 modulate = Color(1, 1, 1, 0.3)
+texture_filter = 4
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3

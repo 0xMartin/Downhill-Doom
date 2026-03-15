@@ -29,7 +29,6 @@ func _process(_delta: float) -> void:
 func _connect_signals() -> void:
 	var item_manager := get_node_or_null("/root/ItemManager")
 	if item_manager:
-		print("[BuffIndicator] Connected to ItemManager")
 		item_manager.buff_started.connect(_on_buff_started)
 		item_manager.buff_ended.connect(_on_buff_ended)
 		item_manager.shield_hit.connect(_on_shield_hit)
@@ -37,16 +36,12 @@ func _connect_signals() -> void:
 		push_error("[BuffIndicator] ItemManager not found!")
 
 func _on_buff_started(buff_type: int, duration: float) -> void:
-	print("[BuffIndicator] buff_started: type=", buff_type, " duration=", duration)
 	if _buff_icons.has(buff_type):
 		# Refresh existing buff - update timer display
-		print("[BuffIndicator] Buff already exists, refreshing")
 		return
 	
-	print("[BuffIndicator] Creating icon for buff type: ", buff_type)
 	_create_buff_icon(buff_type, duration)
 	self.visible = true
-	print("[BuffIndicator] Icon created, visible=", self.visible, " size=", self.size, " position=", self.position)
 
 func _on_buff_ended(buff_type: int) -> void:
 	if _buff_icons.has(buff_type):
@@ -72,7 +67,6 @@ func _on_shield_hit(remaining: int) -> void:
 
 func _create_buff_icon(buff_type: int, _duration: float) -> void:
 	var buff_info: Dictionary = BUFF_DISPLAY.get(buff_type, {"name": "Buff", "color": Color.WHITE})
-	print("[BuffIndicator] _create_buff_icon: type=", buff_type, " info=", buff_info)
 	
 	var icon := Control.new()
 	icon.custom_minimum_size = Vector2(ICON_SIZE, ICON_SIZE)
