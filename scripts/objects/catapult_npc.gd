@@ -4,8 +4,8 @@ class_name CatapultNPC
 ## Rotates to face player, plays animation, shoots ballistic projectiles
 ## Animation: main.action with 50 frames, shoots at frame 3
 
-@export var damage: int = 30
-@export var coin_value: int = 200
+@export var damage: int = 20
+@export var coin_value: int = 1250
 @export var object_id: String = "npc_catapult"
 @export var object_name: String = "Catapult"
 
@@ -13,8 +13,8 @@ class_name CatapultNPC
 const DETECTION_RANGE: float = 80.0  # Increased range
 const FIRE_RATE_FRAMES: int = 50  # Animation length in frames
 const FIRE_FRAME: int = 3  # Frame at which projectile spawns
-const ANIMATION_FPS: float = 12.0  # Half speed (2x slower than standard 24fps)
-const ROTATION_SPEED: float = 2.8  # Radians per second (increased by 40%)
+const ANIMATION_FPS: float = 9.0  # Half speed (standard 24fps)
+const ROTATION_SPEED: float = 2.8  
 
 # Projectile spawn offset (relative to catapult, where the arm is)
 const PROJECTILE_SPAWN_HEIGHT: float = 3.0

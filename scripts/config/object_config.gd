@@ -568,7 +568,7 @@ static func _init_objects() -> void:
 		"name": "Enemy Plane",
 		"category": Category.NPC_AERIAL,
 		"model": "res://assets/models/npc_enemy/plane.blend",
-		"height": 0.75,
+		"height": 1.0,
 		"height_var": 0.0,
 		"spawn_chance": 0.10,
 		"coins": 3500,
