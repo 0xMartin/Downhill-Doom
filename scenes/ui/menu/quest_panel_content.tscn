@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene format=3 uid="uid://jtj17s6w1kon"]
 
 [ext_resource type="Texture2D" uid="uid://dwu4kcvs6pyi" path="res://assets/svg/quest.svg" id="1_quest"]
 [ext_resource type="Texture2D" uid="uid://jknnhd7en14a" path="res://assets/svg/back_arrow.svg" id="2_back"]
@@ -62,23 +62,7 @@ corner_radius_top_right = 24
 corner_radius_bottom_right = 24
 corner_radius_bottom_left = 24
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_quest_card"]
-content_margin_left = 32.0
-content_margin_top = 24.0
-content_margin_right = 32.0
-content_margin_bottom = 24.0
-bg_color = Color(0.06, 0.08, 0.12, 1)
-border_width_left = 4
-border_width_top = 4
-border_width_right = 4
-border_width_bottom = 4
-border_color = Color(0.25, 0.32, 0.45, 0.8)
-corner_radius_top_left = 32
-corner_radius_top_right = 32
-corner_radius_bottom_right = 32
-corner_radius_bottom_left = 32
-
-[node name="QuestPanelContent" type="VBoxContainer"]
+[node name="QuestPanelContent" type="VBoxContainer" unique_id=904865171]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -86,28 +70,28 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 0
 
-[node name="Header" type="PanelContainer" parent="."]
+[node name="Header" type="PanelContainer" parent="." unique_id=2061167997]
 custom_minimum_size = Vector2(0, 200)
 layout_mode = 2
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_header")
 
-[node name="HBoxContainer" type="HBoxContainer" parent="Header"]
+[node name="HBoxContainer" type="HBoxContainer" parent="Header" unique_id=1174848886]
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 24
 alignment = 1
 
-[node name="Panel" type="Panel" parent="Header/HBoxContainer"]
+[node name="Panel" type="Panel" parent="Header/HBoxContainer" unique_id=1496029943]
 custom_minimum_size = Vector2(30, 0)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_white_bar")
 
-[node name="empty1" type="Control" parent="Header/HBoxContainer"]
+[node name="empty1" type="Control" parent="Header/HBoxContainer" unique_id=1408762181]
 custom_minimum_size = Vector2(20, 0)
 layout_mode = 2
 
-[node name="HeaderIcon" type="TextureRect" parent="Header/HBoxContainer"]
+[node name="HeaderIcon" type="TextureRect" parent="Header/HBoxContainer" unique_id=812886363]
 custom_minimum_size = Vector2(85, 85)
 layout_mode = 2
 size_flags_vertical = 4
@@ -116,19 +100,19 @@ texture = ExtResource("1_quest")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="HeaderTitle" type="Label" parent="Header/HBoxContainer"]
+[node name="HeaderTitle" type="Label" parent="Header/HBoxContainer" unique_id=885507404]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 70
 text = "DAILY QUESTS"
 
-[node name="Spacer" type="Control" parent="Header/HBoxContainer"]
+[node name="Spacer" type="Control" parent="Header/HBoxContainer" unique_id=1648451979]
 layout_mode = 2
 size_flags_horizontal = 3
 mouse_filter = 2
 
-[node name="BackButton" type="Button" parent="Header/HBoxContainer" unique_name_in_owner=true]
+[node name="BackButton" type="Button" parent="Header/HBoxContainer" unique_id=770884109]
 custom_minimum_size = Vector2(150, 110)
 layout_mode = 2
 size_flags_stretch_ratio = 0.4
@@ -145,17 +129,17 @@ alignment = 2
 icon_alignment = 1
 expand_icon = true
 
-[node name="empty2" type="Control" parent="Header/HBoxContainer"]
+[node name="empty2" type="Control" parent="Header/HBoxContainer" unique_id=319104509]
 custom_minimum_size = Vector2(20, 0)
 layout_mode = 2
 
-[node name="ScrollContainer" type="ScrollContainer" parent="."]
+[node name="ScrollContainer" type="ScrollContainer" parent="." unique_id=1060887668]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="MarginContainer" type="MarginContainer" parent="ScrollContainer"]
+[node name="MarginContainer" type="MarginContainer" parent="ScrollContainer" unique_id=816582834]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/margin_left = 50
@@ -163,33 +147,33 @@ theme_override_constants/margin_top = 40
 theme_override_constants/margin_right = 50
 theme_override_constants/margin_bottom = 40
 
-[node name="ContentVBox" type="VBoxContainer" parent="ScrollContainer/MarginContainer"]
+[node name="ContentVBox" type="VBoxContainer" parent="ScrollContainer/MarginContainer" unique_id=441594403]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 32
 
-[node name="TimerCard" type="PanelContainer" parent="ScrollContainer/MarginContainer/ContentVBox"]
+[node name="TimerCard" type="PanelContainer" parent="ScrollContainer/MarginContainer/ContentVBox" unique_id=1281286376]
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_timer_card")
 
-[node name="HBox" type="HBoxContainer" parent="ScrollContainer/MarginContainer/ContentVBox/TimerCard"]
+[node name="HBox" type="HBoxContainer" parent="ScrollContainer/MarginContainer/ContentVBox/TimerCard" unique_id=1056381549]
 layout_mode = 2
 theme_override_constants/separation = 24
 alignment = 1
 
-[node name="ResetLabel" type="Label" parent="ScrollContainer/MarginContainer/ContentVBox/TimerCard/HBox"]
+[node name="ResetLabel" type="Label" parent="ScrollContainer/MarginContainer/ContentVBox/TimerCard/HBox" unique_id=2029012003]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
 theme_override_font_sizes/font_size = 50
 text = "Quests reset in:"
 
-[node name="CountdownLabel" type="Label" parent="ScrollContainer/MarginContainer/ContentVBox/TimerCard/HBox" unique_name_in_owner=true]
+[node name="CountdownLabel" type="Label" parent="ScrollContainer/MarginContainer/ContentVBox/TimerCard/HBox" unique_id=1868589911]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.25, 0.65, 0.96, 1)
 theme_override_font_sizes/font_size = 56
 text = "12:34:56"
 
-[node name="QuestList" type="VBoxContainer" parent="ScrollContainer/MarginContainer/ContentVBox" unique_name_in_owner=true]
+[node name="QuestList" type="VBoxContainer" parent="ScrollContainer/MarginContainer/ContentVBox" unique_id=341601532]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 24

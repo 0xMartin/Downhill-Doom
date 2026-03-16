@@ -71,6 +71,16 @@ var current_combo: int = 0
 var last_destroyed_id: String = ""
 var skip_combo_popup: int = 0  # Amount to skip from regular popup (for combo bonuses)
 
+# Quest UI
+@onready var quest_panel: PanelContainer = $QuestPanel
+@onready var quest_description: Label = $QuestPanel/Content/QuestDescription
+@onready var quest_progress_bar: ProgressBar = $QuestPanel/Content/QuestProgressBar
+@onready var quest_progress_label: Label = $QuestPanel/Content/QuestProgressBar/QuestProgressLabel
+var quest_manager: Node
+var _current_quest_id: String = ""
+const COLOR_QUEST_PROGRESS := Color(0.25, 0.65, 0.96, 1)
+const COLOR_QUEST_COMPLETED := Color(0.30, 0.85, 0.55, 1)
+
 # Low health effects
 var low_health_pulse_time: float = 0.0
 var is_low_health: bool = false
@@ -124,6 +134,9 @@ func _ready() -> void:
 	_on_coins_changed(gm.coins)
 	_on_distance_changed(gm.distance)
 	_on_health_changed(gm.health, gm.max_health)
+	
+	# Connect quest manager signals
+	call_deferred("_connect_quest_signals")
 
 func _process(delta: float) -> void:
 	# Sparkle orbits around the coin
@@ -898,3 +911,98 @@ func get_joystick_input() -> float:
 func update_touch_controls_visibility() -> void:
 	if touch_controls_container and audio:
 		touch_controls_container.visible = audio.is_touch_mode()
+
+
+# ========== Quest Display ==========
+
+func _connect_quest_signals() -> void:
+	quest_manager = get_node_or_null("/root/QuestManager")
+	
+	if quest_manager:
+		if not quest_manager.quest_progress_updated.is_connected(_on_quest_progress_updated):
+			quest_manager.quest_progress_updated.connect(_on_quest_progress_updated)
+		if not quest_manager.quest_completed.is_connected(_on_quest_completed):
+			quest_manager.quest_completed.connect(_on_quest_completed)
+		if not quest_manager.active_quest_changed.is_connected(_on_active_quest_changed):
+			quest_manager.active_quest_changed.connect(_on_active_quest_changed)
+		
+		# Initial state
+		_update_quest_display()
+
+
+func _on_active_quest_changed(_quest: RefCounted) -> void:
+	_update_quest_display()
+
+
+func _on_quest_progress_updated(quest_id: String, current: int, target: int) -> void:
+	if quest_id == _current_quest_id:
+		_update_quest_progress(current, target)
+
+
+func _on_quest_completed(quest_id: String) -> void:
+	if quest_id == _current_quest_id:
+		_show_quest_completed()
+
+
+func _update_quest_display() -> void:
+	if not quest_manager or not quest_panel:
+		return
+	
+	var quest: RefCounted = quest_manager.get_active_quest()
+	
+	if not quest:
+		_current_quest_id = ""
+		quest_panel.visible = false
+		return
+	
+	_current_quest_id = quest.id
+	
+	# Check if already completed
+	if quest_manager.is_quest_completed(quest.id):
+		_show_quest_completed()
+		return
+	
+	# Update description
+	if quest_description:
+		quest_description.text = quest.short_description
+	
+	# Update progress
+	var progress: int = quest_manager.get_display_progress(quest)
+	_update_quest_progress(progress, quest.target_value)
+	
+	# Reset to normal styling
+	if quest_progress_bar:
+		var bar_fill := quest_progress_bar.get_theme_stylebox("fill").duplicate()
+		bar_fill.bg_color = COLOR_QUEST_PROGRESS
+		quest_progress_bar.add_theme_stylebox_override("fill", bar_fill)
+	
+	if quest_progress_label:
+		quest_progress_label.add_theme_color_override("font_color", Color(0.7, 0.75, 0.85, 1))
+	
+	quest_panel.visible = true
+
+
+func _update_quest_progress(current: int, target: int) -> void:
+	if quest_progress_bar:
+		quest_progress_bar.max_value = target
+		quest_progress_bar.value = mini(current, target)
+	
+	if quest_progress_label:
+		quest_progress_label.text = "%s/%s" % [format_number(current), format_number(target)]
+
+
+func _show_quest_completed() -> void:
+	if quest_description:
+		quest_description.text = "Quest Complete!"
+	
+	if quest_progress_bar:
+		quest_progress_bar.value = quest_progress_bar.max_value
+		var bar_fill := quest_progress_bar.get_theme_stylebox("fill").duplicate()
+		bar_fill.bg_color = COLOR_QUEST_COMPLETED
+		quest_progress_bar.add_theme_stylebox_override("fill", bar_fill)
+	
+	if quest_progress_label:
+		quest_progress_label.text = "Done!"
+		quest_progress_label.add_theme_color_override("font_color", COLOR_QUEST_COMPLETED)
+	
+	quest_panel.visible = true

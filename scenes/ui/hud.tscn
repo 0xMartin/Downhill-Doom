@@ -16,7 +16,6 @@
 [ext_resource type="Texture2D" uid="uid://xanf0j8uiiwn" path="res://assets/svg/home.svg" id="16_home"]
 [ext_resource type="Script" uid="uid://4g6cbrei7yao" path="res://scripts/ui/buff_indicator_ui.gd" id="18_buff_indicator"]
 [ext_resource type="Script" uid="uid://wt20hguh3vpg" path="res://scripts/ui/inventory_ui.gd" id="19_inventory_ui"]
-[ext_resource type="Script" uid="uid://hud_quest_display" path="res://scripts/ui/hud_quest_display.gd" id="20_quest_display"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
 bg_color = Color(0.1, 0.08, 0.18, 0.92)
@@ -438,6 +437,36 @@ corner_radius_top_right = 100
 corner_radius_bottom_right = 100
 corner_radius_bottom_left = 100
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_quest_panel"]
+content_margin_left = 30.0
+content_margin_top = 20.0
+content_margin_right = 30.0
+content_margin_bottom = 20.0
+bg_color = Color(0.06, 0.08, 0.12, 0.85)
+border_width_left = 8
+border_width_top = 8
+border_width_right = 8
+border_width_bottom = 8
+border_color = Color(0.25, 0.65, 0.96, 0.6)
+corner_radius_top_left = 36
+corner_radius_top_right = 36
+corner_radius_bottom_right = 36
+corner_radius_bottom_left = 36
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_quest_bar_bg"]
+bg_color = Color(0.1, 0.12, 0.18, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_quest_bar_fill"]
+bg_color = Color(0.25, 0.65, 0.96, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
 [node name="HUD" type="CanvasLayer" unique_id=304451578]
 script = ExtResource("1_hud")
 
@@ -600,7 +629,6 @@ text = "00:00:00"
 horizontal_alignment = 1
 
 [node name="ComboPanel" type="Control" parent="." unique_id=1847293650]
-visible = false
 layout_mode = 3
 anchors_preset = 5
 anchor_left = 0.5
@@ -1054,23 +1082,61 @@ size_flags_vertical = 3
 ignore_texture_size = true
 stretch_mode = 5
 
-[node name="BuffIndicator" type="VBoxContainer" parent="." unique_id=592979380]
+[node name="QuestPanel" type="PanelContainer" parent="." unique_id=592979381]
 anchors_preset = -1
 anchor_left = 0.01
 anchor_top = 0.15
+anchor_right = 0.4
+anchor_bottom = 0.25
+offset_bottom = 14.199951
+theme_override_styles/panel = SubResource("StyleBoxFlat_quest_panel")
+
+[node name="Content" type="VBoxContainer" parent="QuestPanel" unique_id=1757369017]
+layout_mode = 2
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="QuestDescription" type="Label" parent="QuestPanel/Content" unique_id=592979382]
+custom_minimum_size = Vector2(180, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 50
+text = "Collect 1,000 coins"
+autowrap_mode = 2
+
+[node name="QuestProgressBar" type="ProgressBar" parent="QuestPanel/Content" unique_id=592979383]
+custom_minimum_size = Vector2(200, 32)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/background = SubResource("StyleBoxFlat_quest_bar_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_quest_bar_fill")
+value = 50.0
+show_percentage = false
+
+[node name="QuestProgressLabel" type="Label" parent="QuestPanel/Content/QuestProgressBar" unique_id=592979384]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 40
+text = "500/1k"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="BuffIndicator" type="VBoxContainer" parent="." unique_id=592979380]
+anchors_preset = -1
+anchor_left = 0.01
+anchor_top = 0.27
 anchor_right = 0.5
 anchor_bottom = 0.45
 theme_override_constants/separation = 16
 script = ExtResource("18_buff_indicator")
-
-[node name="QuestDisplay" type="VBoxContainer" parent="." unique_id=592979381]
-anchors_preset = -1
-anchor_left = 0.01
-anchor_top = 0.46
-anchor_right = 0.35
-anchor_bottom = 0.60
-theme_override_constants/separation = 8
-script = ExtResource("20_quest_display")
 
 [node name="TouchControls" type="Control" parent="." unique_id=1983746521]
 layout_mode = 3
