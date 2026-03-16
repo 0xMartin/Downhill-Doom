@@ -163,7 +163,7 @@ static func _init_items() -> void:
 		"name": "Speed Boost",
 		"rarity": Rarity.COMMON,
 		"effect": EffectType.SPEED_BOOST,
-		"value": 1.4,  # 40% faster
+		"value": 1.25,  # 25% faster
 		"duration": 5.0,
 		"icon": "res://assets/textures/items/boots_winged.png",
 		"model": "res://assets/models/items/boots_winged.blend",

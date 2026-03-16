@@ -635,10 +635,10 @@ func _on_object_destroyed(object_id: String, _object_name: String, base_coins: i
 		last_destroyed_id = object_id
 	
 	# Apply combo bonus (combo >= 2 gives bonus coins)
-	# Slower growth: doubles every 2 combos. 2x, 4x, 8x... max 128x at combo 14+
+	# Exponential growth: 2^(combo-1), capped at 256x
+	# 1=1x, 2=2x, 3=4x, 4=8x, 5=16x, 6=32x, 7=64x, 8=128x, 9+=256x
 	if current_combo >= 2:
-		var tier: int = (current_combo - 2) / 2  # 0 for combo 2-3, 1 for 4-5, etc.
-		var combo_multiplier: int = mini(int(pow(2, tier + 1)), 128)  # Cap at 128x
+		var combo_multiplier: int = mini(int(pow(2, current_combo - 1)), 256)  # Cap at 256x
 		var combo_bonus: int = base_coins * (combo_multiplier - 1)  # Bonus = total - base
 		var multiplied_bonus: int = combo_bonus * gm.coin_multiplier  # Apply same multiplier
 		skip_combo_popup = multiplied_bonus  # Skip gold popup for this amount
