@@ -159,8 +159,12 @@ func _populate_quest_cards() -> void:
 		push_error("QuestPanelHelper: quest_manager is null, cannot get quests")
 		return
 	
-	# Clear existing cards
+	# Clear existing cards synchronously to prevent duplication
+	var children_to_remove: Array[Node] = []
 	for child in quest_list.get_children():
+		children_to_remove.append(child)
+	for child in children_to_remove:
+		quest_list.remove_child(child)
 		child.queue_free()
 	
 	# Get daily quests

@@ -132,64 +132,96 @@ func _setup_target_preview(container: Control, object_id: String) -> void:
 	if not obj_data:
 		return
 	
-	# Create a simple 2D icon preview using 3D model rendered to texture
+	# Use the same approach as stats_object_card for 3D preview
+	var preview_width: float = 100.0
+	var preview_height: float = 100.0
+	
 	var viewport_container := SubViewportContainer.new()
-	viewport_container.custom_minimum_size = Vector2(80, 80)
+	viewport_container.custom_minimum_size = Vector2(preview_width, preview_height)
 	viewport_container.stretch = true
-	viewport_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	viewport_container.mouse_filter = Control.MOUSE_FILTER_PASS
 	
 	var viewport := SubViewport.new()
 	viewport.name = "SubViewport"
 	viewport.transparent_bg = true
-	viewport.size = Vector2i(80, 80)
-	viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
+	viewport.size = Vector2i(int(preview_width), int(preview_height))
+	viewport.render_target_update_mode = SubViewport.UPDATE_WHEN_VISIBLE
 	viewport.own_world_3d = true
 	viewport_container.add_child(viewport)
 	
-	# Environment
 	var env := Environment.new()
 	env.background_mode = Environment.BG_COLOR
-	env.background_color = Color.TRANSPARENT
-	env.ambient_light_color = Color.WHITE
-	env.ambient_light_energy = 0.5
+	env.background_color = Color(0, 0, 0, 0)
+	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	env.ambient_light_color = Color(1, 1, 1, 1)
 	
-	var world_env := WorldEnvironment.new()
-	world_env.environment = env
-	viewport.add_child(world_env)
-	
-	# Light
-	var light := DirectionalLight3D.new()
-	light.rotation_degrees = Vector3(-45, 45, 0)
-	light.light_energy = 1.2
-	viewport.add_child(light)
-	
-	# Camera
 	var camera := Camera3D.new()
-	camera.projection = Camera3D.PROJECTION_ORTHOGONAL
-	camera.size = obj_data.target_height * 2.5
-	camera.position = Vector3(2, obj_data.target_height * 0.5, 2)
-	camera.look_at(Vector3(0, obj_data.target_height * 0.3, 0))
+	camera.name = "Camera"
+	camera.environment = env
+	camera.fov = 35.0
+	camera.near = 0.01
+	camera.far = 100.0
 	viewport.add_child(camera)
 	
-	# Model
-	if ResourceLoader.exists(obj_data.model_path):
-		var model: Node3D = load(obj_data.model_path).instantiate()
-		var current_height := _get_model_height(model)
-		if current_height > 0:
-			var scale_factor: float = obj_data.target_height / current_height
-			model.scale = Vector3.ONE * scale_factor
-		viewport.add_child(model)
+	var light := DirectionalLight3D.new()
+	light.transform.basis = Basis(Vector3(1, 0, 0), -0.5) * Basis(Vector3(0, 1, 0), 0.3)
+	viewport.add_child(light)
+	
+	var holder := Node3D.new()
+	holder.name = "ModelHolder"
+	viewport.add_child(holder)
+	
+	if obj_data.model_path and obj_data.model_path != "":
+		var model_scene: PackedScene = load(obj_data.model_path)
+		if model_scene:
+			var model := model_scene.instantiate()
+			holder.add_child(model)
+			
+			var combined_aabb := AABB()
+			var first := true
+			for mesh_inst: MeshInstance3D in _find_all_mesh_instances(model):
+				if mesh_inst.mesh == null:
+					continue
+				var mesh_aabb: AABB = mesh_inst.mesh.get_aabb()
+				var local_transform: Transform3D = mesh_inst.transform
+				var parent: Node = mesh_inst.get_parent()
+				while parent != null and parent != model:
+					if parent is Node3D:
+						local_transform = (parent as Node3D).transform * local_transform
+					parent = parent.get_parent()
+				mesh_aabb = local_transform * mesh_aabb
+				if first:
+					combined_aabb = mesh_aabb
+					first = false
+				else:
+					combined_aabb = combined_aabb.merge(mesh_aabb)
+			
+			var object_height: float = obj_data.target_height if obj_data.target_height > 0 else 1.0
+			var aabb_size := combined_aabb.size
+			var aabb_center := combined_aabb.get_center()
+			
+			if aabb_size.length() > 0.01:
+				object_height = maxf(maxf(aabb_size.x, aabb_size.y), aabb_size.z)
+			
+			var half_fov := deg_to_rad(camera.fov / 2.0)
+			var distance := (object_height / 2.0) / tan(half_fov) * 1.4
+			distance = clampf(distance, 0.5, 50.0)
+			
+			if aabb_size.length() > 0.01:
+				holder.position.y = -aabb_center.y
+			
+			camera.position = Vector3(0, 0, distance)
 	
 	container.add_child(viewport_container)
 
 
-func _get_model_height(model: Node3D) -> float:
-	var aabb := AABB()
-	for child in model.get_children():
-		if child is MeshInstance3D:
-			var mesh_aabb: AABB = child.get_aabb()
-			aabb = aabb.merge(mesh_aabb)
-	return aabb.size.y if aabb.size.y > 0 else 1.0
+func _find_all_mesh_instances(node: Node) -> Array[MeshInstance3D]:
+	var result: Array[MeshInstance3D] = []
+	if node is MeshInstance3D:
+		result.append(node as MeshInstance3D)
+	for child in node.get_children():
+		result.append_array(_find_all_mesh_instances(child))
+	return result
 
 
 func _setup_reward_display(icon: TextureRect, label: Label, quest: RefCounted) -> void:

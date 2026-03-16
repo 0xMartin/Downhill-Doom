@@ -95,10 +95,26 @@ const KILL_ANY_TARGETS := {
 	QuestDifficulty.HARD: [500, 1000],
 }
 
-const KILL_SPECIFIC_TARGETS := {
-	QuestDifficulty.EASY: [10, 25],
-	QuestDifficulty.MEDIUM: [30, 60],
-	QuestDifficulty.HARD: [75, 150],
+# Kill specific targets adjusted per object difficulty
+# Easy objects (trees, friend NPCs): spawn early, frequent
+# Medium objects (enemy NPCs, enemy buildings): spawn at various distances
+# Hard objects (aerial NPCs): spawn late (4800m+), rare, difficult to kill
+const KILL_SPECIFIC_EASY_TARGETS := {
+	QuestDifficulty.EASY: [10, 20],      # Easy object, easy quest
+	QuestDifficulty.MEDIUM: [30, 50],    # Easy object, medium quest
+	QuestDifficulty.HARD: [75, 125],     # Easy object, hard quest
+}
+
+const KILL_SPECIFIC_MEDIUM_TARGETS := {
+	QuestDifficulty.EASY: [5, 10],       # Medium object, easy quest
+	QuestDifficulty.MEDIUM: [15, 25],    # Medium object, medium quest
+	QuestDifficulty.HARD: [40, 60],      # Medium object, hard quest
+}
+
+const KILL_SPECIFIC_HARD_TARGETS := {
+	QuestDifficulty.EASY: [1, 2],        # Hard object (plane), easy quest: just 1-2
+	QuestDifficulty.MEDIUM: [3, 5],      # Hard object, medium quest: 3-5
+	QuestDifficulty.HARD: [8, 12],       # Hard object, hard quest: 8-12 (still challenging!)
 }
 
 const SURVIVE_TIME_TARGETS := {
@@ -170,16 +186,73 @@ static func get_killable_object_ids() -> Array:
 	
 	return killable
 
-# Subset of more interesting targets for specific kill quests
+# Object difficulty categories for balanced quest generation
+# Returns targets appropriate for quest difficulty level
+enum ObjectDifficulty { EASY, MEDIUM, HARD }
+
+# Get object difficulty based on spawn distance and category
+static func get_object_difficulty(object_id: String) -> int:
+	# Aerial NPCs are always HARD (spawn at 4800m+, rare, difficult to hit)
+	var aerial_npcs := ObjectConfig.get_objects_by_category(ObjectConfig.Category.NPC_AERIAL)
+	for obj in aerial_npcs:
+		if obj.id == object_id:
+			return ObjectDifficulty.HARD
+	
+	# Enemy NPCs are MEDIUM (spawn at various distances, moving)
+	var enemy_npcs := ObjectConfig.get_objects_by_category(ObjectConfig.Category.NPC_ENEMY)
+	for obj in enemy_npcs:
+		if obj.id == object_id:
+			return ObjectDifficulty.MEDIUM
+	
+	# Enemy buildings are MEDIUM (armored, require multiple hits)
+	var enemy_buildings := ObjectConfig.get_building_enemies()
+	for obj in enemy_buildings:
+		if obj.id == object_id:
+			return ObjectDifficulty.MEDIUM
+	
+	# Trees and friend NPCs are EASY (common, stationary or easy targets)
+	return ObjectDifficulty.EASY
+
+# Get targets appropriate for quest difficulty
+static func get_specific_kill_targets_for_difficulty(quest_difficulty: int) -> Array:
+	var targets := []
+	
+	# Trees - EASY objects
+	var trees := ObjectConfig.get_trees()
+	for obj in trees:
+		if obj.is_destructible:
+			targets.append({"id": obj.id, "difficulty": ObjectDifficulty.EASY})
+	
+	# Friend NPCs - EASY objects (but still interesting targets)
+	var friend_npcs := ObjectConfig.get_npcs_friend()
+	for obj in friend_npcs:
+		targets.append({"id": obj.id, "difficulty": ObjectDifficulty.EASY})
+	
+	# Enemy NPCs - MEDIUM objects
+	var enemy_npcs := ObjectConfig.get_objects_by_category(ObjectConfig.Category.NPC_ENEMY)
+	for obj in enemy_npcs:
+		targets.append({"id": obj.id, "difficulty": ObjectDifficulty.MEDIUM})
+	
+	# Enemy buildings - MEDIUM objects
+	var enemy_buildings := ObjectConfig.get_building_enemies()
+	for obj in enemy_buildings:
+		if obj.is_destructible:
+			targets.append({"id": obj.id, "difficulty": ObjectDifficulty.MEDIUM})
+	
+	# Aerial NPCs - HARD objects (only for HARD quests!)
+	if quest_difficulty == QuestDifficulty.HARD:
+		var aerial_npcs := ObjectConfig.get_objects_by_category(ObjectConfig.Category.NPC_AERIAL)
+		for obj in aerial_npcs:
+			targets.append({"id": obj.id, "difficulty": ObjectDifficulty.HARD})
+	
+	return targets
+
+# Legacy function for compatibility
 static func get_specific_kill_targets() -> Array:
 	var targets := []
 	
 	# Enemy NPCs are most interesting targets
 	for obj in ObjectConfig.get_objects_by_category(ObjectConfig.Category.NPC_ENEMY):
-		targets.append(obj.id)
-	
-	# Aerial NPCs
-	for obj in ObjectConfig.get_objects_by_category(ObjectConfig.Category.NPC_AERIAL):
 		targets.append(obj.id)
 	
 	# Add some common trees (interesting variety)
@@ -221,51 +294,78 @@ static func generate_random_quest(quest_id: String, difficulty: int, used_types:
 	else:
 		mode = QuestMode.MULTI_RUN if rng.randf() < 0.2 else QuestMode.SINGLE_RUN
 	
-	# Generate target value
-	var target_value := _get_target_value(quest_type, difficulty, rng)
-	
-	# For specific kills, pick a random target
+	# For specific kills, pick a target based on quest difficulty
 	var target_object_id := ""
+	var object_difficulty: int = ObjectDifficulty.EASY  # Default
+	
 	if quest_type == QuestType.KILL_SPECIFIC:
-		var targets := get_specific_kill_targets()
+		var targets := get_specific_kill_targets_for_difficulty(difficulty)
 		if targets.size() > 0:
-			target_object_id = targets[rng.randi() % targets.size()]
+			# Filter targets based on quest difficulty
+			var appropriate_targets := targets.filter(func(t):
+				# EASY quests: only EASY objects
+				# MEDIUM quests: EASY and MEDIUM objects
+				# HARD quests: all objects including HARD
+				if difficulty == QuestDifficulty.EASY:
+					return t.difficulty == ObjectDifficulty.EASY
+				elif difficulty == QuestDifficulty.MEDIUM:
+					return t.difficulty in [ObjectDifficulty.EASY, ObjectDifficulty.MEDIUM]
+				else:
+					return true  # HARD quests can have any difficulty object
+			)
+			
+			if appropriate_targets.is_empty():
+				appropriate_targets = targets
+			
+			var selected: Dictionary = appropriate_targets[rng.randi() % appropriate_targets.size()]
+			target_object_id = selected.id
+			object_difficulty = selected.difficulty
+	
+	# Generate target value (uses object difficulty for KILL_SPECIFIC)
+	var target_value := _get_target_value_for_quest(quest_type, difficulty, object_difficulty, rng)
 	
 	# Generate reward
 	var reward_type: int
 	var reward_value: Variant
 	
+	# Boost effective difficulty for KILL_SPECIFIC with hard objects (planes)
+	# Killing planes is significantly harder and deserves better rewards
+	var effective_reward_difficulty := difficulty
+	if quest_type == QuestType.KILL_SPECIFIC and object_difficulty == ObjectDifficulty.HARD:
+		# Upgrade reward tier: EASY->MEDIUM, MEDIUM->HARD, HARD->HARD
+		effective_reward_difficulty = mini(difficulty + 1, QuestDifficulty.HARD)
+	
 	# Determine reward type based on difficulty and randomness
 	var reward_roll := rng.randf()
-	if difficulty == QuestDifficulty.HARD:
+	if effective_reward_difficulty == QuestDifficulty.HARD:
 		if reward_roll < 0.4:
 			reward_type = RewardType.CRATE
-			reward_value = CRATE_REWARDS[difficulty]
+			reward_value = CRATE_REWARDS[effective_reward_difficulty]
 		elif reward_roll < 0.7:
 			reward_type = RewardType.BOOST
 			reward_value = BOOST_REWARD_POOL[rng.randi() % BOOST_REWARD_POOL.size()]
 		else:
 			reward_type = RewardType.COINS
-			var coin_range: Array = COIN_REWARDS[difficulty]
+			var coin_range: Array = COIN_REWARDS[effective_reward_difficulty]
 			reward_value = rng.randi_range(coin_range[0], coin_range[1])
-	elif difficulty == QuestDifficulty.MEDIUM:
+	elif effective_reward_difficulty == QuestDifficulty.MEDIUM:
 		if reward_roll < 0.3:
 			reward_type = RewardType.CRATE
-			reward_value = CRATE_REWARDS[difficulty]
+			reward_value = CRATE_REWARDS[effective_reward_difficulty]
 		elif reward_roll < 0.5:
 			reward_type = RewardType.BOOST
 			reward_value = BOOST_REWARD_POOL[rng.randi() % BOOST_REWARD_POOL.size()]
 		else:
 			reward_type = RewardType.COINS
-			var coin_range: Array = COIN_REWARDS[difficulty]
+			var coin_range: Array = COIN_REWARDS[effective_reward_difficulty]
 			reward_value = rng.randi_range(coin_range[0], coin_range[1])
 	else:
 		if reward_roll < 0.2:
 			reward_type = RewardType.CRATE
-			reward_value = CRATE_REWARDS[difficulty]
+			reward_value = CRATE_REWARDS[effective_reward_difficulty]
 		else:
 			reward_type = RewardType.COINS
-			var coin_range: Array = COIN_REWARDS[difficulty]
+			var coin_range: Array = COIN_REWARDS[effective_reward_difficulty]
 			reward_value = rng.randi_range(coin_range[0], coin_range[1])
 	
 	# Round coin rewards to nice numbers
@@ -290,6 +390,9 @@ static func generate_random_quest(quest_id: String, difficulty: int, used_types:
 	})
 
 static func _get_target_value(quest_type: int, difficulty: int, rng: RandomNumberGenerator) -> int:
+	return _get_target_value_for_quest(quest_type, difficulty, ObjectDifficulty.EASY, rng)
+
+static func _get_target_value_for_quest(quest_type: int, difficulty: int, object_difficulty: int, rng: RandomNumberGenerator) -> int:
 	var ranges: Dictionary
 	match quest_type:
 		QuestType.COLLECT_COINS:
@@ -299,7 +402,14 @@ static func _get_target_value(quest_type: int, difficulty: int, rng: RandomNumbe
 		QuestType.KILL_ANY:
 			ranges = KILL_ANY_TARGETS
 		QuestType.KILL_SPECIFIC:
-			ranges = KILL_SPECIFIC_TARGETS
+			# Use object difficulty to determine kill count
+			match object_difficulty:
+				ObjectDifficulty.HARD:
+					ranges = KILL_SPECIFIC_HARD_TARGETS  # 1-12 kills (planes)
+				ObjectDifficulty.MEDIUM:
+					ranges = KILL_SPECIFIC_MEDIUM_TARGETS  # 5-60 kills (enemy NPCs)
+				_:
+					ranges = KILL_SPECIFIC_EASY_TARGETS  # 10-125 kills (trees, friend NPCs)
 		QuestType.SURVIVE_TIME:
 			ranges = SURVIVE_TIME_TARGETS
 		QuestType.ACTIVATE_SUPERCHARGE:

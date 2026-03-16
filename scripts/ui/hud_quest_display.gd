@@ -123,7 +123,7 @@ func _update_display() -> void:
 		visible = false
 		return
 	
-	var quest := quest_manager.get_active_quest()
+	var quest: RefCounted = quest_manager.get_active_quest()
 	
 	if not quest:
 		_current_quest_id = ""
@@ -141,7 +141,7 @@ func _update_display() -> void:
 	_description_label.text = quest.short_description
 	
 	# Update progress
-	var progress := quest_manager.get_display_progress(quest)
+	var progress: int = quest_manager.get_display_progress(quest)
 	_update_progress(progress, quest.target_value)
 	
 	# Reset completion styling
