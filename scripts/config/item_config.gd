@@ -225,7 +225,7 @@ static func _init_items() -> void:
 		"rarity": Rarity.RARE,
 		"effect": EffectType.SLOW_MOTION,
 		"value": 0.5,  # 50% time scale
-		"duration": 15.0,
+		"duration": 20.0,
 		"icon": "res://assets/textures/items/hourglass.png",
 		"model": "res://assets/models/items/hourglass.blend",
 		"spawn_weight": 0.6,
@@ -247,7 +247,7 @@ static func _init_items() -> void:
 		"rarity": Rarity.LEGENDARY,
 		"effect": EffectType.TIME_STOP,
 		"value": 1.0,  # Full stop
-		"duration": 2.0,
+		"duration": 5.0,
 		"icon": "res://assets/textures/items/clock_frozen.png",
 		"model": "res://assets/models/items/clock_frozen.blend",
 		"spawn_weight": 0.4,
