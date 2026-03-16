@@ -5,6 +5,7 @@ signal coins_changed(total: int)
 signal distance_changed(distance: float)
 signal health_changed(health: int, max_health: int)
 signal player_hit(damage: int)
+signal player_healed(heal_amount: int)
 signal player_died
 signal game_started
 signal game_paused(is_paused: bool)

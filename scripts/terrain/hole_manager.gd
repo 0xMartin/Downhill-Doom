@@ -25,10 +25,16 @@ var chunk_size: Vector2
 var chunk_holes: Dictionary = {}
 var last_hole_z: float = 0.0
 
+# Global seed for deterministic generation
+var global_seed: int = 0
+
 # Fog texture for particles
 var fog_texture: Texture2D
 
 func _init(config: Dictionary) -> void:
+	# Store global seed first
+	global_seed = config.get("seed", randi())
+	
 	hole_enabled = config.get("hole_enabled", true)
 	hole_min_spacing = config.get("hole_min_spacing", 50.0)
 	hole_max_spacing = config.get("hole_max_spacing", 80.0)
@@ -69,7 +75,7 @@ func precalculate_holes(chunk_index: int) -> void:
 	
 	var holes: Array = []
 	var rng := RandomNumberGenerator.new()
-	rng.seed = hash(chunk_index * 77777)
+	rng.seed = hash(global_seed + chunk_index * 77777)
 	
 	var chunk_start_z := -chunk_index * chunk_size.y
 	var chunk_end_z := chunk_start_z - chunk_size.y

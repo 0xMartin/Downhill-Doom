@@ -31,12 +31,3 @@ theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 20
 theme_override_font_sizes/font_size = 50
 text = "10.0s"
-
-[node name="CountLabel" type="Label" parent="Info" unique_id=107678106]
-visible = false
-layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.9, 1, 1)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 20
-theme_override_font_sizes/font_size = 50
-text = "3"

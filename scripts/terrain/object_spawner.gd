@@ -53,9 +53,9 @@ var chunk_size: Vector2 = Vector2(100, 50)
 var num_lanes: int = 5
 
 # Base density settings (objects per 100 square units) - reduced 50% total for mobile
-var tree_density: float = 0.25  # Was 0.5 → 0.4 → 0.25
+var tree_density: float = 0.35  # Increased for more trees
 var rock_density: float = 0.08  # Was 0.15 → 0.12 → 0.08
-var building_density: float = 0.10  # Was 0.2 → 0.16 → 0.10
+var building_density: float = 0.06  # Reduced for fewer buildings
 var enemy_density: float = 0.12  # Was 0.24 → 0.19 → 0.12
 var npc_friend_density: float = 0.015  # Was 0.03 → 0.024 → 0.015
 var npc_enemy_density: float = 0.012  # Was 0.021 → 0.017 → 0.012
@@ -134,7 +134,13 @@ var plane_cooldown_distance: float = 150.0  # ~7 sec at typical speed (very freq
 var plane_last_spawn_z: float = 999999.0  # Z position of last plane spawn (positive = no spawn yet)
 var plane_safe_chunks: int = 3  # Start spawning very early
 
+# Global seed for deterministic generation
+var global_seed: int = 0
+
 func _init(config: Dictionary) -> void:
+	# Store global seed FIRST for all subsequent RNG creation
+	global_seed = config.get("seed", randi())
+	
 	terrain_width = config.get("terrain_width", 36.0)
 	chunk_size = config.get("chunk_size", Vector2(100, 50))
 	tree_density = config.get("tree_density", 0.5)
@@ -161,8 +167,8 @@ func _init(config: Dictionary) -> void:
 	zone_manager = ZoneManagerScript.new({
 		"seed": config.get("seed", 42),
 		"noise_scale": 0.015,  # Larger patches
-		"forest_threshold": -0.1,
-		"building_threshold": 0.1,
+		"forest_threshold": 0.0,  # More forest zones (was -0.1)
+		"building_threshold": 0.2,  # Fewer building zones (was 0.1)
 	})
 
 ## Get cached PackedScene (avoids repeated load() calls)
@@ -327,7 +333,7 @@ func _yield_frame(chunk: Node3D) -> void:
 ## Async version of rock spawning - yields every few objects  
 func _spawn_rocks_async(chunk: Node3D, chunk_index: int, get_height_func: Callable) -> void:
 	var rng := RandomNumberGenerator.new()
-	rng.seed = hash(chunk_index * 99999)
+	rng.seed = hash(global_seed + chunk_index * 99999)
 	
 	var area := chunk_size.x * chunk_size.y
 	var object_count := int(area * rock_density / 100.0)
@@ -385,7 +391,7 @@ func _spawn_rocks_async(chunk: Node3D, chunk_index: int, get_height_func: Callab
 ## Async version of zone objects spawning - yields periodically
 func _spawn_zone_objects_async(chunk: Node3D, chunk_index: int, get_height_func: Callable) -> void:
 	var rng := RandomNumberGenerator.new()
-	rng.seed = hash(chunk_index * 54321)
+	rng.seed = hash(global_seed + chunk_index * 54321)
 	
 	# Check for no_enemy_building boost early
 	var gm_async: Node = Engine.get_main_loop().root.get_node_or_null("/root/GameManager")
@@ -471,7 +477,7 @@ func _spawn_spike_wall_chains(chunk: Node3D, chunk_index: int, get_height_func: 
 		return
 	
 	var rng := RandomNumberGenerator.new()
-	rng.seed = hash(chunk_index * 55555 + 12345)  # Unique seed for spike walls
+	rng.seed = hash(global_seed + chunk_index * 55555 + 12345)  # Unique seed for spike walls
 	
 	# Initialize next_spike_wall_z on first valid chunk
 	if next_spike_wall_z == 0.0:
@@ -592,7 +598,7 @@ func _create_spike_wall_chain(chunk: Node3D, chunk_index: int, base_z: float, rn
 ## Spawn rocks (zone-independent)
 func _spawn_rocks(chunk: Node3D, chunk_index: int, get_height_func: Callable) -> void:
 	var rng := RandomNumberGenerator.new()
-	rng.seed = hash(chunk_index * 99999)
+	rng.seed = hash(global_seed + chunk_index * 99999)
 	
 	var area := chunk_size.x * chunk_size.y
 	var object_count := int(area * rock_density / 100.0)
@@ -640,7 +646,7 @@ func _spawn_rocks(chunk: Node3D, chunk_index: int, get_height_func: Callable) ->
 ## Async item spawning - spawns collectible items based on distance-unlocked rarity
 func _spawn_items_async(chunk: Node3D, chunk_index: int, get_height_func: Callable) -> void:
 	var rng := RandomNumberGenerator.new()
-	rng.seed = hash(chunk_index * 88888)
+	rng.seed = hash(global_seed + chunk_index * 88888)
 	
 	# 75% chance per chunk to attempt item spawn
 	if rng.randf() > 0.75:
@@ -726,7 +732,7 @@ func _spawn_items_async(chunk: Node3D, chunk_index: int, get_height_func: Callab
 ## Spawn NPC clusters - random meadows with groups of same-type animals
 func _spawn_npc_clusters(chunk: Node3D, chunk_index: int, get_height_func: Callable) -> void:
 	var rng := RandomNumberGenerator.new()
-	rng.seed = hash(chunk_index * 77777)
+	rng.seed = hash(global_seed + chunk_index * 77777)
 	
 	# 70% chance to have an NPC cluster in this chunk
 	if rng.randf() > 0.7:
@@ -846,7 +852,7 @@ func _spawn_enemy_npc_clusters(chunk: Node3D, chunk_index: int, get_height_func:
 		return
 	
 	var rng := RandomNumberGenerator.new()
-	rng.seed = hash(chunk_index * 55555)
+	rng.seed = hash(global_seed + chunk_index * 55555 + 1)  # +1 to differ from spike walls
 	
 	# 49% chance to have an enemy NPC cluster (70% * 0.7 = ~49% - 30% less than friend NPCs)
 	if rng.randf() > 0.49:
@@ -931,9 +937,9 @@ func _try_spawn_plane(chunk: Node3D, chunk_index: int, get_height_func: Callable
 	if not DistanceConfigScript.can_spawn_aerial(current_distance):
 		return
 	
-	# Use fully random seed for unique results every game
+	# Use global seed + chunk for deterministic plane spawning
 	var rng := RandomNumberGenerator.new()
-	rng.randomize()
+	rng.seed = hash(global_seed + chunk_index * 66666)
 	
 	# Calculate current chunk Z position (start of this chunk in world coords)
 	var chunk_start_z := -chunk_index * chunk_size.y
@@ -1009,7 +1015,7 @@ func _try_spawn_plane(chunk: Node3D, chunk_index: int, get_height_func: Callable
 ## Spawn zone-dependent objects (trees, buildings, enemies) with per-position zone check
 func _spawn_zone_objects(chunk: Node3D, chunk_index: int, get_height_func: Callable) -> void:
 	var rng := RandomNumberGenerator.new()
-	rng.seed = hash(chunk_index * 54321)
+	rng.seed = hash(global_seed + chunk_index * 54321)
 	
 	# Check for no_enemy_building boost early
 	var gm_sync: Node = Engine.get_main_loop().root.get_node_or_null("/root/GameManager")

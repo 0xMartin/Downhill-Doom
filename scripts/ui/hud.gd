@@ -9,6 +9,7 @@ signal jump_pressed  # Emitted when touch jump button is pressed
 @onready var health_bar: ProgressBar = $TopBar/MarginContainer/HBoxContainer/HealthContainer/HealthBar
 @onready var health_label: Label = $TopBar/MarginContainer/HBoxContainer/HealthContainer/HealthBar/HealthLabel
 @onready var red_flash: ColorRect = $RedFlash
+@onready var green_flash: ColorRect = $GreenFlash
 @onready var pause_menu: Control = $PauseMenu
 @onready var music_slider: HSlider = $PauseMenu/PanelContainer/VBoxContainer/AudioSection/AudioVBox/MusicRow/MusicSlider
 @onready var sfx_slider: HSlider = $PauseMenu/PanelContainer/VBoxContainer/AudioSection/AudioVBox/SFXRow/SFXSlider
@@ -94,6 +95,7 @@ func _ready() -> void:
 	gm.game_paused.connect(_on_game_paused)
 	gm.health_changed.connect(_on_health_changed)
 	gm.player_hit.connect(_on_player_hit)
+	gm.player_healed.connect(_on_player_healed)
 	gm.time_changed.connect(_on_time_changed)
 	gm.supercharge_changed.connect(_on_supercharge_changed)
 	gm.supercharge_activated.connect(_on_supercharge_activated)
@@ -508,6 +510,83 @@ func show_damage_popup(amount: int) -> void:
 	tween.tween_property(popup, "modulate:a", 0.0, duration * 0.8).set_delay(duration * 0.2)
 	tween.set_parallel(false)
 	tween.tween_callback(popup.queue_free)
+
+
+func show_heal_popup(amount: int) -> void:
+	if not audio or not audio.get_show_damage_popup():
+		return
+	
+	# Create popup container
+	var popup := HBoxContainer.new()
+	popup.add_theme_constant_override("separation", 12)
+	
+	# Create +NHp label - large, bold style with outline (green theme)
+	var label := Label.new()
+	label.text = "+" + str(amount) + "Hp"
+	label.add_theme_font_size_override("font_size", 116)
+	label.add_theme_color_override("font_color", Color(0.3, 1.0, 0.5, 1))  # Bright green
+	label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
+	label.add_theme_color_override("font_outline_color", Color(0, 0.4, 0.15, 1))  # Dark green outline
+	label.add_theme_constant_override("shadow_offset_x", 4)
+	label.add_theme_constant_override("shadow_offset_y", 4)
+	label.add_theme_constant_override("outline_size", 6)
+	popup.add_child(label)
+	
+	# Create heart icon
+	var icon := TextureRect.new()
+	if heart_icon_texture:
+		icon.texture = heart_icon_texture
+		icon.custom_minimum_size = Vector2(96, 96)
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.modulate = Color(0.3, 1.0, 0.5, 1)  # Green tint
+		popup.add_child(icon)
+	
+	# Position at player area - use design resolution (720x1280 with stretch)
+	# Center horizontally, 70% from top (30% from bottom)
+	var popup_container_width: float = popup_container.get_viewport_rect().size.x
+	var popup_container_height: float = popup_container.get_viewport_rect().size.y
+	var base_x: float = popup_container_width / 2.0
+	var base_y: float = popup_container_height * 0.70
+	
+	# Larger random offset around spawn point for more spread
+	var offset_x := randf_range(-120, 120)
+	var offset_y := randf_range(-80, 80)
+	# Center the heal popup (2x size = ~220px width for "+NHp" label)
+	popup.position = Vector2(base_x - 110 + offset_x, base_y + offset_y)
+	popup.pivot_offset = Vector2(120, 50)  # Center pivot for rotation
+	popup_container.add_child(popup)  # Add to container so it's behind menus
+	
+	# Float upward and fade out (same speed as damage falling down)
+	var angle := randf_range(PI * 1.3, PI * 1.7)  # Upward angles
+	var distance := popup_container_height - base_y + 100  # Same distance as damage popup
+	var duration := 1.0  # Same duration as damage popup
+	var target_offset := Vector2(cos(angle), sin(angle)) * distance
+	
+	# Random spin (mild rotation)
+	var spin_amount := randf_range(-0.5, 0.5)
+	
+	# Animate: float up off-screen, spin, and fade out
+	var tween := create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(popup, "position", popup.position + target_offset, duration).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tween.tween_property(popup, "rotation", spin_amount, duration)
+	tween.tween_property(popup, "modulate:a", 0.0, duration * 0.8).set_delay(duration * 0.2)
+	tween.set_parallel(false)
+	tween.tween_callback(popup.queue_free)
+
+
+func _on_player_healed(heal_amount: int) -> void:
+	# Flash green overlay
+	green_flash.visible = true
+	green_flash.modulate.a = 0.8
+	
+	var tween := create_tween()
+	tween.tween_property(green_flash, "modulate:a", 0.0, 0.4).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.tween_callback(func(): green_flash.visible = false)
+	
+	# Show heal popup
+	show_heal_popup(heal_amount)
 
 
 ## Adjust top bar offset for mobile safe area (notch, status bar, etc.)

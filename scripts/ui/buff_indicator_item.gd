@@ -19,16 +19,15 @@ var progress: float = 1.0:
 var _circle: Control
 var _name_label: Label
 var _timer_label: Label
-var _count_label: Label
 
 const BG_COLOR := Color(0.1, 0.1, 0.15, 0.85)
-const BORDER_WIDTH := 3.0
+const BORDER_WIDTH := 8.0
+const SEGMENT_COUNT := 32
 
 func _ready() -> void:
 	_circle = $Circle
 	_name_label = $Info/NameLabel
 	_timer_label = $Info/TimerLabel
-	_count_label = $Info/CountLabel
 	
 	# Connect circle drawing
 	if _circle:
@@ -39,10 +38,14 @@ func _on_circle_draw() -> void:
 		return
 	
 	var center := _circle.size / 2.0
-	var radius := minf(_circle.size.x, _circle.size.y) / 2.0 - BORDER_WIDTH
+	var outer_radius := minf(_circle.size.x, _circle.size.y) / 2.0
+	var radius := outer_radius - BORDER_WIDTH
 	
-	# Background circle
-	_circle.draw_circle(center, radius + BORDER_WIDTH, BG_COLOR)
+	# Black outline (drawn first, behind everything) - with antialiasing
+	_circle.draw_circle(center, outer_radius, Color.BLACK, true, -1.0, true)
+	
+	# Background circle - with antialiasing
+	_circle.draw_circle(center, radius, BG_COLOR, true, -1.0, true)
 	
 	# Progress arc (pie)
 	if progress > 0.001:
@@ -51,7 +54,7 @@ func _on_circle_draw() -> void:
 		
 		var start_angle := -PI / 2.0  # Start from top
 		var end_angle := start_angle + (progress * TAU)
-		var segments := int(32 * progress) + 4
+		var segments := int(SEGMENT_COUNT * progress) + 8
 		
 		for i in range(segments + 1):
 			var angle := start_angle + (float(i) / segments) * (end_angle - start_angle)
@@ -60,13 +63,8 @@ func _on_circle_draw() -> void:
 		if points.size() >= 3:
 			_circle.draw_colored_polygon(points, buff_color)
 	
-	# Border ring
-	var border_color := buff_color
-	border_color.a = 0.9
-	_circle.draw_arc(center, radius, 0, TAU, 32, border_color, BORDER_WIDTH, true)
-	
-	# Inner dark circle for contrast
-	_circle.draw_circle(center, radius * 0.35, BG_COLOR)
+	# Inner dark circle for contrast - with antialiasing
+	_circle.draw_circle(center, radius * 0.35, BG_COLOR, true, -1.0, true)
 
 func _process(_delta: float) -> void:
 	if _circle:
@@ -85,22 +83,6 @@ func set_name_text(text: String) -> void:
 func set_timer_text(text: String) -> void:
 	if _timer_label:
 		_timer_label.text = text
-
-## Set the count text (for shields) and visibility
-func set_count(value: int, visible_state: bool = true) -> void:
-	if _count_label:
-		_count_label.text = str(value)
-		_count_label.visible = visible_state
-
-## Show the count label
-func show_count() -> void:
-	if _count_label:
-		_count_label.visible = true
-
-## Hide the count label
-func hide_count() -> void:
-	if _count_label:
-		_count_label.visible = false
 
 ## Play pop-in animation
 func animate_in() -> void:

@@ -57,7 +57,7 @@ func _on_buff_ended(buff_type: int) -> void:
 func _on_shield_hit(remaining: int) -> void:
 	if _buff_items.has(6):
 		var item: BuffIndicatorItem = _buff_items[6]
-		item.set_count(remaining)
+		item.set_timer_text(str(remaining))
 		item.flash()
 
 func _create_buff_item(buff_type: int, duration: float) -> void:
@@ -65,20 +65,22 @@ func _create_buff_item(buff_type: int, duration: float) -> void:
 	
 	var item: BuffIndicatorItem = BuffIndicatorItemScene.instantiate()
 	item.buff_type = buff_type
+	
+	# Add to scene tree FIRST so _ready() runs and node references are valid
+	add_child(item)
+	_buff_items[buff_type] = item
+	
+	# Now set properties (after _ready has run)
 	item.buff_color = buff_info.color
 	item.set_name_text(buff_info.name)
-	item.set_timer_text("%.1fs" % duration)
 	
-	# Shield has counter
+	# Shield shows charge count instead of timer
 	if buff_type == 6:
 		var item_manager := get_node_or_null("/root/ItemManager")
 		if item_manager:
-			item.set_count(item_manager.shield_charges, true)
+			item.set_timer_text(str(item_manager.shield_charges))
 	else:
-		item.hide_count()
-	
-	add_child(item)
-	_buff_items[buff_type] = item
+		item.set_timer_text("%.1fs" % duration)
 	
 	item.animate_in()
 
@@ -95,10 +97,12 @@ func _update_buff_progress() -> void:
 		
 		item.progress = remaining / total
 		
-		if remaining > 0:
-			item.set_timer_text("%.1fs" % remaining)
-		else:
-			item.set_timer_text("0.0s")
+		# Shield doesn't update timer text (it's updated on hit)
+		if buff_type != 6:
+			if remaining > 0:
+				item.set_timer_text("%.1fs" % remaining)
+			else:
+				item.set_timer_text("0.0s")
 
 func reset() -> void:
 	for item in _buff_items.values():

@@ -143,7 +143,7 @@ func _apply_effect(item: ItemConfig.ItemData) -> bool:
 		ItemConfig.EffectType.SPEED_BOOST:
 			return _apply_speed_boost(item.effect_value, item.effect_duration)
 		ItemConfig.EffectType.DOUBLE_COINS, ItemConfig.EffectType.TRIPLE_COINS:
-			return _apply_coin_multiplier(item.effect_value, item.effect_duration)
+			return _apply_coin_multiplier(item.effect_type, item.effect_value, item.effect_duration)
 		ItemConfig.EffectType.SHIELD:
 			return _apply_shield(int(item.effect_value))
 		ItemConfig.EffectType.SLOW_MOTION:
@@ -163,8 +163,13 @@ func _apply_heal(percent: float) -> bool:
 		return false
 	
 	var heal_amount := int(gm.max_health * percent)
+	var actual_heal := mini(heal_amount, gm.max_health - gm.health)  # Cap at missing health
 	gm.health = mini(gm.health + heal_amount, gm.max_health)
 	gm.health_changed.emit(gm.health, gm.max_health)
+	
+	# Emit heal event for visual feedback (only if actually healed)
+	if actual_heal > 0:
+		gm.player_healed.emit(actual_heal)
 	
 	# Play heal sound
 	var audio := get_node_or_null("/root/AudioManager")
@@ -220,10 +225,7 @@ func _apply_speed_boost(multiplier: float, duration: float) -> bool:
 	
 	return true
 
-func _apply_coin_multiplier(multiplier: float, duration: float) -> bool:
-	# Use DOUBLE_COINS as the key for both double and triple
-	var effect_type := ItemConfig.EffectType.DOUBLE_COINS
-	
+func _apply_coin_multiplier(effect_type: int, multiplier: float, duration: float) -> bool:
 	# Refresh timer, don't stack (use higher multiplier if active)
 	var current_mult: float = 1.0
 	if _active_buffs.has(effect_type):

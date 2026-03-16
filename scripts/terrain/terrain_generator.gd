@@ -48,7 +48,13 @@ signal terrain_ready
 @export var random_hole_min_radius: float = 6.0
 @export var random_hole_max_radius: float = 10.0
 
-# Runtime state
+# Seed configuration
+@export_group("Generation Seed")
+## Generation seed for deterministic terrain. 0 = random seed each game.
+@export var generation_seed: int = 0
+
+# Runtime state - actual seed used (stored after initialization)
+var _active_seed: int = 0
 var noise: FastNoiseLite
 var chunks: Dictionary = {}
 var current_chunk_index: int = 0
@@ -68,11 +74,17 @@ var object_spawner: RefCounted
 func _ready() -> void:
 	add_to_group("terrain_generator")
 	
-	# Initialize noise
+	# Determine active seed - use provided seed or generate random one
+	if generation_seed == 0:
+		_active_seed = randi()
+	else:
+		_active_seed = generation_seed
+	
+	# Initialize noise with the active seed
 	noise = FastNoiseLite.new()
 	noise.noise_type = FastNoiseLite.TYPE_SIMPLEX
 	noise.frequency = noise_scale
-	noise.seed = randi()
+	noise.seed = _active_seed
 	
 	# Initialize sub-systems with configuration
 	_init_subsystems()
@@ -87,10 +99,9 @@ func _generate_initial_chunks() -> void:
 	_process_generation_queue()
 
 func _init_subsystems() -> void:
-	# Shared configuration with random seed
-	var random_seed := randi()
+	# Shared configuration using active seed for determinism
 	var config := {
-		"seed": random_seed,
+		"seed": _active_seed,
 		"noise": noise,
 		"terrain_width": terrain_width,
 		"noise_height": noise_height,
@@ -403,3 +414,7 @@ func get_ground_level_at(world_x: float, world_z: float) -> float:
 			return base_height - hole_depth
 	
 	return base_height
+
+## Get the active generation seed (useful for debugging/sharing worlds)
+func get_active_seed() -> int:
+	return _active_seed
