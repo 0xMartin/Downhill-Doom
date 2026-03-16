@@ -24,6 +24,7 @@ signal activate_pressed(quest_id: String)
 
 var quest_data: RefCounted = null
 var _quest_id: String = ""
+var viewport_container: SubViewportContainer = null
 
 
 func setup(quest: RefCounted, progress: int, is_active: bool, is_completed: bool) -> void:
@@ -123,6 +124,10 @@ func setup(quest: RefCounted, progress: int, is_active: bool, is_completed: bool
 			status_label.visible = false
 
 
+func get_viewport_container() -> SubViewportContainer:
+	return viewport_container
+
+
 func _setup_target_preview(container: Control, object_id: String) -> void:
 	# Clear existing children
 	for child in container.get_children():
@@ -133,10 +138,10 @@ func _setup_target_preview(container: Control, object_id: String) -> void:
 		return
 	
 	# Use the same approach as stats_object_card for 3D preview
-	var preview_width: float = 100.0
-	var preview_height: float = 100.0
+	var preview_width: float = container.size.x if container.size.x > 0 else 80.0
+	var preview_height: float = container.size.y if container.size.y > 0 else 80.0
 	
-	var viewport_container := SubViewportContainer.new()
+	viewport_container = SubViewportContainer.new()
 	viewport_container.custom_minimum_size = Vector2(preview_width, preview_height)
 	viewport_container.stretch = true
 	viewport_container.mouse_filter = Control.MOUSE_FILTER_PASS
@@ -211,6 +216,9 @@ func _setup_target_preview(container: Control, object_id: String) -> void:
 				holder.position.y = -aabb_center.y
 			
 			camera.position = Vector3(0, 0, distance)
+	
+	# Initial rotation for better view
+	holder.rotation_degrees.y = 30
 	
 	container.add_child(viewport_container)
 

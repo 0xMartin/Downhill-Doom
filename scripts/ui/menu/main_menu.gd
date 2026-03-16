@@ -151,6 +151,15 @@ func _process(delta: float) -> void:
 				if model_holder:
 					model_holder.rotate_y(model_rotation_speed * 0.8 * delta)
 	
+	# Rotate quest panel object previews
+	for viewport_container in quest_helper.get_object_viewports():
+		if viewport_container and is_instance_valid(viewport_container):
+			var viewport: SubViewport = viewport_container.get_node_or_null("SubViewport")
+			if viewport:
+				var model_holder: Node3D = viewport.get_node_or_null("ModelHolder")
+				if model_holder:
+					model_holder.rotate_y(model_rotation_speed * 0.8 * delta)
+	
 	# Update quest panel countdown timer
 	if quest_panel and quest_panel.visible and quest_helper:
 		quest_helper.process(delta)

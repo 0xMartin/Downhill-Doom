@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://pg62loxsdhd3"]
+[gd_scene format=3 uid="uid://pg62loxsdhd3"]
 
 [ext_resource type="Script" uid="uid://b8gwsbxjw3df" path="res://scripts/ui/item/quest_card.gd" id="1_script"]
 
@@ -81,23 +81,23 @@ corner_radius_top_right = 16
 corner_radius_bottom_right = 16
 corner_radius_bottom_left = 16
 
-[node name="QuestCard" type="PanelContainer"]
+[node name="QuestCard" type="PanelContainer" unique_id=1157276672]
 custom_minimum_size = Vector2(0, 260)
 theme_override_styles/panel = SubResource("StyleBoxFlat_card_normal")
 script = ExtResource("1_script")
 metadata/_active_style = SubResource("StyleBoxFlat_card_active")
 metadata/_normal_style = SubResource("StyleBoxFlat_card_normal")
 
-[node name="HBox" type="HBoxContainer" parent="."]
+[node name="HBox" type="HBoxContainer" parent="." unique_id=180742878]
 layout_mode = 2
 theme_override_constants/separation = 28
 
-[node name="IconContainer" type="Control" parent="HBox"]
-custom_minimum_size = Vector2(100, 100)
+[node name="IconContainer" type="Control" parent="HBox" unique_id=247377243]
+custom_minimum_size = Vector2(200, 200)
 layout_mode = 2
 size_flags_vertical = 4
 
-[node name="TypeIcon" type="TextureRect" parent="HBox/IconContainer" unique_name_in_owner=true]
+[node name="TypeIcon" type="TextureRect" parent="HBox/IconContainer" unique_id=1916857811]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -107,7 +107,7 @@ grow_vertical = 2
 expand_mode = 1
 stretch_mode = 5
 
-[node name="TargetPreview" type="Control" parent="HBox/IconContainer" unique_name_in_owner=true]
+[node name="TargetPreview" type="Control" parent="HBox/IconContainer" unique_id=1186568243]
 visible = false
 layout_mode = 1
 anchors_preset = 15
@@ -116,28 +116,28 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Content" type="VBoxContainer" parent="HBox"]
+[node name="Content" type="VBoxContainer" parent="HBox" unique_id=174232598]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 12
 
-[node name="TitleLabel" type="Label" parent="HBox/Content" unique_name_in_owner=true]
+[node name="TitleLabel" type="Label" parent="HBox/Content" unique_id=406910783]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 50
 text = "Collect 50k coins"
 
-[node name="DescriptionLabel" type="Label" parent="HBox/Content" unique_name_in_owner=true]
+[node name="DescriptionLabel" type="Label" parent="HBox/Content" unique_id=714812403]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.6, 0.65, 0.75, 1)
 theme_override_font_sizes/font_size = 42
 text = "Complete in a single run"
 
-[node name="ProgressContainer" type="HBoxContainer" parent="HBox/Content"]
+[node name="ProgressContainer" type="HBoxContainer" parent="HBox/Content" unique_id=267425976]
 layout_mode = 2
 theme_override_constants/separation = 20
 
-[node name="ProgressBar" type="ProgressBar" parent="HBox/Content/ProgressContainer" unique_name_in_owner=true]
+[node name="ProgressBar" type="ProgressBar" parent="HBox/Content/ProgressContainer" unique_id=1200792952]
 custom_minimum_size = Vector2(300, 32)
 layout_mode = 2
 size_flags_horizontal = 3
@@ -146,43 +146,43 @@ theme_override_styles/fill = SubResource("StyleBoxFlat_progress_fill")
 value = 35.0
 show_percentage = false
 
-[node name="ProgressLabel" type="Label" parent="HBox/Content/ProgressContainer" unique_name_in_owner=true]
+[node name="ProgressLabel" type="Label" parent="HBox/Content/ProgressContainer" unique_id=1727123387]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.6, 0.65, 0.75, 1)
 theme_override_font_sizes/font_size = 42
 text = "35k / 100k"
 
-[node name="RewardContainer" type="HBoxContainer" parent="HBox/Content"]
+[node name="RewardContainer" type="HBoxContainer" parent="HBox/Content" unique_id=515312433]
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="RewardLabel" type="Label" parent="HBox/Content/RewardContainer"]
+[node name="RewardLabel" type="Label" parent="HBox/Content/RewardContainer" unique_id=752607047]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.5, 0.55, 0.65, 1)
 theme_override_font_sizes/font_size = 42
 text = "Reward:"
 
-[node name="RewardIcon" type="TextureRect" parent="HBox/Content/RewardContainer" unique_name_in_owner=true]
+[node name="RewardIcon" type="TextureRect" parent="HBox/Content/RewardContainer" unique_id=2011701708]
 custom_minimum_size = Vector2(44, 44)
 layout_mode = 2
 size_flags_vertical = 4
 expand_mode = 1
 stretch_mode = 5
 
-[node name="RewardValueLabel" type="Label" parent="HBox/Content/RewardContainer" unique_name_in_owner=true]
+[node name="RewardValueLabel" type="Label" parent="HBox/Content/RewardContainer" unique_id=1916248146]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.82, 0.25, 1)
 theme_override_font_sizes/font_size = 44
 text = "50k"
 
-[node name="RightPanel" type="VBoxContainer" parent="HBox"]
+[node name="RightPanel" type="VBoxContainer" parent="HBox" unique_id=734413581]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 size_flags_vertical = 4
 theme_override_constants/separation = 16
 alignment = 1
 
-[node name="ActivateButton" type="Button" parent="HBox/RightPanel" unique_name_in_owner=true]
+[node name="ActivateButton" type="Button" parent="HBox/RightPanel" unique_id=1458561247]
 layout_mode = 2
 focus_mode = 0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
@@ -193,7 +193,7 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_button_hover")
 text = "Activate"
 
-[node name="StatusLabel" type="Label" parent="HBox/RightPanel" unique_name_in_owner=true]
+[node name="StatusLabel" type="Label" parent="HBox/RightPanel" unique_id=1056890486]
 visible = false
 layout_mode = 2
 theme_override_colors/font_color = Color(0.25, 0.65, 0.96, 1)

@@ -20,6 +20,7 @@ const COLOR_BORDER := Color(0.25, 0.32, 0.45, 0.8)
 var quest_panel: Control
 var content_instance: Node
 var quest_manager: Node
+var object_viewports: Array[SubViewportContainer] = []
 
 # UI References
 var countdown_label: Label
@@ -132,6 +133,10 @@ func get_back_button() -> Button:
 	return null
 
 
+func get_object_viewports() -> Array[SubViewportContainer]:
+	return object_viewports
+
+
 func process(delta: float) -> void:
 	_update_timer += delta
 	if _update_timer >= UPDATE_INTERVAL:
@@ -167,6 +172,9 @@ func _populate_quest_cards() -> void:
 		quest_list.remove_child(child)
 		child.queue_free()
 	
+	# Clear viewport tracking
+	object_viewports.clear()
+	
 	# Get daily quests
 	var quests: Array = quest_manager.get_daily_quests()
 	print("QuestPanelHelper: Got %d quests from quest_manager" % quests.size())
@@ -185,6 +193,11 @@ func _populate_quest_cards() -> void:
 		
 		card.setup(quest, progress, is_active, is_completed)
 		card.activate_pressed.connect(_on_quest_activate_pressed)
+		
+		# Track viewport container for rotation
+		var vc: SubViewportContainer = card.get_viewport_container()
+		if vc:
+			object_viewports.append(vc)
 	
 	print("QuestPanelHelper: Added %d quest cards to list" % quest_list.get_child_count())
 
