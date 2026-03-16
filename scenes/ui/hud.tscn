@@ -650,7 +650,7 @@ grow_vertical = 2
 mouse_filter = 2
 color = Color(1, 0, 0, 0.4)
 
-[node name="GreenFlash" type="ColorRect" parent="."]
+[node name="GreenFlash" type="ColorRect" parent="." unique_id=867640764]
 visible = false
 z_index = 10
 anchors_preset = 15
@@ -1058,7 +1058,7 @@ anchors_preset = -1
 anchor_left = 0.01
 anchor_top = 0.15
 anchor_right = 0.5
-anchor_bottom = 0.55
+anchor_bottom = 0.45
 theme_override_constants/separation = 16
 script = ExtResource("18_buff_indicator")
 
