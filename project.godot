@@ -27,6 +27,7 @@ SecureStorage="*res://scripts/managers/secure_storage.gd"
 ShopManager="*res://scripts/managers/shop_manager.gd"
 ItemManager="*res://scripts/managers/item_manager.gd"
 InventoryManager="*res://scripts/managers/inventory_manager.gd"
+QuestManager="*res://scripts/managers/quest_manager.gd"
 
 [display]
 

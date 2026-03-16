@@ -219,6 +219,9 @@ func _get_default_data() -> Dictionary:
 		
 		# Kill statistics (object_id -> count)
 		"destroyed_objects": {},
+		
+		# Daily quest data
+		"quest_data": {},
 	}
 
 
@@ -424,6 +427,18 @@ func add_destroyed_objects(destroyed: Dictionary) -> void:
 		current[object_id] = current.get(object_id, 0) + destroyed[object_id]
 	_data["destroyed_objects"] = current
 	save_data()
+
+
+# ========== PUBLIC API - QUESTS ==========
+
+func get_quest_data() -> Dictionary:
+	return _data.get("quest_data", {})
+
+
+func set_quest_data(data: Dictionary) -> void:
+	_data["quest_data"] = data
+	save_data()
+	# Don't emit data_changed here to avoid UI refresh loops
 
 
 # ========== DEBUG / MIGRATION ==========

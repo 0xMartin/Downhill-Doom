@@ -9,6 +9,7 @@
 [ext_resource type="Texture2D" uid="uid://cpumyhj7tioid" path="res://assets/svg/quit.svg" id="10_quit"]
 [ext_resource type="Texture2D" uid="uid://bsrejrwemnmkg" path="res://assets/svg/shop.svg" id="11_shop"]
 [ext_resource type="Texture2D" uid="uid://jepsdf0och2h" path="res://assets/svg/coin.svg" id="12_coin"]
+[ext_resource type="Texture2D" uid="uid://quest_icon" path="res://assets/svg/quest.svg" id="13_quest"]
 
 [sub_resource type="Gradient" id="Gradient_bg"]
 offsets = PackedFloat32Array(0, 0.5, 1)
@@ -111,6 +112,22 @@ border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
 border_color = Color(0.35, 0.5, 0.7, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_quest_button"]
+bg_color = Color(0.15, 0.25, 0.4, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.25, 0.65, 0.96, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_quest_button_hover"]
+bg_color = Color(0.2, 0.35, 0.55, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.35, 0.75, 1, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_balance_card"]
 content_margin_left = 16.0
@@ -366,6 +383,41 @@ theme_override_font_sizes/font_size = 32
 text = "STATS"
 horizontal_alignment = 1
 
+[node name="QuestButton" type="Button" parent="MainContent/ButtonGrid" unique_id=123456001]
+custom_minimum_size = Vector2(200, 200)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_quest_button")
+theme_override_styles/hover = SubResource("StyleBoxFlat_quest_button_hover")
+icon_alignment = 1
+expand_icon = true
+
+[node name="VBox" type="VBoxContainer" parent="MainContent/ButtonGrid/QuestButton" unique_id=123456002]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 5
+alignment = 1
+
+[node name="Icon" type="TextureRect" parent="MainContent/ButtonGrid/QuestButton/VBox" unique_id=123456003]
+custom_minimum_size = Vector2(96, 96)
+layout_mode = 2
+size_flags_horizontal = 4
+texture = ExtResource("13_quest")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Label" type="Label" parent="MainContent/ButtonGrid/QuestButton/VBox" unique_id=123456004]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 32
+text = "QUESTS"
+horizontal_alignment = 1
+
 [node name="SettingsButton" type="Button" parent="MainContent/ButtonGrid" unique_id=455693802]
 custom_minimum_size = Vector2(200, 200)
 layout_mode = 2
@@ -555,9 +607,29 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 0.9)
 
+[node name="QuestPanel" type="Control" parent="." unique_id=123456789]
+visible = false
+z_index = 100
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Background" type="ColorRect" parent="QuestPanel" unique_id=123456790]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.92)
+
 [connection signal="pressed" from="MainContent/ButtonGrid/PlayButton" to="." method="_on_play_button_pressed"]
 [connection signal="pressed" from="MainContent/ButtonGrid/ShopButton" to="." method="_on_shop_button_pressed"]
 [connection signal="pressed" from="MainContent/ButtonGrid/StatsButton" to="." method="_on_stats_button_pressed"]
+[connection signal="pressed" from="MainContent/ButtonGrid/QuestButton" to="." method="_on_quest_button_pressed"]
 [connection signal="pressed" from="MainContent/ButtonGrid/SettingsButton" to="." method="_on_settings_button_pressed"]
 [connection signal="pressed" from="MainContent/ButtonGrid/QuitButton" to="." method="_on_quit_button_pressed"]
 [connection signal="meta_clicked" from="AuthorLabel" to="." method="_on_author_link_clicked"]

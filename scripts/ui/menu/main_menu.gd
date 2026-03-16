@@ -22,12 +22,14 @@ const COLOR_BORDER := Color(0.25, 0.32, 0.45, 0.8)
 @onready var settings_panel: Control = $SettingsPanel
 @onready var stats_panel: Control = $StatsPanel
 @onready var shop_panel: Control = $ShopPanel
+@onready var quest_panel: Control = $QuestPanel
 @onready var main_content: VBoxContainer = $MainContent
 @onready var player_model_container: Node3D = $PlayerContainer/PlayerViewport/SubViewport/PlayerModel
 @onready var button_grid: GridContainer = $MainContent/ButtonGrid
 @onready var play_button: Button = $MainContent/ButtonGrid/PlayButton
 @onready var stats_button: Button = $MainContent/ButtonGrid/StatsButton
 @onready var shop_button: Button = $MainContent/ButtonGrid/ShopButton
+@onready var quest_button: Button = $MainContent/ButtonGrid/QuestButton
 @onready var settings_button: Button = $MainContent/ButtonGrid/SettingsButton
 @onready var quit_button: Button = $MainContent/ButtonGrid/QuitButton
 @onready var title_label: Label = $MainContent/TitleContainer/Title
@@ -44,6 +46,7 @@ var model_rotation_speed := 0.5
 var settings_helper: RefCounted
 var stats_helper: RefCounted
 var shop_helper: RefCounted
+var quest_helper: RefCounted
 
 # Animation tweens
 var button_tweens: Dictionary = {}
@@ -74,6 +77,7 @@ func _ready() -> void:
 	settings_helper = SettingsPanelHelper.new(settings_panel, audio_manager)
 	stats_helper = StatsPanelHelper.new(stats_panel, stats)
 	shop_helper = ShopPanelHelper.new(shop_panel, shop_manager, audio_manager, stats)
+	quest_helper = QuestPanelHelper.new(quest_panel)
 	
 	# Connect shop helper signals
 	shop_helper.stats_reload_needed.connect(_on_stats_reload_needed)
@@ -84,6 +88,7 @@ func _ready() -> void:
 	settings_helper.rebuild()
 	stats_helper.rebuild()
 	shop_helper.rebuild()
+	quest_helper.rebuild()
 	
 	# Connect panel back buttons
 	_connect_panel_buttons()
@@ -126,6 +131,11 @@ func _connect_panel_buttons() -> void:
 	var shop_back: Button = shop_helper.get_back_button()
 	if shop_back and not shop_back.pressed.is_connected(_on_shop_back_pressed):
 		shop_back.pressed.connect(_on_shop_back_pressed)
+	
+	# Quest panel
+	var quest_back: Button = quest_helper.get_back_button()
+	if quest_back and not quest_back.pressed.is_connected(_on_quest_back_pressed):
+		quest_back.pressed.connect(_on_quest_back_pressed)
 
 
 func _process(delta: float) -> void:
@@ -140,6 +150,10 @@ func _process(delta: float) -> void:
 				var model_holder: Node3D = viewport.get_node_or_null("ModelHolder")
 				if model_holder:
 					model_holder.rotate_y(model_rotation_speed * 0.8 * delta)
+	
+	# Update quest panel countdown timer
+	if quest_panel and quest_panel.visible and quest_helper:
+		quest_helper.process(delta)
 
 
 # ========== PLAYER MODEL ==========
@@ -424,6 +438,27 @@ func _connect_shop_buttons() -> void:
 func _on_shop_back_pressed() -> void:
 	audio_manager.play_button_click()
 	_animate_panel_out(shop_panel)
+
+
+func _on_quest_button_pressed() -> void:
+	audio_manager.play_button_click()
+	quest_helper.rebuild()
+	# Defer button connection to ensure rebuild is complete
+	call_deferred("_connect_quest_buttons")
+	_animate_panel_in(quest_panel)
+
+
+func _connect_quest_buttons() -> void:
+	var quest_back: Button = quest_helper.get_back_button()
+	print("MainMenu: quest_back button = %s" % [quest_back != null])
+	if quest_back and not quest_back.pressed.is_connected(_on_quest_back_pressed):
+		quest_back.pressed.connect(_on_quest_back_pressed)
+		print("MainMenu: Connected quest back button")
+
+
+func _on_quest_back_pressed() -> void:
+	audio_manager.play_button_click()
+	_animate_panel_out(quest_panel)
 
 
 func _on_quit_button_pressed() -> void:

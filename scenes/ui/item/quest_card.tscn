@@ -1,0 +1,202 @@
+[gd_scene load_steps=9 format=3 uid="uid://pg62loxsdhd3"]
+
+[ext_resource type="Script" uid="uid://b8gwsbxjw3df" path="res://scripts/ui/item/quest_card.gd" id="1_script"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card_normal"]
+content_margin_left = 32.0
+content_margin_top = 28.0
+content_margin_right = 32.0
+content_margin_bottom = 28.0
+bg_color = Color(0.06, 0.08, 0.12, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.25, 0.32, 0.45, 0.8)
+corner_radius_top_left = 32
+corner_radius_top_right = 32
+corner_radius_bottom_right = 32
+corner_radius_bottom_left = 32
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card_active"]
+content_margin_left = 32.0
+content_margin_top = 28.0
+content_margin_right = 32.0
+content_margin_bottom = 28.0
+bg_color = Color(0.08, 0.12, 0.18, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.25, 0.65, 0.96, 1)
+corner_radius_top_left = 32
+corner_radius_top_right = 32
+corner_radius_bottom_right = 32
+corner_radius_bottom_left = 32
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_progress_bg"]
+bg_color = Color(0.12, 0.15, 0.2, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_progress_fill"]
+bg_color = Color(0.25, 0.65, 0.96, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_normal"]
+content_margin_left = 24.0
+content_margin_top = 16.0
+content_margin_right = 24.0
+content_margin_bottom = 16.0
+bg_color = Color(0.2, 0.52, 0.77, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_pressed"]
+content_margin_left = 24.0
+content_margin_top = 16.0
+content_margin_right = 24.0
+content_margin_bottom = 16.0
+bg_color = Color(0.15, 0.4, 0.6, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_hover"]
+content_margin_left = 24.0
+content_margin_top = 16.0
+content_margin_right = 24.0
+content_margin_bottom = 16.0
+bg_color = Color(0.25, 0.58, 0.85, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+
+[node name="QuestCard" type="PanelContainer"]
+custom_minimum_size = Vector2(0, 260)
+theme_override_styles/panel = SubResource("StyleBoxFlat_card_normal")
+script = ExtResource("1_script")
+metadata/_active_style = SubResource("StyleBoxFlat_card_active")
+metadata/_normal_style = SubResource("StyleBoxFlat_card_normal")
+
+[node name="HBox" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 28
+
+[node name="IconContainer" type="Control" parent="HBox"]
+custom_minimum_size = Vector2(100, 100)
+layout_mode = 2
+size_flags_vertical = 4
+
+[node name="TypeIcon" type="TextureRect" parent="HBox/IconContainer" unique_name_in_owner=true]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="TargetPreview" type="Control" parent="HBox/IconContainer" unique_name_in_owner=true]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Content" type="VBoxContainer" parent="HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="TitleLabel" type="Label" parent="HBox/Content" unique_name_in_owner=true]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 50
+text = "Collect 50k coins"
+
+[node name="DescriptionLabel" type="Label" parent="HBox/Content" unique_name_in_owner=true]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.65, 0.75, 1)
+theme_override_font_sizes/font_size = 42
+text = "Complete in a single run"
+
+[node name="ProgressContainer" type="HBoxContainer" parent="HBox/Content"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="ProgressBar" type="ProgressBar" parent="HBox/Content/ProgressContainer" unique_name_in_owner=true]
+custom_minimum_size = Vector2(300, 32)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/background = SubResource("StyleBoxFlat_progress_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_progress_fill")
+value = 35.0
+show_percentage = false
+
+[node name="ProgressLabel" type="Label" parent="HBox/Content/ProgressContainer" unique_name_in_owner=true]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.65, 0.75, 1)
+theme_override_font_sizes/font_size = 42
+text = "35k / 100k"
+
+[node name="RewardContainer" type="HBoxContainer" parent="HBox/Content"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="RewardLabel" type="Label" parent="HBox/Content/RewardContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 0.55, 0.65, 1)
+theme_override_font_sizes/font_size = 42
+text = "Reward:"
+
+[node name="RewardIcon" type="TextureRect" parent="HBox/Content/RewardContainer" unique_name_in_owner=true]
+custom_minimum_size = Vector2(44, 44)
+layout_mode = 2
+size_flags_vertical = 4
+expand_mode = 1
+stretch_mode = 5
+
+[node name="RewardValueLabel" type="Label" parent="HBox/Content/RewardContainer" unique_name_in_owner=true]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.82, 0.25, 1)
+theme_override_font_sizes/font_size = 44
+text = "50k"
+
+[node name="RightPanel" type="VBoxContainer" parent="HBox"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="ActivateButton" type="Button" parent="HBox/RightPanel" unique_name_in_owner=true]
+layout_mode = 2
+focus_mode = 0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 42
+theme_override_styles/normal = SubResource("StyleBoxFlat_button_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_button_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
+theme_override_styles/focus = SubResource("StyleBoxFlat_button_hover")
+text = "Activate"
+
+[node name="StatusLabel" type="Label" parent="HBox/RightPanel" unique_name_in_owner=true]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.25, 0.65, 0.96, 1)
+theme_override_font_sizes/font_size = 46
+text = "ACTIVE"
+horizontal_alignment = 1

@@ -1,0 +1,195 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Texture2D" uid="uid://dwu4kcvs6pyi" path="res://assets/svg/quest.svg" id="1_quest"]
+[ext_resource type="Texture2D" uid="uid://jknnhd7en14a" path="res://assets/svg/back_arrow.svg" id="2_back"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_header"]
+content_margin_left = 0.0
+content_margin_top = 0.0
+content_margin_right = 0.0
+content_margin_bottom = 0.0
+bg_color = Color(0.05, 0.07, 0.1, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_white_bar"]
+bg_color = Color(1, 1, 1, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_back_button_normal"]
+content_margin_left = 24.0
+content_margin_top = 12.0
+content_margin_right = 24.0
+content_margin_bottom = 12.0
+bg_color = Color(1, 1, 1, 0.1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_back_button_pressed"]
+content_margin_left = 24.0
+content_margin_top = 12.0
+content_margin_right = 24.0
+content_margin_bottom = 12.0
+bg_color = Color(0.2, 0.52, 0.77, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_back_button_hover"]
+content_margin_left = 24.0
+content_margin_top = 12.0
+content_margin_right = 24.0
+content_margin_bottom = 12.0
+bg_color = Color(1, 1, 1, 0.2)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_timer_card"]
+content_margin_left = 32.0
+content_margin_top = 20.0
+content_margin_right = 32.0
+content_margin_bottom = 20.0
+bg_color = Color(0.06, 0.08, 0.12, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.25, 0.65, 0.96, 0.6)
+corner_radius_top_left = 24
+corner_radius_top_right = 24
+corner_radius_bottom_right = 24
+corner_radius_bottom_left = 24
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_quest_card"]
+content_margin_left = 32.0
+content_margin_top = 24.0
+content_margin_right = 32.0
+content_margin_bottom = 24.0
+bg_color = Color(0.06, 0.08, 0.12, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.25, 0.32, 0.45, 0.8)
+corner_radius_top_left = 32
+corner_radius_top_right = 32
+corner_radius_bottom_right = 32
+corner_radius_bottom_left = 32
+
+[node name="QuestPanelContent" type="VBoxContainer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 0
+
+[node name="Header" type="PanelContainer" parent="."]
+custom_minimum_size = Vector2(0, 200)
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_header")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Header"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 24
+alignment = 1
+
+[node name="Panel" type="Panel" parent="Header/HBoxContainer"]
+custom_minimum_size = Vector2(30, 0)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_white_bar")
+
+[node name="empty1" type="Control" parent="Header/HBoxContainer"]
+custom_minimum_size = Vector2(20, 0)
+layout_mode = 2
+
+[node name="HeaderIcon" type="TextureRect" parent="Header/HBoxContainer"]
+custom_minimum_size = Vector2(85, 85)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("1_quest")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="HeaderTitle" type="Label" parent="Header/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 70
+text = "DAILY QUESTS"
+
+[node name="Spacer" type="Control" parent="Header/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="BackButton" type="Button" parent="Header/HBoxContainer" unique_name_in_owner=true]
+custom_minimum_size = Vector2(150, 110)
+layout_mode = 2
+size_flags_stretch_ratio = 0.4
+focus_mode = 0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 40
+theme_override_styles/normal = SubResource("StyleBoxFlat_back_button_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_back_button_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_back_button_hover")
+theme_override_styles/focus = SubResource("StyleBoxFlat_back_button_hover")
+icon = ExtResource("2_back")
+flat = true
+alignment = 2
+icon_alignment = 1
+expand_icon = true
+
+[node name="empty2" type="Control" parent="Header/HBoxContainer"]
+custom_minimum_size = Vector2(20, 0)
+layout_mode = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="MarginContainer" type="MarginContainer" parent="ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/margin_left = 50
+theme_override_constants/margin_top = 40
+theme_override_constants/margin_right = 50
+theme_override_constants/margin_bottom = 40
+
+[node name="ContentVBox" type="VBoxContainer" parent="ScrollContainer/MarginContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 32
+
+[node name="TimerCard" type="PanelContainer" parent="ScrollContainer/MarginContainer/ContentVBox"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_timer_card")
+
+[node name="HBox" type="HBoxContainer" parent="ScrollContainer/MarginContainer/ContentVBox/TimerCard"]
+layout_mode = 2
+theme_override_constants/separation = 24
+alignment = 1
+
+[node name="ResetLabel" type="Label" parent="ScrollContainer/MarginContainer/ContentVBox/TimerCard/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
+theme_override_font_sizes/font_size = 50
+text = "Quests reset in:"
+
+[node name="CountdownLabel" type="Label" parent="ScrollContainer/MarginContainer/ContentVBox/TimerCard/HBox" unique_name_in_owner=true]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.25, 0.65, 0.96, 1)
+theme_override_font_sizes/font_size = 56
+text = "12:34:56"
+
+[node name="QuestList" type="VBoxContainer" parent="ScrollContainer/MarginContainer/ContentVBox" unique_name_in_owner=true]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 24
