@@ -611,14 +611,11 @@ text = "0 m"
 vertical_alignment = 1
 
 [node name="TimerLabel" type="Label" parent="." unique_id=1304192667]
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -87.0
-offset_top = 162.0
-offset_right = 88.0
-offset_bottom = 223.0
-grow_horizontal = 2
+anchors_preset = -1
+anchor_top = 0.071
+anchor_right = 1.0
+anchor_bottom = 0.1
+offset_right = -20.0
 theme_override_colors/font_color = Color(1, 1, 1, 0.9)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.7)
 theme_override_constants/shadow_offset_x = 1
@@ -626,28 +623,16 @@ theme_override_constants/shadow_offset_y = 2
 theme_override_constants/outline_size = 20
 theme_override_font_sizes/font_size = 44
 text = "00:00:00"
-horizontal_alignment = 1
+horizontal_alignment = 2
 
-[node name="ComboPanel" type="Control" parent="." unique_id=1847293650]
-layout_mode = 3
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -100.0
-offset_top = 252.0
-offset_right = 100.0
-offset_bottom = 302.0
-grow_horizontal = 2
-pivot_offset = Vector2(100, 25)
-mouse_filter = 2
-
-[node name="ComboLabel" type="Label" parent="ComboPanel" unique_id=1847293651]
-layout_mode = 1
-anchors_preset = 15
+[node name="ComboLabel" type="Label" parent="." unique_id=1847293651]
+visible = false
+anchors_preset = -1
+anchor_top = 0.105
 anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+anchor_bottom = 0.15
+offset_right = -20.0
+pivot_offset = Vector2(100, 25)
 theme_override_colors/font_color = Color(0.90188515, 0.83728486, 2.695322e-06, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
 theme_override_colors/font_outline_color = Color(0.3095834, 0.05095607, 1.2032688e-08, 1)
@@ -656,7 +641,7 @@ theme_override_constants/shadow_offset_y = 2
 theme_override_constants/outline_size = 26
 theme_override_font_sizes/font_size = 66
 text = "COMBO x2"
-horizontal_alignment = 1
+horizontal_alignment = 2
 vertical_alignment = 1
 
 [node name="PopupContainer" type="Control" parent="." unique_id=637929400]
@@ -1085,29 +1070,29 @@ stretch_mode = 5
 [node name="QuestPanel" type="PanelContainer" parent="." unique_id=592979381]
 anchors_preset = -1
 anchor_left = 0.01
-anchor_top = 0.15
-anchor_right = 0.4
-anchor_bottom = 0.25
-offset_bottom = 14.199951
+anchor_top = 0.071
+anchor_right = 0.47
+anchor_bottom = 0.183
 theme_override_styles/panel = SubResource("StyleBoxFlat_quest_panel")
 
 [node name="Content" type="VBoxContainer" parent="QuestPanel" unique_id=1757369017]
 layout_mode = 2
-theme_override_constants/separation = 6
+theme_override_constants/separation = 24
 alignment = 1
 
 [node name="QuestDescription" type="Label" parent="QuestPanel/Content" unique_id=592979382]
 custom_minimum_size = Vector2(180, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 50
+theme_override_font_sizes/font_size = 45
 text = "Collect 1,000 coins"
 autowrap_mode = 2
 
 [node name="QuestProgressBar" type="ProgressBar" parent="QuestPanel/Content" unique_id=592979383]
-custom_minimum_size = Vector2(200, 32)
+custom_minimum_size = Vector2(200, 64)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 40
 theme_override_styles/background = SubResource("StyleBoxFlat_quest_bar_bg")
 theme_override_styles/fill = SubResource("StyleBoxFlat_quest_bar_fill")
 value = 50.0
@@ -1132,9 +1117,9 @@ vertical_alignment = 1
 [node name="BuffIndicator" type="VBoxContainer" parent="." unique_id=592979380]
 anchors_preset = -1
 anchor_left = 0.01
-anchor_top = 0.27
+anchor_top = 0.195
 anchor_right = 0.5
-anchor_bottom = 0.45
+anchor_bottom = 0.429
 theme_override_constants/separation = 16
 script = ExtResource("18_buff_indicator")
 

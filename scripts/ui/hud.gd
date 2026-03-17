@@ -64,8 +64,7 @@ var joystick_touch_index: int = -1  # Track which finger is on joystick
 var jump_button_pressed: bool = false  # Track jump button state
 
 # Combo UI
-@onready var combo_panel: Control = $ComboPanel
-@onready var combo_label: Label = $ComboPanel/ComboLabel
+@onready var combo_label: Label = $ComboLabel
 var combo_tween: Tween
 var current_combo: int = 0
 var last_destroyed_id: String = ""
@@ -76,6 +75,7 @@ var skip_combo_popup: int = 0  # Amount to skip from regular popup (for combo bo
 @onready var quest_description: Label = $QuestPanel/Content/QuestDescription
 @onready var quest_progress_bar: ProgressBar = $QuestPanel/Content/QuestProgressBar
 @onready var quest_progress_label: Label = $QuestPanel/Content/QuestProgressBar/QuestProgressLabel
+@onready var buff_indicator: VBoxContainer = $BuffIndicator
 var quest_manager: Node
 var _current_quest_id: String = ""
 const COLOR_QUEST_PROGRESS := Color(0.25, 0.65, 0.96, 1)
@@ -632,10 +632,20 @@ func _apply_safe_area_offset() -> void:
 		timer_label.offset_top += safe_area_offset
 		timer_label.offset_bottom += safe_area_offset
 	
-	# Move ComboPanel together with TimerLabel
-	if combo_panel:
-		combo_panel.offset_top += safe_area_offset
-		combo_panel.offset_bottom += safe_area_offset
+	# Move ComboLabel together with TimerLabel
+	if combo_label:
+		combo_label.offset_top += safe_area_offset
+		combo_label.offset_bottom += safe_area_offset
+	
+	# Move QuestPanel together with TopBar
+	if quest_panel:
+		quest_panel.offset_top += safe_area_offset
+		quest_panel.offset_bottom += safe_area_offset
+	
+	# Move BuffIndicator together with QuestPanel
+	if buff_indicator:
+		buff_indicator.offset_top += safe_area_offset
+		buff_indicator.offset_bottom += safe_area_offset
 
 # ========== Combo UI ==========
 
@@ -660,27 +670,27 @@ func _on_object_destroyed(object_id: String, _object_name: String, base_coins: i
 		_show_combo(combo_multiplier)
 
 func _show_combo(combo: int) -> void:
-	if not combo_panel or not combo_label:
+	if not combo_label:
 		return
 	
 	combo_label.text = "COMBO x%d" % combo
-	combo_panel.visible = true
+	combo_label.visible = true
 	
 	# Kill existing tween
 	if combo_tween:
 		combo_tween.kill()
 	
 	# Animate: pop in, stay, fade out
-	combo_panel.scale = Vector2(0.5, 0.5)
-	combo_panel.modulate = Color(1.5, 1.2, 0.8, 1.0)  # Bright flash
+	combo_label.scale = Vector2(0.5, 0.5)
+	combo_label.modulate = Color(1.5, 1.2, 0.8, 1.0)  # Bright flash
 	
 	combo_tween = create_tween()
-	combo_tween.tween_property(combo_panel, "scale", Vector2(1.2, 1.2), 0.1).set_ease(Tween.EASE_OUT)
-	combo_tween.tween_property(combo_panel, "scale", Vector2.ONE, 0.1).set_ease(Tween.EASE_IN_OUT)
-	combo_tween.tween_property(combo_panel, "modulate", Color.WHITE, 0.2)
+	combo_tween.tween_property(combo_label, "scale", Vector2(1.2, 1.2), 0.1).set_ease(Tween.EASE_OUT)
+	combo_tween.tween_property(combo_label, "scale", Vector2.ONE, 0.1).set_ease(Tween.EASE_IN_OUT)
+	combo_tween.tween_property(combo_label, "modulate", Color.WHITE, 0.2)
 	combo_tween.tween_interval(1.5)  # Stay visible
-	combo_tween.tween_property(combo_panel, "modulate:a", 0.0, 0.3)
-	combo_tween.tween_callback(func(): combo_panel.visible = false; combo_panel.modulate.a = 1.0)
+	combo_tween.tween_property(combo_label, "modulate:a", 0.0, 0.3)
+	combo_tween.tween_callback(func(): combo_label.visible = false; combo_label.modulate.a = 1.0)
 
 # ========== Supercharge UI ==========
 
@@ -738,8 +748,8 @@ func _on_game_started() -> void:
 	# Reset combo
 	current_combo = 0
 	last_destroyed_id = ""
-	if combo_panel:
-		combo_panel.visible = false
+	if combo_label:
+		combo_label.visible = false
 	
 	# Reset supercharge bar animation
 	supercharge_display_value = 0.0
