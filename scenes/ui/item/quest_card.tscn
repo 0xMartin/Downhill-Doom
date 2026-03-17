@@ -133,12 +133,8 @@ theme_override_colors/font_color = Color(0.6, 0.65, 0.75, 1)
 theme_override_font_sizes/font_size = 38
 text = "Complete in a single run"
 
-[node name="ProgressContainer" type="HBoxContainer" parent="HBox/Content" unique_id=267425976]
-layout_mode = 2
-theme_override_constants/separation = 16
-
-[node name="ProgressBar" type="ProgressBar" parent="HBox/Content/ProgressContainer" unique_id=1200792952]
-custom_minimum_size = Vector2(250, 40)
+[node name="ProgressBar" type="ProgressBar" parent="HBox/Content" unique_id=1200792952]
+custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
@@ -147,11 +143,21 @@ theme_override_styles/fill = SubResource("StyleBoxFlat_progress_fill")
 value = 35.0
 show_percentage = false
 
-[node name="ProgressLabel" type="Label" parent="HBox/Content/ProgressContainer" unique_id=1727123387]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.6, 0.65, 0.75, 1)
+[node name="ProgressLabel" type="Label" parent="HBox/Content/ProgressBar" unique_id=1727123387]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.5)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
 theme_override_font_sizes/font_size = 38
 text = "35k / 100k"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="BottomRow" type="HBoxContainer" parent="HBox/Content" unique_id=1102854421]
 layout_mode = 2
