@@ -1106,7 +1106,7 @@ size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 40
 theme_override_styles/background = SubResource("StyleBoxFlat_quest_bar_bg")
 theme_override_styles/fill = SubResource("StyleBoxFlat_quest_bar_fill")
-value = 50.0
+value = 5.0
 show_percentage = false
 
 [node name="QuestProgressLabel" type="Label" parent="QuestPanel/Content/QuestProgressBar" unique_id=592979384]

@@ -1,17 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96">
-  <!-- Simple white checklist/quest icon -->
-  <!-- Main scroll body -->
-  <rect x="20" y="14" width="56" height="68" rx="6" fill="none" stroke="#fff" stroke-width="4"/>
-  <!-- Top curl line -->
-  <path d="M20 20 Q48 8 76 20" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
-  <!-- Checkbox 1 - checked -->
-  <rect x="28" y="30" width="14" height="14" rx="3" fill="none" stroke="#fff" stroke-width="3"/>
-  <polyline points="31,37 35,41 43,31" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-  <rect x="48" y="34" width="22" height="5" rx="2" fill="#fff"/>
-  <!-- Checkbox 2 - empty -->
-  <rect x="28" y="50" width="14" height="14" rx="3" fill="none" stroke="#fff" stroke-width="3"/>
-  <rect x="48" y="54" width="18" height="5" rx="2" fill="#fff" opacity="0.7"/>
-  <!-- Checkbox 3 - empty -->
-  <rect x="28" y="70" width="14" height="14" rx="3" fill="none" stroke="#fff" stroke-width="3"/>
-  <rect x="48" y="74" width="14" height="5" rx="2" fill="#fff" opacity="0.5"/>
-</svg>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg width="100%" height="100%" viewBox="0 0 400 400" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;"><path d="M354.412,37.5l0,325c0,13.798 -11.202,25 -25,25l-258.824,0c-13.798,0 -25,-11.202 -25,-25l0,-325c0,-13.798 11.202,-25 25,-25l258.824,0c13.798,0 25,11.202 25,25Z" style="fill:none;stroke:#fff;stroke-width:22.06px;"/><path d="M161.397,63.603l0,52.206c0,6.899 -5.601,12.5 -12.5,12.5l-52.206,0c-6.899,0 -12.5,-5.601 -12.5,-12.5l0,-52.206c0,-6.899 5.601,-12.5 12.5,-12.5l52.206,0c6.899,0 12.5,5.601 12.5,12.5Z" style="fill:none;stroke:#fff;stroke-width:16.54px;"/><path d="M100.735,89.706l22.059,22.059l44.118,-55.147" style="fill:none;fill-rule:nonzero;stroke:#fff;stroke-width:16.54px;stroke-linecap:round;stroke-linejoin:round;"/><path d="M315.809,81.495l0,10.907c0,4.599 -3.734,8.333 -8.333,8.333l-104.657,0c-4.599,0 -8.333,-3.734 -8.333,-8.333l0,-10.907c0,-4.599 3.734,-8.333 8.333,-8.333l104.657,0c4.599,0 8.333,3.734 8.333,8.333Z" style="fill:#fff;"/><path d="M161.397,173.897l0,52.206c0,6.899 -5.601,12.5 -12.5,12.5l-52.206,0c-6.899,0 -12.5,-5.601 -12.5,-12.5l0,-52.206c0,-6.899 5.601,-12.5 12.5,-12.5l52.206,0c6.899,0 12.5,5.601 12.5,12.5Z" style="fill:none;stroke:#fff;stroke-width:16.54px;"/><path d="M293.75,191.789l0,10.907c0,4.599 -3.734,8.333 -8.333,8.333l-82.598,0c-4.599,0 -8.333,-3.734 -8.333,-8.333l0,-10.907c0,-4.599 3.734,-8.333 8.333,-8.333l82.598,0c4.599,0 8.333,3.734 8.333,8.333Z" style="fill:#fff;fill-opacity:0.7;"/><path d="M161.397,284.191l0,52.206c0,6.899 -5.601,12.5 -12.5,12.5l-52.206,0c-6.899,0 -12.5,-5.601 -12.5,-12.5l0,-52.206c0,-6.899 5.601,-12.5 12.5,-12.5l52.206,0c6.899,0 12.5,5.601 12.5,12.5Z" style="fill:none;stroke:#fff;stroke-width:16.54px;"/><path d="M271.691,302.083l0,10.907c0,4.599 -3.734,8.333 -8.333,8.333l-60.539,0c-4.599,0 -8.333,-3.734 -8.333,-8.333l0,-10.907c0,-4.599 3.734,-8.333 8.333,-8.333l60.539,0c4.599,0 8.333,3.734 8.333,8.333Z" style="fill:#fff;fill-opacity:0.5;"/></svg>

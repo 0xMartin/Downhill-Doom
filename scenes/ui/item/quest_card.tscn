@@ -134,7 +134,7 @@ theme_override_font_sizes/font_size = 38
 text = "Complete in a single run"
 
 [node name="ProgressBar" type="ProgressBar" parent="HBox/Content" unique_id=1200792952]
-custom_minimum_size = Vector2(0, 40)
+custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
