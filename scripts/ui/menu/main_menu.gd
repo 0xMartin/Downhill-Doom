@@ -459,10 +459,8 @@ func _on_quest_button_pressed() -> void:
 
 func _connect_quest_buttons() -> void:
 	var quest_back: Button = quest_helper.get_back_button()
-	print("MainMenu: quest_back button = %s" % [quest_back != null])
 	if quest_back and not quest_back.pressed.is_connected(_on_quest_back_pressed):
 		quest_back.pressed.connect(_on_quest_back_pressed)
-		print("MainMenu: Connected quest back button")
 
 
 func _on_quest_back_pressed() -> void:

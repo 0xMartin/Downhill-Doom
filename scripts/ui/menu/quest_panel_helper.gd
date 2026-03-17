@@ -38,15 +38,11 @@ func _init(panel: Control) -> void:
 
 
 func rebuild() -> void:
-	print("QuestPanelHelper: rebuild() called")
-	
 	# Get quest manager reference
 	if not quest_manager:
 		quest_manager = quest_panel.get_node_or_null("/root/QuestManager")
 	if not quest_manager:
 		push_error("QuestPanelHelper: Could not find QuestManager autoload")
-	else:
-		print("QuestPanelHelper: QuestManager found")
 	
 	# Clear existing content except Background
 	var children_to_remove: Array[Node] = []
@@ -107,8 +103,6 @@ func _find_ui_references() -> void:
 	quest_list = content_instance.get_node_or_null("ScrollContainer/MarginContainer/ContentVBox/QuestList") as VBoxContainer
 	back_button = content_instance.get_node_or_null("Header/HBoxContainer/BackButton") as Button
 	
-	print("QuestPanelHelper: countdown_label=%s, quest_list=%s, back_button=%s" % [countdown_label != null, quest_list != null, back_button != null])
-	
 	if not countdown_label:
 		push_error("QuestPanelHelper: countdown_label not found")
 	if not quest_list:
@@ -123,13 +117,10 @@ func _setup_back_button() -> void:
 
 
 func get_back_button() -> Button:
-	print("QuestPanelHelper: get_back_button() called, back_button=%s, content_instance=%s" % [back_button != null, content_instance != null])
 	if back_button:
 		return back_button
 	if content_instance:
-		var btn: Button = content_instance.get_node_or_null("Header/HBoxContainer/BackButton") as Button
-		print("QuestPanelHelper: Fallback found button: %s" % [btn != null])
-		return btn
+		return content_instance.get_node_or_null("Header/HBoxContainer/BackButton") as Button
 	return null
 
 
@@ -177,8 +168,6 @@ func _populate_quest_cards() -> void:
 	
 	# Get daily quests
 	var quests: Array = quest_manager.get_daily_quests()
-	print("QuestPanelHelper: Got %d quests from quest_manager" % quests.size())
-	
 	if quests.is_empty():
 		push_warning("QuestPanelHelper: No quests returned from quest_manager")
 		return
@@ -198,8 +187,6 @@ func _populate_quest_cards() -> void:
 		var vc: SubViewportContainer = card.get_viewport_container()
 		if vc:
 			object_viewports.append(vc)
-	
-	print("QuestPanelHelper: Added %d quest cards to list" % quest_list.get_child_count())
 
 
 func _on_quest_activate_pressed(quest_id: String) -> void:

@@ -459,6 +459,7 @@ border_width_left = 8
 border_width_top = 8
 border_width_right = 8
 border_width_bottom = 8
+border_color = Color(0.28858873, 0.3132181, 0.60044193, 1)
 corner_radius_top_left = 100
 corner_radius_top_right = 100
 corner_radius_bottom_right = 100
@@ -1078,7 +1079,6 @@ ignore_texture_size = true
 stretch_mode = 5
 
 [node name="QuestPanel" type="PanelContainer" parent="." unique_id=592979381]
-visible = false
 anchors_preset = -1
 anchor_left = 0.01
 anchor_top = 0.071
