@@ -264,7 +264,7 @@ func _apply_slow_motion(time_scale: float, duration: float) -> bool:
 	time_scale_override = time_scale
 	
 	_active_buffs[ItemConfig.EffectType.SLOW_MOTION] = {
-		"timer": duration * time_scale,  # Adjust for slowed time
+		"timer": duration,  # Real seconds (using real_delta in _update_buffs)
 		"value": time_scale
 	}
 	

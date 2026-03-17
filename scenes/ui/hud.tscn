@@ -448,24 +448,32 @@ border_width_top = 8
 border_width_right = 8
 border_width_bottom = 8
 border_color = Color(0.25, 0.65, 0.96, 0.6)
-corner_radius_top_left = 36
-corner_radius_top_right = 36
-corner_radius_bottom_right = 36
-corner_radius_bottom_left = 36
+corner_radius_top_left = 46
+corner_radius_top_right = 46
+corner_radius_bottom_right = 46
+corner_radius_bottom_left = 46
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_quest_bar_bg"]
 bg_color = Color(0.1, 0.12, 0.18, 1)
-corner_radius_top_left = 4
-corner_radius_top_right = 4
-corner_radius_bottom_right = 4
-corner_radius_bottom_left = 4
+border_width_left = 8
+border_width_top = 8
+border_width_right = 8
+border_width_bottom = 8
+corner_radius_top_left = 100
+corner_radius_top_right = 100
+corner_radius_bottom_right = 100
+corner_radius_bottom_left = 100
+expand_margin_top = 4.0
+expand_margin_bottom = 4.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_quest_bar_fill"]
 bg_color = Color(0.25, 0.65, 0.96, 1)
-corner_radius_top_left = 4
-corner_radius_top_right = 4
-corner_radius_bottom_right = 4
-corner_radius_bottom_left = 4
+corner_radius_top_left = 100
+corner_radius_top_right = 100
+corner_radius_bottom_right = 100
+corner_radius_bottom_left = 100
+expand_margin_top = 4.0
+expand_margin_bottom = 4.0
 
 [node name="HUD" type="CanvasLayer" unique_id=304451578]
 script = ExtResource("1_hud")
@@ -612,6 +620,7 @@ vertical_alignment = 1
 
 [node name="TimerLabel" type="Label" parent="." unique_id=1304192667]
 anchors_preset = -1
+anchor_left = 0.6
 anchor_top = 0.071
 anchor_right = 1.0
 anchor_bottom = 0.1
@@ -628,6 +637,7 @@ horizontal_alignment = 2
 [node name="ComboLabel" type="Label" parent="." unique_id=1847293651]
 visible = false
 anchors_preset = -1
+anchor_left = 0.6
 anchor_top = 0.105
 anchor_right = 1.0
 anchor_bottom = 0.15
@@ -1068,11 +1078,12 @@ ignore_texture_size = true
 stretch_mode = 5
 
 [node name="QuestPanel" type="PanelContainer" parent="." unique_id=592979381]
+visible = false
 anchors_preset = -1
 anchor_left = 0.01
 anchor_top = 0.071
 anchor_right = 0.47
-anchor_bottom = 0.183
+anchor_bottom = 0.18
 theme_override_styles/panel = SubResource("StyleBoxFlat_quest_panel")
 
 [node name="Content" type="VBoxContainer" parent="QuestPanel" unique_id=1757369017]
@@ -1120,6 +1131,10 @@ anchor_left = 0.01
 anchor_top = 0.195
 anchor_right = 0.5
 anchor_bottom = 0.429
+offset_left = 0.19999981
+offset_top = 0.05001831
+offset_right = 0.2000122
+offset_bottom = 0.050048828
 theme_override_constants/separation = 16
 script = ExtResource("18_buff_indicator")
 
