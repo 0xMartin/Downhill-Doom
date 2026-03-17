@@ -4,6 +4,7 @@ extends CanvasLayer
 signal jump_pressed  # Emitted when touch jump button is pressed
 
 @onready var top_bar: PanelContainer = $TopBar
+@onready var side_bar: VBoxContainer = $SideBar
 @onready var coins_label: Label = $TopBar/MarginContainer/HBoxContainer/CoinsContainer/CoinsLabel
 @onready var distance_label: Label = $TopBar/MarginContainer/HBoxContainer/DistanceContainer/DistanceLabel
 @onready var health_bar: ProgressBar = $TopBar/MarginContainer/HBoxContainer/HealthContainer/HealthBar
@@ -646,6 +647,13 @@ func _apply_safe_area_offset() -> void:
 	if buff_indicator:
 		buff_indicator.offset_top += safe_area_offset
 		buff_indicator.offset_bottom += safe_area_offset
+	
+	# Move SideBar down only if offset is large enough to risk overlap with ComboLabel
+	# SideBar normally starts at anchor_top 0.22 which may overlap with ComboLabel when offset is applied
+	if side_bar and safe_area_offset > min_top_offset:
+		var extra_offset: float = safe_area_offset - min_top_offset
+		side_bar.offset_top += extra_offset
+		side_bar.offset_bottom += extra_offset
 
 # ========== Combo UI ==========
 
@@ -921,6 +929,38 @@ func get_joystick_input() -> float:
 func update_touch_controls_visibility() -> void:
 	if touch_controls_container and audio:
 		touch_controls_container.visible = audio.is_touch_mode()
+
+
+## Check if a touch position is over any interactive UI element (for blocking jump in gyro mode)
+func is_touch_on_interactive_ui(touch_pos: Vector2) -> bool:
+	# Check supercharge button
+	if supercharge_button and supercharge_button.visible:
+		if supercharge_button.get_global_rect().has_point(touch_pos):
+			return true
+	
+	# Check settings button
+	if settings_button and settings_button.visible:
+		if settings_button.get_global_rect().has_point(touch_pos):
+			return true
+	
+	# Check inventory slots
+	var inv_slots := ["SideBar/InvSlot1/Border/ItemButton", "SideBar/InvSlot2/Border/ItemButton", "SideBar/InvSlot3/Border/ItemButton"]
+	for slot_path in inv_slots:
+		var slot_btn: TextureButton = get_node_or_null(slot_path) as TextureButton
+		if slot_btn and slot_btn.visible:
+			if slot_btn.get_global_rect().has_point(touch_pos):
+				return true
+	
+	# Check touch jump button (only relevant when visible in touch mode)
+	if touch_jump_button and touch_jump_button.visible:
+		if touch_jump_button.get_global_rect().has_point(touch_pos):
+			return true
+	
+	# Check pause menu (if visible, block all touches)
+	if pause_menu and pause_menu.visible:
+		return true
+	
+	return false
 
 
 # ========== Quest Display ==========

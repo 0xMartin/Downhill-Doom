@@ -3,86 +3,86 @@
 [ext_resource type="Script" uid="uid://b8gwsbxjw3df" path="res://scripts/ui/item/quest_card.gd" id="1_script"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card_normal"]
-content_margin_left = 32.0
-content_margin_top = 28.0
-content_margin_right = 32.0
-content_margin_bottom = 28.0
+content_margin_left = 24.0
+content_margin_top = 20.0
+content_margin_right = 24.0
+content_margin_bottom = 20.0
 bg_color = Color(0.06, 0.08, 0.12, 1)
 border_width_left = 4
 border_width_top = 4
 border_width_right = 4
 border_width_bottom = 4
 border_color = Color(0.25, 0.32, 0.45, 0.8)
-corner_radius_top_left = 32
-corner_radius_top_right = 32
-corner_radius_bottom_right = 32
-corner_radius_bottom_left = 32
+corner_radius_top_left = 24
+corner_radius_top_right = 24
+corner_radius_bottom_right = 24
+corner_radius_bottom_left = 24
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card_active"]
-content_margin_left = 32.0
-content_margin_top = 28.0
-content_margin_right = 32.0
-content_margin_bottom = 28.0
+content_margin_left = 24.0
+content_margin_top = 20.0
+content_margin_right = 24.0
+content_margin_bottom = 20.0
 bg_color = Color(0.08, 0.12, 0.18, 1)
 border_width_left = 4
 border_width_top = 4
 border_width_right = 4
 border_width_bottom = 4
 border_color = Color(0.25, 0.65, 0.96, 1)
-corner_radius_top_left = 32
-corner_radius_top_right = 32
-corner_radius_bottom_right = 32
-corner_radius_bottom_left = 32
+corner_radius_top_left = 24
+corner_radius_top_right = 24
+corner_radius_bottom_right = 24
+corner_radius_bottom_left = 24
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_progress_bg"]
 bg_color = Color(0.12, 0.15, 0.2, 1)
-corner_radius_top_left = 12
-corner_radius_top_right = 12
-corner_radius_bottom_right = 12
-corner_radius_bottom_left = 12
+corner_radius_top_left = 100
+corner_radius_top_right = 100
+corner_radius_bottom_right = 100
+corner_radius_bottom_left = 100
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_progress_fill"]
 bg_color = Color(0.25, 0.65, 0.96, 1)
-corner_radius_top_left = 12
-corner_radius_top_right = 12
-corner_radius_bottom_right = 12
-corner_radius_bottom_left = 12
+corner_radius_top_left = 100
+corner_radius_top_right = 100
+corner_radius_bottom_right = 100
+corner_radius_bottom_left = 100
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_normal"]
-content_margin_left = 24.0
-content_margin_top = 16.0
-content_margin_right = 24.0
-content_margin_bottom = 16.0
+content_margin_left = 20.0
+content_margin_top = 12.0
+content_margin_right = 20.0
+content_margin_bottom = 12.0
 bg_color = Color(0.2, 0.52, 0.77, 1)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_pressed"]
-content_margin_left = 24.0
-content_margin_top = 16.0
-content_margin_right = 24.0
-content_margin_bottom = 16.0
+content_margin_left = 20.0
+content_margin_top = 12.0
+content_margin_right = 20.0
+content_margin_bottom = 12.0
 bg_color = Color(0.15, 0.4, 0.6, 1)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_button_hover"]
-content_margin_left = 24.0
-content_margin_top = 16.0
-content_margin_right = 24.0
-content_margin_bottom = 16.0
+content_margin_left = 20.0
+content_margin_top = 12.0
+content_margin_right = 20.0
+content_margin_bottom = 12.0
 bg_color = Color(0.25, 0.58, 0.85, 1)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
 
 [node name="QuestCard" type="PanelContainer" unique_id=1157276672]
-custom_minimum_size = Vector2(0, 260)
+custom_minimum_size = Vector2(0, 220)
 theme_override_styles/panel = SubResource("StyleBoxFlat_card_normal")
 script = ExtResource("1_script")
 metadata/_active_style = SubResource("StyleBoxFlat_card_active")
@@ -90,10 +90,10 @@ metadata/_normal_style = SubResource("StyleBoxFlat_card_normal")
 
 [node name="HBox" type="HBoxContainer" parent="." unique_id=180742878]
 layout_mode = 2
-theme_override_constants/separation = 28
+theme_override_constants/separation = 20
 
 [node name="IconContainer" type="Control" parent="HBox" unique_id=247377243]
-custom_minimum_size = Vector2(200, 200)
+custom_minimum_size = Vector2(160, 160)
 layout_mode = 2
 size_flags_vertical = 4
 
@@ -119,28 +119,29 @@ grow_vertical = 2
 [node name="Content" type="VBoxContainer" parent="HBox" unique_id=174232598]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 12
+theme_override_constants/separation = 8
 
 [node name="TitleLabel" type="Label" parent="HBox/Content" unique_id=406910783]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 50
+theme_override_font_sizes/font_size = 46
 text = "Collect 50k coins"
 
 [node name="DescriptionLabel" type="Label" parent="HBox/Content" unique_id=714812403]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.6, 0.65, 0.75, 1)
-theme_override_font_sizes/font_size = 42
+theme_override_font_sizes/font_size = 38
 text = "Complete in a single run"
 
 [node name="ProgressContainer" type="HBoxContainer" parent="HBox/Content" unique_id=267425976]
 layout_mode = 2
-theme_override_constants/separation = 20
+theme_override_constants/separation = 16
 
 [node name="ProgressBar" type="ProgressBar" parent="HBox/Content/ProgressContainer" unique_id=1200792952]
-custom_minimum_size = Vector2(300, 32)
+custom_minimum_size = Vector2(250, 40)
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_vertical = 4
 theme_override_styles/background = SubResource("StyleBoxFlat_progress_bg")
 theme_override_styles/fill = SubResource("StyleBoxFlat_progress_fill")
 value = 35.0
@@ -149,54 +150,56 @@ show_percentage = false
 [node name="ProgressLabel" type="Label" parent="HBox/Content/ProgressContainer" unique_id=1727123387]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.6, 0.65, 0.75, 1)
-theme_override_font_sizes/font_size = 42
+theme_override_font_sizes/font_size = 38
 text = "35k / 100k"
 
-[node name="RewardContainer" type="HBoxContainer" parent="HBox/Content" unique_id=515312433]
+[node name="BottomRow" type="HBoxContainer" parent="HBox/Content" unique_id=1102854421]
 layout_mode = 2
+size_flags_vertical = 10
 theme_override_constants/separation = 16
 
-[node name="RewardLabel" type="Label" parent="HBox/Content/RewardContainer" unique_id=752607047]
+[node name="RewardContainer" type="HBoxContainer" parent="HBox/Content/BottomRow" unique_id=515312433]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="RewardLabel" type="Label" parent="HBox/Content/BottomRow/RewardContainer" unique_id=752607047]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.5, 0.55, 0.65, 1)
-theme_override_font_sizes/font_size = 42
+theme_override_font_sizes/font_size = 38
 text = "Reward:"
 
-[node name="RewardIcon" type="TextureRect" parent="HBox/Content/RewardContainer" unique_id=2011701708]
-custom_minimum_size = Vector2(44, 44)
+[node name="RewardIcon" type="TextureRect" parent="HBox/Content/BottomRow/RewardContainer" unique_id=2011701708]
+custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
 size_flags_vertical = 4
 expand_mode = 1
 stretch_mode = 5
 
-[node name="RewardValueLabel" type="Label" parent="HBox/Content/RewardContainer" unique_id=1916248146]
+[node name="RewardValueLabel" type="Label" parent="HBox/Content/BottomRow/RewardContainer" unique_id=1916248146]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.82, 0.25, 1)
-theme_override_font_sizes/font_size = 44
+theme_override_font_sizes/font_size = 40
 text = "50k"
 
-[node name="RightPanel" type="VBoxContainer" parent="HBox" unique_id=734413581]
-custom_minimum_size = Vector2(200, 0)
+[node name="Spacer" type="Control" parent="HBox/Content/BottomRow" unique_id=662912311]
 layout_mode = 2
-size_flags_vertical = 4
-theme_override_constants/separation = 16
-alignment = 1
+size_flags_horizontal = 3
 
-[node name="ActivateButton" type="Button" parent="HBox/RightPanel" unique_id=1458561247]
+[node name="ActivateButton" type="Button" parent="HBox/Content/BottomRow" unique_id=1458561247]
 layout_mode = 2
 focus_mode = 0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 42
+theme_override_font_sizes/font_size = 38
 theme_override_styles/normal = SubResource("StyleBoxFlat_button_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_button_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_button_hover")
 theme_override_styles/focus = SubResource("StyleBoxFlat_button_hover")
 text = "Activate"
 
-[node name="StatusLabel" type="Label" parent="HBox/RightPanel" unique_id=1056890486]
+[node name="StatusLabel" type="Label" parent="HBox/Content/BottomRow" unique_id=1056890486]
 visible = false
 layout_mode = 2
 theme_override_colors/font_color = Color(0.25, 0.65, 0.96, 1)
-theme_override_font_sizes/font_size = 46
+theme_override_font_sizes/font_size = 42
 text = "ACTIVE"
 horizontal_alignment = 1

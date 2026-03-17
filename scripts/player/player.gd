@@ -465,27 +465,13 @@ func _input(event: InputEvent) -> void:
 	# Gyro mode: Jump on screen tap (mobile) - but not on UI elements
 	if event is InputEventScreenTouch:
 		if event.pressed:
-			# Use Godot's proper GUI hit testing
-			var viewport := get_viewport()
-			if viewport:
-				var touch_pos: Vector2 = event.position
-				# Check if a GUI control is at this position
-				var is_gui_hit: bool = viewport.gui_is_drag_successful() or _is_touch_on_supercharge_ui(touch_pos)
-				if is_gui_hit:
+			var touch_pos: Vector2 = event.position
+			# Check if touch is on any interactive HUD element
+			var hud_node: Node = get_node_or_null("/root/Game/HUD")
+			if hud_node and hud_node.has_method("is_touch_on_interactive_ui"):
+				if hud_node.is_touch_on_interactive_ui(touch_pos):
 					return  # Don't jump, UI handled it
 			_try_jump()
-
-## Check if touch position is over the supercharge UI panel
-func _is_touch_on_supercharge_ui(touch_pos: Vector2) -> bool:
-	var hud_node: Node = get_node_or_null("/root/Game/HUD")
-	if not hud_node:
-		return false
-	
-	var panel: Node = hud_node.get_node_or_null("SuperchargePanel")
-	if panel and panel is Control:
-		var rect: Rect2 = panel.get_global_rect()
-		return rect.has_point(touch_pos)
-	return false
 
 func _try_jump() -> void:
 	# If in air and falling, charge slam attack

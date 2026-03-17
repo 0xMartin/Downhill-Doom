@@ -1,8 +1,6 @@
 # Downhill Doom
 
 ## Prioritni
- 
-* Zprovoznit daily questy (dosazeni coinu, vzdalenost, zabiti, za jeden run, za vice runu) + system odmen (penize / boosty)
 
 * reklamy:
 - moznost 1x oživeni za slednuti reklamy (dobije zivoty na max) mozne jen 1x za 30 min (prida 200 tisic)

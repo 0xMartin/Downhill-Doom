@@ -38,10 +38,10 @@ func setup(quest: RefCounted, progress: int, is_active: bool, is_completed: bool
 	var description_label: Label = get_node_or_null("HBox/Content/DescriptionLabel")
 	var progress_bar: ProgressBar = get_node_or_null("HBox/Content/ProgressContainer/ProgressBar")
 	var progress_label: Label = get_node_or_null("HBox/Content/ProgressContainer/ProgressLabel")
-	var reward_icon: TextureRect = get_node_or_null("HBox/Content/RewardContainer/RewardIcon")
-	var reward_value_label: Label = get_node_or_null("HBox/Content/RewardContainer/RewardValueLabel")
-	var activate_button: Button = get_node_or_null("HBox/RightPanel/ActivateButton")
-	var status_label: Label = get_node_or_null("HBox/RightPanel/StatusLabel")
+	var reward_icon: TextureRect = get_node_or_null("HBox/Content/BottomRow/RewardContainer/RewardIcon")
+	var reward_value_label: Label = get_node_or_null("HBox/Content/BottomRow/RewardContainer/RewardValueLabel")
+	var activate_button: Button = get_node_or_null("HBox/Content/BottomRow/ActivateButton")
+	var status_label: Label = get_node_or_null("HBox/Content/BottomRow/StatusLabel")
 	
 	# Set card style based on state (use metadata styles)
 	if is_active or is_completed:
