@@ -1,6 +1,16 @@
 # Downhill Doom
 
+
+
 ## Prioritni
+
+- vylepsit hud (quest progress bar)
+- pridat modely: poklad, vice domu, snizit sanci na toho tucnika s kloboukem
+- kontrola optimalizace
+- skodlive itemy: poison, 
+- vymyslet dalsi veci co se daji nakupovat: 
+
+## Dalsi
 
 * reklamy:
 - moznost 1x oživeni za slednuti reklamy (dobije zivoty na max) mozne jen 1x za 30 min (prida 200 tisic)
