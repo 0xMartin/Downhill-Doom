@@ -2,7 +2,7 @@
 
 ## Prioritni
 
-- pridat modely: poklad, vice domu, snizit sanci na toho tucnika s kloboukem
+- pridat modely: poklad, vice domu
 - kontrola optimalizace
 - skodlive itemy: poison
 - vymyslet dalsi veci co se daji nakupovat 
