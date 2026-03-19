@@ -1007,9 +1007,9 @@ func _update_quest_display() -> void:
 	
 	_current_quest_id = quest.id
 	
-	# Check if already completed
+	# Check if already completed - hide panel
 	if quest_manager.is_quest_completed(quest.id):
-		_show_quest_completed()
+		quest_panel.visible = false
 		return
 	
 	# Update description
@@ -1056,3 +1056,8 @@ func _show_quest_completed() -> void:
 		quest_progress_label.add_theme_color_override("font_color", COLOR_QUEST_COMPLETED)
 	
 	quest_panel.visible = true
+	
+	# Hide after short delay
+	await get_tree().create_timer(2.0).timeout
+	if quest_panel:
+		quest_panel.visible = false
