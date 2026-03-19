@@ -39,6 +39,7 @@ var is_supercharged: bool = false
 const BASE_SUPERCHARGE_DURATION: float = 10.0  # Base duration in seconds
 var supercharge_duration: float = 10.0  # Duration in seconds (may be modified by boosts)
 var supercharge_timer: float = 0.0
+var supercharge_from_item: bool = false  # True if current supercharge was triggered by item (doesn't count towards escalation)
 const SUPERCHARGE_BASE_REQUIREMENT: int = 10  # First activation needs 10, then 17, 29, 49... (+70% each time)
 var supercharge_requirement_multiplier: float = 1.0  # Modified by half_supercharge boost
 
@@ -139,8 +140,14 @@ func start_game() -> void:
 	supercharge_objects = 0
 	supercharge_activations = 0
 	is_supercharged = false
+	supercharge_from_item = false
 	supercharge_timer = 0.0
 	supercharge_changed.emit(supercharge_objects, get_supercharge_requirement())
+	
+	# Clear inventory for new game
+	var inventory := get_node_or_null("/root/InventoryManager")
+	if inventory:
+		inventory.clear()
 	
 	# Reset blindness
 	is_blind = false
@@ -483,7 +490,12 @@ func end_supercharge() -> void:
 	
 	is_supercharged = false
 	supercharge_timer = 0.0
-	supercharge_activations += 1  # Increment for next requirement
+	
+	# Only increment activation counter if NOT from item
+	if not supercharge_from_item:
+		supercharge_activations += 1  # Increment for next requirement
+	
+	supercharge_from_item = false  # Reset flag
 	supercharge_objects = 0  # Reset counter
 	supercharge_changed.emit(supercharge_objects, get_supercharge_requirement())
 	supercharge_ended.emit()

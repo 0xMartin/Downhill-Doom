@@ -144,8 +144,7 @@ var shop_data := {
 	"owned_crates": {},  # {crate_type: count}
 }
 
-var _is_saving := false  # Prevent reload loop during save
-
+var _is_saving := false  # Prevent reload loop during savevar _crate_rng := RandomNumberGenerator.new()  # RNG for crate opening
 func _ready() -> void:
 	# Connect to SecureStorage changes
 	var storage := get_node_or_null("/root/SecureStorage")
@@ -339,16 +338,19 @@ func open_crate(crate_type: String) -> Dictionary:
 		owned.erase(crate_type)
 	shop_data["owned_crates"] = owned
 	
+	# Randomize RNG for truly random results each time
+	_crate_rng.randomize()
+	
 	# Roll for reward
 	var chances: Dictionary = CRATE_DROP_CHANCES.get(crate_type, CRATE_DROP_CHANCES["basic"])
-	var roll := randf()
+	var roll := _crate_rng.randf()
 	
 	var reward := {}
 	
 	if roll < chances["boost"]:
 		# Boost reward
 		var boost_ids := BOOST_PRICES.keys()
-		var random_boost: String = boost_ids[randi() % boost_ids.size()]
+		var random_boost: String = boost_ids[_crate_rng.randi() % boost_ids.size()]
 		
 		var owned_boosts: Dictionary = shop_data.get("owned_boosts", {})
 		owned_boosts[random_boost] = owned_boosts.get(random_boost, 0) + 1
@@ -361,7 +363,7 @@ func open_crate(crate_type: String) -> Dictionary:
 		var crate_tiers := ["basic", "premium", "legendary"]
 		var current_tier := crate_tiers.find(crate_type)
 		var max_tier := mini(current_tier + 1, crate_tiers.size())
-		var random_tier := randi() % max_tier
+		var random_tier := _crate_rng.randi() % max_tier
 		var reward_crate: String = crate_tiers[random_tier]
 		
 		owned[reward_crate] = owned.get(reward_crate, 0) + 1
@@ -378,7 +380,7 @@ func open_crate(crate_type: String) -> Dictionary:
 			reward = {"type": "skin", "id": "", "is_duplicate": true, "refund": refund}
 		else:
 			# Pick truly random skin from ALL available skins
-			var random_skin: String = available_texture_skins[randi() % available_texture_skins.size()]
+			var random_skin: String = available_texture_skins[_crate_rng.randi() % available_texture_skins.size()]
 			
 			# Check if already owned
 			if random_skin in get_owned_texture_skins():
@@ -403,27 +405,30 @@ func open_crate(crate_type: String) -> Dictionary:
 
 ## Generate a list of possible rewards for roulette display
 func generate_roulette_items(crate_type: String, count: int = 30) -> Array:
+	# Randomize RNG for truly random display items
+	_crate_rng.randomize()
+	
 	var items: Array = []
 	var chances: Dictionary = CRATE_DROP_CHANCES.get(crate_type, CRATE_DROP_CHANCES["basic"])
 	
 	for i in range(count):
-		var roll := randf()
+		var roll := _crate_rng.randf()
 		
 		if roll < chances["boost"]:
 			var boost_ids := BOOST_PRICES.keys()
-			var random_boost: String = boost_ids[randi() % boost_ids.size()]
+			var random_boost: String = boost_ids[_crate_rng.randi() % boost_ids.size()]
 			items.append({"type": "boost", "id": random_boost})
 		elif roll < chances["boost"] + chances["crate"]:
 			var crate_tiers := ["basic", "premium", "legendary"]
 			var current_tier := crate_tiers.find(crate_type)
 			var max_tier := mini(current_tier + 1, crate_tiers.size())
-			var random_tier := randi() % max_tier
+			var random_tier := _crate_rng.randi() % max_tier
 			items.append({"type": "crate", "id": crate_tiers[random_tier]})
 		else:
 			if available_texture_skins.is_empty():
 				items.append({"type": "boost", "id": BOOST_PRICES.keys()[0]})
 			else:
-				var random_skin: String = available_texture_skins[randi() % available_texture_skins.size()]
+				var random_skin: String = available_texture_skins[_crate_rng.randi() % available_texture_skins.size()]
 				items.append({"type": "skin", "id": random_skin})
 	
 	return items

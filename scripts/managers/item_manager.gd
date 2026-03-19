@@ -186,6 +186,7 @@ func _apply_instant_supercharge(duration_multiplier: float) -> bool:
 	# Force activate supercharge with normal duration (affected by boosts)
 	var actual_duration: float = gm.supercharge_duration * duration_multiplier
 	gm.is_supercharged = true
+	gm.supercharge_from_item = true  # Mark as item-based (won't count towards escalation)
 	gm.supercharge_timer = actual_duration
 	gm.supercharge_activated.emit()
 	
@@ -203,6 +204,7 @@ func _apply_super_supercharge(duration_multiplier: float) -> bool:
 	# Force activate with extended duration (affected by boosts, then multiplied)
 	var actual_duration: float = gm.supercharge_duration * duration_multiplier
 	gm.is_supercharged = true
+	gm.supercharge_from_item = true  # Mark as item-based (won't count towards escalation)
 	gm.supercharge_timer = actual_duration
 	gm.supercharge_activated.emit()
 	
