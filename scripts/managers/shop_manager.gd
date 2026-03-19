@@ -144,7 +144,9 @@ var shop_data := {
 	"owned_crates": {},  # {crate_type: count}
 }
 
-var _is_saving := false  # Prevent reload loop during savevar _crate_rng := RandomNumberGenerator.new()  # RNG for crate opening
+var _is_saving := false  # Prevent reload loop during save
+var _crate_rng := RandomNumberGenerator.new()  # RNG for crate opening
+
 func _ready() -> void:
 	# Connect to SecureStorage changes
 	var storage := get_node_or_null("/root/SecureStorage")
