@@ -104,6 +104,10 @@ const STUCK_WARNING_TIME: float = 3.0  # Seconds before warning shows
 const STUCK_DEATH_TIME: float = 10.0  # Seconds to die after warning
 const STUCK_GRACE_PERIOD: float = 5.0  # Grace period at game start
 
+# Debug performance overlay
+var debug_label: Label = null
+const DEBUG_PERFORMANCE_ENABLED := true  # Set to false to disable
+
 ## Format large numbers with k/M suffix (13410 -> "13.41k")
 static func format_number(n: int) -> String:
 	if n >= 1_000_000:
@@ -118,6 +122,10 @@ func _ready() -> void:
 	audio = get_node("/root/AudioManager")
 	coin_icon_texture = load("res://assets/svg/coin.svg")
 	heart_icon_texture = load("res://assets/svg/heart.svg")  # Cache heart icon
+	
+	# Create debug performance label
+	if DEBUG_PERFORMANCE_ENABLED:
+		_create_debug_label()
 	gm.coins_changed.connect(_on_coins_changed)
 	gm.distance_changed.connect(_on_distance_changed)
 	gm.game_paused.connect(_on_game_paused)
@@ -216,6 +224,10 @@ func _process(delta: float) -> void:
 	
 	# Stuck detection
 	_update_stuck_detection(delta)
+	
+	# Debug performance overlay update
+	if DEBUG_PERFORMANCE_ENABLED and debug_label:
+		_update_debug_label()
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
@@ -1100,3 +1112,84 @@ func _kill_player_stuck() -> void:
 	# Kill player by taking exactly their remaining health
 	if gm:
 		gm.take_damage(gm.health)
+
+
+# ========== Debug Performance Overlay ==========
+
+func _create_debug_label() -> void:
+	debug_label = Label.new()
+	debug_label.name = "DebugLabel"
+	debug_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	debug_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+	
+	# Position in bottom-left corner
+	debug_label.anchor_left = 0.0
+	debug_label.anchor_top = 1.0
+	debug_label.anchor_right = 0.0
+	debug_label.anchor_bottom = 1.0
+	debug_label.offset_left = 10
+	debug_label.offset_top = -180
+	debug_label.offset_right = 400
+	debug_label.offset_bottom = -10
+	
+	# Style
+	debug_label.add_theme_font_size_override("font_size", 24)
+	debug_label.add_theme_color_override("font_color", Color(0.0, 1.0, 0.0, 0.9))  # Green
+	debug_label.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.8))
+	debug_label.add_theme_constant_override("shadow_offset_x", 2)
+	debug_label.add_theme_constant_override("shadow_offset_y", 2)
+	
+	add_child(debug_label)
+
+func _update_debug_label() -> void:
+	if not debug_label:
+		return
+	
+	# FPS
+	var fps := Engine.get_frames_per_second()
+	
+	# Frame time in ms
+	var frame_time := 1000.0 / maxf(fps, 1.0)
+	
+	# CPU time (from Performance singleton)
+	var process_time := Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0
+	var physics_time := Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS) * 1000.0
+	
+	# Memory
+	var mem_static := Performance.get_monitor(Performance.MEMORY_STATIC) / 1048576.0
+	var mem_dynamic := Performance.get_monitor(Performance.MEMORY_MESSAGE_BUFFER_MAX) / 1048576.0
+	
+	# Render info
+	var draw_calls := Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME)
+	var objects_in_frame := Performance.get_monitor(Performance.RENDER_TOTAL_OBJECTS_IN_FRAME)
+	var render_cpu := Performance.get_monitor(Performance.TIME_NAVIGATION_PROCESS) * 1000.0
+	
+	# GPU time (if available - may show 0 on some platforms)
+	var render_time := Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0
+	
+	# Object counts
+	var nodes := Performance.get_monitor(Performance.OBJECT_NODE_COUNT)
+	var orphan := Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT)
+	
+	# Physics bodies
+	var physics_2d := Performance.get_monitor(Performance.PHYSICS_2D_ACTIVE_OBJECTS)
+	var physics_3d := Performance.get_monitor(Performance.PHYSICS_3D_ACTIVE_OBJECTS)
+	
+	# Build text
+	var text := ""
+	text += "FPS: %d (%.1f ms)\n" % [fps, frame_time]
+	text += "Process: %.2f ms | Physics: %.2f ms\n" % [process_time, physics_time]
+	text += "Draw calls: %d | Objects: %d\n" % [draw_calls, objects_in_frame]
+	text += "Nodes: %d | Orphans: %d\n" % [nodes, orphan]
+	text += "Physics 3D: %d bodies\n" % [physics_3d]
+	text += "Memory: %.1f MB static" % [mem_static]
+	
+	# Color FPS based on performance
+	if fps >= 55:
+		debug_label.add_theme_color_override("font_color", Color(0.0, 1.0, 0.0, 0.9))  # Green
+	elif fps >= 30:
+		debug_label.add_theme_color_override("font_color", Color(1.0, 0.8, 0.0, 0.9))  # Yellow
+	else:
+		debug_label.add_theme_color_override("font_color", Color(1.0, 0.2, 0.2, 0.9))  # Red
+	
+	debug_label.text = text
