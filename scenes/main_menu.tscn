@@ -514,7 +514,7 @@ grow_vertical = 0
 theme_override_colors/default_color = Color(0.6, 0.65, 0.7, 0.7)
 theme_override_font_sizes/normal_font_size = 42
 bbcode_enabled = true
-text = "[right]Made by [url=https://github.com/0xMartin]0xM4R71N[/url][/right]"
+text = "[right]Made by 0xM4R71N"
 fit_content = true
 scroll_active = false
 vertical_alignment = 1
