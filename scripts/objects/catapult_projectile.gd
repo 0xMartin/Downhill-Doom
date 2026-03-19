@@ -11,7 +11,7 @@ const TRAIL_WIDTH: float = 0.15
 const PROJECTILE_RADIUS: float = 0.3
 const PROJECTILE_COLOR := Color(0.4, 0.4, 0.4)  # Dark gray
 const TRAIL_COLOR := Color(0.6, 0.1, 0.1, 0.8)  # Red trail
-const IMPACT_SHOCK_WAVE_RADIUS: float = 6.0  # Shock wave radius (-30%)
+const IMPACT_SHOCK_WAVE_RADIUS: float = 4.0  # Shock wave radius
 
 var velocity: Vector3 = Vector3.ZERO
 var damage: int = 20

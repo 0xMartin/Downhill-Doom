@@ -2,7 +2,7 @@
 
 ## Prioritni
 
-- pridat modely: poklad, vice domu
+- pridat modely: poklad
 - kontrola optimalizace
 - skodlive itemy: poison
 - vymyslet dalsi veci co se daji nakupovat 

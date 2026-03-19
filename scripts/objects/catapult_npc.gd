@@ -13,7 +13,7 @@ class_name CatapultNPC
 const DETECTION_RANGE: float = 80.0  # Increased range
 const FIRE_RATE_FRAMES: int = 50  # Animation length in frames
 const FIRE_FRAME: int = 3  # Frame at which projectile spawns
-const ANIMATION_FPS: float = 9.0  # Half speed (standard 24fps)
+const ANIMATION_FPS: float = 8.0  # Half speed (standard 24fps)
 const ROTATION_SPEED: float = 2.8  
 
 # Projectile spawn offset (relative to catapult, where the arm is)
