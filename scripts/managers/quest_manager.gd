@@ -211,6 +211,7 @@ func _on_game_ended() -> void:
 		var run_value: int = int(_run_progress.get(active.id, 0))
 		if run_value > 0:
 			_quest_progress[active.id] = _quest_progress.get(active.id, 0) + run_value
+			_run_progress[active.id] = 0  # Clear run progress after transferring to avoid double-counting in _check_quest_completion
 			_check_quest_completion(active)
 			_save_quest_data()
 			quest_progress_updated.emit(active.id, _quest_progress[active.id], active.target_value)

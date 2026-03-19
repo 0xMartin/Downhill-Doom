@@ -1,14 +1,11 @@
 # Downhill Doom
 
-
-
 ## Prioritni
 
-- vylepsit hud (quest progress bar)
 - pridat modely: poklad, vice domu, snizit sanci na toho tucnika s kloboukem
 - kontrola optimalizace
-- skodlive itemy: poison, 
-- vymyslet dalsi veci co se daji nakupovat: 
+- skodlive itemy: poison
+- vymyslet dalsi veci co se daji nakupovat 
 
 ## Dalsi
 
