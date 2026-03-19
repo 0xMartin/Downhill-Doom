@@ -2,7 +2,7 @@
 
 ## Prioritni
 
-- pridat modely: poklad
+- pridat modely: poklad, sloup, stan
 - kontrola optimalizace
 - skodlive itemy: poison
 - vymyslet dalsi veci co se daji nakupovat 

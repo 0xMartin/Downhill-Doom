@@ -104,7 +104,7 @@ static func _init_items() -> void:
 		"name": "Small Heal Potion",
 		"rarity": Rarity.COMMON,
 		"effect": EffectType.HEAL,
-		"value": 0.15,  # 15% HP
+		"value": 0.25,  # 25% HP
 		"duration": 0.0,
 		"icon": "res://assets/textures/items/potion_small.png",
 		"model": "res://assets/models/items/potion_small.blend",
@@ -115,7 +115,7 @@ static func _init_items() -> void:
 		"name": "Medium Heal Potion",
 		"rarity": Rarity.RARE,
 		"effect": EffectType.HEAL,
-		"value": 0.35,  # 35% HP
+		"value": 0.60,  # 60% HP
 		"duration": 0.0,
 		"icon": "res://assets/textures/items/potion_medium.png",
 		"model": "res://assets/models/items/potion_medium.blend",
@@ -126,7 +126,7 @@ static func _init_items() -> void:
 		"name": "Large Heal Potion",
 		"rarity": Rarity.LEGENDARY,
 		"effect": EffectType.HEAL,
-		"value": 0.75,  # 75% HP
+		"value": 1.0,  # 100% HP
 		"duration": 0.0,
 		"icon": "res://assets/textures/items/potion_large.png",
 		"model": "res://assets/models/items/potion_large.blend",
