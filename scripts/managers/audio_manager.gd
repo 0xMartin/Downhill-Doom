@@ -4,7 +4,6 @@ extends Node
 
 # Sound paths
 const BUTTON_CLICK := "res://assets/sounds/ui/button_click.mp3"
-const MENU_MUSIC := "res://assets/sounds/ui/music.mp3"
 const BOULDER_ROLL := "res://assets/sounds/player/boulder_roll.mp3"
 const HURT_SOUND := "res://assets/sounds/player/hurt.mp3"
 const DEATH_SOUND := "res://assets/sounds/player/death.mp3"
@@ -14,10 +13,17 @@ const SPELL_CAST_SOUND := "res://assets/sounds/sfx/spell_cast.mp3"
 const ITEM_PICKUP_SOUND := "res://assets/sounds/player/item_pickup.mp3"
 const ITEM_USE_SOUND := "res://assets/sounds/player/item_use.mp3"
 
+var menu_music_tracks: Array[String] = [
+	"res://assets/sounds/ui/menu1.mp3",
+	"res://assets/sounds/ui/menu2.mp3",
+]
+
 var game_music_tracks: Array[String] = [
-	"res://assets/sounds/music/music_1.mp3",
-	"res://assets/sounds/music/music_2.mp3",
-	"res://assets/sounds/music/music_3.mp3",
+	"res://assets/sounds/music/music1.mp3",
+	"res://assets/sounds/music/music2.mp3",
+	"res://assets/sounds/music/music3.mp3",
+	"res://assets/sounds/music/music4.mp3",
+	"res://assets/sounds/music/music5.mp3",
 ]
 
 var tree_hit_sounds: Array[String] = [
@@ -50,6 +56,7 @@ var game_music_player: AudioStreamPlayer
 var roll_sound_player: AudioStreamPlayer
 var sfx_player: AudioStreamPlayer  # One-shot SFX
 
+var current_menu_track_index: int = -1
 var current_game_track_index: int = -1
 var is_in_game: bool = false
 var roll_sound_playing: bool = false
@@ -84,6 +91,7 @@ func _ready() -> void:
 	menu_music_player.name = "MenuMusicPlayer"
 	menu_music_player.volume_db = -5.0
 	menu_music_player.process_mode = Node.PROCESS_MODE_ALWAYS  # Keep playing when paused
+	menu_music_player.finished.connect(_on_menu_music_finished)
 	add_child(menu_music_player)
 	
 	game_music_player = AudioStreamPlayer.new()
@@ -109,11 +117,7 @@ func _ready() -> void:
 	if roll_stream:
 		roll_sound_player.stream = roll_stream
 	
-	# Load menu music as looping
-	var menu_stream := load(MENU_MUSIC) as AudioStreamMP3
-	if menu_stream:
-		menu_stream.loop = true
-		menu_music_player.stream = menu_stream
+	# Menu music will be loaded when played (random track selection)
 	
 	# Disable processing by default - enabled when roll sound starts
 	set_process(false)
@@ -178,16 +182,33 @@ func _crossfade_to_menu() -> void:
 		tween.tween_property(game_music_player, "volume_db", -80.0, 1.0)
 		tween.tween_callback(game_music_player.stop)
 	
+	# Play random menu track
+	_play_random_menu_track()
+
+
+func _play_random_menu_track() -> void:
+	if menu_music_tracks.is_empty():
+		return
+	
 	# Don't play if music is muted
 	var target_db := _get_music_db(-5.0)
 	if get_music_volume() <= 0.0:
 		return
 	
-	# Fade in menu music
-	menu_music_player.volume_db = -80.0
-	menu_music_player.play()
-	var tween2 := create_tween()
-	tween2.tween_property(menu_music_player, "volume_db", target_db, 1.0)
+	# Pick a different track than the current one
+	var new_index := randi() % menu_music_tracks.size()
+	if menu_music_tracks.size() > 1:
+		while new_index == current_menu_track_index:
+			new_index = randi() % menu_music_tracks.size()
+	
+	current_menu_track_index = new_index
+	var stream := load(menu_music_tracks[new_index]) as AudioStream
+	if stream:
+		menu_music_player.stream = stream
+		menu_music_player.volume_db = -80.0
+		menu_music_player.play()
+		var tween := create_tween()
+		tween.tween_property(menu_music_player, "volume_db", target_db, 1.0)
 
 # ========== Game Music ==========
 
@@ -237,6 +258,11 @@ func _play_random_game_track() -> void:
 func _on_game_music_finished() -> void:
 	if is_in_game:
 		_play_random_game_track()
+
+
+func _on_menu_music_finished() -> void:
+	if not is_in_game:
+		_play_random_menu_track()
 
 # ========== Rolling Sound ==========
 

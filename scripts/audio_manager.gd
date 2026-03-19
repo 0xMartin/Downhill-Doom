@@ -10,16 +10,22 @@ var show_pickup_popup: bool = true  # Show +1 coin popup on pickup
 
 # Sound paths
 const BUTTON_CLICK := "res://assets/sounds/ui/button_click.mp3"
-const MENU_MUSIC := "res://assets/sounds/ui/music.mp3"
 const BOULDER_ROLL := "res://assets/sounds/player/boulder_roll.mp3"
 const HURT_SOUND := "res://assets/sounds/player/hurt.mp3"
 const DEATH_SOUND := "res://assets/sounds/player/death.mp3"
 const SUPERCHARGE_SOUND := "res://assets/sounds/player/supercharge.mp3"
 
+var menu_music_tracks: Array[String] = [
+	"res://assets/sounds/ui/menu1.mp3",
+	"res://assets/sounds/ui/menu2.mp3",
+]
+
 var game_music_tracks: Array[String] = [
-	"res://assets/sounds/music/music_1.mp3",
-	"res://assets/sounds/music/music_2.mp3",
-	"res://assets/sounds/music/music_3.mp3",
+	"res://assets/sounds/music/music1.mp3",
+	"res://assets/sounds/music/music2.mp3",
+	"res://assets/sounds/music/music3.mp3",
+	"res://assets/sounds/music/music4.mp3",
+	"res://assets/sounds/music/music5.mp3",
 ]
 
 var tree_hit_sounds: Array[String] = [
