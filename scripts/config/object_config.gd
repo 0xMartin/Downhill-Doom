@@ -473,7 +473,7 @@ static func _init_objects() -> void:
 		"model": "res://assets/models/npc_friend/squirrel.blend",
 		"height": 1.3,
 		"height_var": 0.1,
-		"spawn_chance": 0.20, # 0.20
+		"spawn_chance": 0.07, # 0.07
 		"coins": 90,
 		"destructible": true,
 	})
@@ -484,7 +484,7 @@ static func _init_objects() -> void:
 		"model": "res://assets/models/npc_friend/penguin.blend",
 		"height": 1.8,
 		"height_var": 0.1,
-		"spawn_chance": 0.05, # 0.05
+		"spawn_chance": 0.04, # 0.04
 		"coins": 400,
 		"destructible": true,
 	})
