@@ -10,6 +10,11 @@ const ObjectSpawnerScript := preload("res://scripts/terrain/object_spawner.gd")
 signal terrain_chunk_created(chunk: Node3D)
 signal terrain_ready
 
+# Performance tracking (accessible from HUD)
+static var last_mesh_time_ms: int = 0
+static var last_spawn_time_ms: int = 0
+static var is_currently_generating: bool = false
+
 # Chunk configuration
 @export var chunk_size: Vector2 = Vector2(100, 50)
 @export var chunks_ahead: int = 3  # Reduced from 5 for mobile performance
@@ -242,13 +247,20 @@ func _generate_chunk_async(chunk_index: int) -> void:
 		return
 	
 	# 2. Create terrain mesh (HEAVY - main bottleneck)
+	is_currently_generating = true
+	var mesh_start := Time.get_ticks_msec()
 	var terrain: StaticBody3D = mesh_builder.create_terrain(chunk_index)
+	var mesh_time := Time.get_ticks_msec() - mesh_start
+	last_mesh_time_ms = mesh_time
+	if mesh_time > 50:
+		push_warning("TerrainGen: Mesh creation took %d ms for chunk %d" % [mesh_time, chunk_index])
 	chunk.add_child(terrain)
 	
 	# Yield after mesh creation
 	await get_tree().process_frame
 	
 	if not is_instance_valid(chunk) or chunk.is_queued_for_deletion():
+		is_currently_generating = false
 		_generating_chunks.erase(chunk_index)
 		call_deferred("_process_next_chunk")
 		return
@@ -270,7 +282,14 @@ func _generate_chunk_async(chunk_index: int) -> void:
 	
 	# 5. Spawn objects with batched yielding (HEAVY)
 	if object_spawner:
+		var spawn_start := Time.get_ticks_msec()
 		await object_spawner.spawn_objects_async(chunk, chunk_index, get_decoration_height)
+		var spawn_time := Time.get_ticks_msec() - spawn_start
+		last_spawn_time_ms = spawn_time
+		if spawn_time > 50:
+			push_warning("TerrainGen: Object spawning took %d ms for chunk %d" % [spawn_time, chunk_index])
+	
+	is_currently_generating = false
 	
 	# Finalize chunk
 	if is_instance_valid(chunk) and not chunk.is_queued_for_deletion():

@@ -3,6 +3,10 @@ extends RigidBody3D
 
 signal died
 
+# Preloaded shaders to avoid runtime stutter
+const SuperchargePulseShader := preload("res://scripts/shaders/supercharge_pulse.gdshader")
+const OutlineShader := preload("res://scripts/shaders/outline.gdshader")
+
 # Movement parameters
 @export var forward_force: float = 50.0  # Constant forward push
 @export var lateral_force: float = 100.0  # Direct sideways steering force
@@ -1329,11 +1333,10 @@ func _create_supercharge_pulse() -> void:
 	supercharge_pulse_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
 	supercharge_pulse_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	
-	# Load and apply pulse shader
-	var shader := load("res://scripts/shaders/supercharge_pulse.gdshader")
-	if shader:
+	# Apply preloaded pulse shader (avoids runtime stutter)
+	if SuperchargePulseShader:
 		supercharge_pulse_material = ShaderMaterial.new()
-		supercharge_pulse_material.shader = shader
+		supercharge_pulse_material.shader = SuperchargePulseShader
 		supercharge_pulse_material.set_shader_parameter("intensity", 0.0)
 		supercharge_pulse_material.set_shader_parameter("pulse_speed", SUPERCHARGE_PULSE_SPEED)
 		supercharge_pulse_rect.material = supercharge_pulse_material
@@ -1353,13 +1356,12 @@ func _create_supercharge_outline() -> void:
 	if not player_model:
 		return
 	
-	# Create outline shader material
-	var outline_shader := load("res://scripts/shaders/outline.gdshader")
-	if not outline_shader:
+	# Use preloaded outline shader (avoids runtime stutter)
+	if not OutlineShader:
 		return
 	
 	supercharge_outline_material = ShaderMaterial.new()
-	supercharge_outline_material.shader = outline_shader
+	supercharge_outline_material.shader = OutlineShader
 	supercharge_outline_material.set_shader_parameter("outline_color", Color(1.0, 0.15, 0.1, 1.0))
 	supercharge_outline_material.set_shader_parameter("outline_scale", SUPERCHARGE_OUTLINE_SCALE)
 	

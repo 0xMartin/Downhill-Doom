@@ -172,9 +172,21 @@ func _init(config: Dictionary) -> void:
 	})
 
 ## Get cached PackedScene (avoids repeated load() calls)
+## First checks ObjectPool's preloaded cache, then falls back to local cache
 func _get_cached_scene(model_path: String) -> PackedScene:
+	# Check local cache first
 	if _scene_cache.has(model_path):
 		return _scene_cache[model_path]
+	
+	# Try to get from ObjectPool's preloaded cache
+	var pool := _get_pool()
+	if pool and pool.has_method("get_cached_model"):
+		var scene: PackedScene = pool.get_cached_model(model_path)
+		if scene:
+			_scene_cache[model_path] = scene
+			return scene
+	
+	# Fallback to synchronous load (shouldn't happen if preloading worked)
 	var scene := load(model_path) as PackedScene
 	if scene:
 		_scene_cache[model_path] = scene

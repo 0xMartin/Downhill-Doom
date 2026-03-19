@@ -1,6 +1,8 @@
 extends CanvasLayer
 ## HUD - Displays coins, distance, health, and handles pause
 
+const TerrainGeneratorScript = preload("res://scripts/terrain/terrain_generator.gd")
+
 signal jump_pressed  # Emitted when touch jump button is pressed
 
 @onready var top_bar: PanelContainer = $TopBar
@@ -107,6 +109,22 @@ const STUCK_GRACE_PERIOD: float = 5.0  # Grace period at game start
 # Debug performance overlay
 var debug_label: Label = null
 const DEBUG_PERFORMANCE_ENABLED := true  # Set to false to disable
+
+# Performance spike tracking
+var _max_process_time: float = 0.0
+var _max_physics_time: float = 0.0
+var _spike_count: int = 0
+var _last_spike_source: String = ""
+var _frame_times: Array[float] = []
+const SPIKE_THRESHOLD_MS: float = 50.0  # Consider >50ms a spike
+const FRAME_HISTORY_SIZE: int = 60  # Track last 60 frames
+
+# Spike analysis - track what changed when spike occurred
+var _prev_node_count: int = 0
+var _prev_draw_calls: int = 0
+var _prev_objects: int = 0
+var _last_delta: float = 0.0
+var _spike_details: String = ""
 
 ## Format large numbers with k/M suffix (13410 -> "13.41k")
 static func format_number(n: int) -> String:
@@ -1145,44 +1163,115 @@ func _update_debug_label() -> void:
 	if not debug_label:
 		return
 	
+	# Get actual delta time from last frame
+	var delta := get_process_delta_time()
+	var delta_ms := delta * 1000.0
+	
 	# FPS
 	var fps := Engine.get_frames_per_second()
-	
-	# Frame time in ms
-	var frame_time := 1000.0 / maxf(fps, 1.0)
 	
 	# CPU time (from Performance singleton)
 	var process_time := Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0
 	var physics_time := Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS) * 1000.0
+	var navigation_time := Performance.get_monitor(Performance.TIME_NAVIGATION_PROCESS) * 1000.0
+	
+	# Track frame times for spike detection
+	_frame_times.append(delta_ms)
+	if _frame_times.size() > FRAME_HISTORY_SIZE:
+		_frame_times.pop_front()
+	
+	# Track max times
+	if process_time > _max_process_time:
+		_max_process_time = process_time
+	if physics_time > _max_physics_time:
+		_max_physics_time = physics_time
 	
 	# Memory
 	var mem_static := Performance.get_monitor(Performance.MEMORY_STATIC) / 1048576.0
-	var mem_dynamic := Performance.get_monitor(Performance.MEMORY_MESSAGE_BUFFER_MAX) / 1048576.0
 	
 	# Render info
-	var draw_calls := Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME)
-	var objects_in_frame := Performance.get_monitor(Performance.RENDER_TOTAL_OBJECTS_IN_FRAME)
-	var render_cpu := Performance.get_monitor(Performance.TIME_NAVIGATION_PROCESS) * 1000.0
-	
-	# GPU time (if available - may show 0 on some platforms)
-	var render_time := Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0
+	var draw_calls := int(Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME))
+	var objects_in_frame := int(Performance.get_monitor(Performance.RENDER_TOTAL_OBJECTS_IN_FRAME))
 	
 	# Object counts
-	var nodes := Performance.get_monitor(Performance.OBJECT_NODE_COUNT)
-	var orphan := Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT)
+	var nodes := int(Performance.get_monitor(Performance.OBJECT_NODE_COUNT))
+	var orphan := int(Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT))
 	
 	# Physics bodies
-	var physics_2d := Performance.get_monitor(Performance.PHYSICS_2D_ACTIVE_OBJECTS)
-	var physics_3d := Performance.get_monitor(Performance.PHYSICS_3D_ACTIVE_OBJECTS)
+	var physics_3d := int(Performance.get_monitor(Performance.PHYSICS_3D_ACTIVE_OBJECTS))
+	
+	# Detect spikes - use delta_ms as it's more accurate for actual frame time
+	if delta_ms > SPIKE_THRESHOLD_MS:
+		_spike_count += 1
+		
+		# Build detailed spike info
+		var changes: Array[String] = []
+		
+		# Check what changed
+		var node_diff := nodes - _prev_node_count
+		var draw_diff := draw_calls - _prev_draw_calls
+		var obj_diff := objects_in_frame - _prev_objects
+		
+		if abs(node_diff) > 10:
+			changes.append("nodes%+d" % node_diff)
+		if abs(draw_diff) > 10:
+			changes.append("draw%+d" % draw_diff)
+		if abs(obj_diff) > 10:
+			changes.append("obj%+d" % obj_diff)
+		if physics_time > 10:
+			changes.append("phys%.0fms" % physics_time)
+		if navigation_time > 5:
+			changes.append("nav%.0fms" % navigation_time)
+		if TerrainGeneratorScript.is_currently_generating:
+			changes.append("GEN")
+		
+		# CONSOLE LOG for debugging
+		var render_cpu := Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME)
+		var audio_latency := Performance.get_monitor(Performance.AUDIO_OUTPUT_LATENCY) * 1000.0
+		print("=== SPIKE #%d ===" % _spike_count)
+		print("  Delta: %.1fms | Process: %.1fms | Physics: %.1fms" % [delta_ms, process_time, physics_time])
+		print("  Nodes: %d (diff: %+d) | Draw calls: %d | Objects: %d" % [nodes, node_diff, draw_calls, objects_in_frame])
+		print("  Primitives: %d | Audio latency: %.1fms" % [int(render_cpu), audio_latency])
+		print("  Terrain generating: %s | Orphans: %d" % [TerrainGeneratorScript.is_currently_generating, orphan])
+		if changes.size() > 0:
+			print("  Changes: %s" % ", ".join(changes))
+		else:
+			print("  No obvious changes - possible causes: GC, shader compile, I/O, system")
+		print("")
+		
+		if changes.is_empty():
+			_spike_details = "delta=%.0fms proc=%.0fms (no obvious cause)" % [delta_ms, process_time]
+		else:
+			_spike_details = "delta=%.0fms proc=%.0fms [%s]" % [delta_ms, process_time, ", ".join(changes)]
+	
+	# Store previous values for comparison
+	_prev_node_count = nodes
+	_prev_draw_calls = draw_calls
+	_prev_objects = objects_in_frame
+	_last_delta = delta_ms
+	
+	# Calculate average frame time
+	var avg_frame: float = 0.0
+	if _frame_times.size() > 0:
+		for ft in _frame_times:
+			avg_frame += ft
+		avg_frame /= _frame_times.size()
+	
+	# Terrain generation info
+	var terrain_info := ""
+	if TerrainGeneratorScript.is_currently_generating:
+		terrain_info = " [GEN]"
 	
 	# Build text
 	var text := ""
-	text += "FPS: %d (%.1f ms)\n" % [fps, frame_time]
-	text += "Process: %.2f ms | Physics: %.2f ms\n" % [process_time, physics_time]
-	text += "Draw calls: %d | Objects: %d\n" % [draw_calls, objects_in_frame]
-	text += "Nodes: %d | Orphans: %d\n" % [nodes, orphan]
-	text += "Physics 3D: %d bodies\n" % [physics_3d]
-	text += "Memory: %.1f MB static" % [mem_static]
+	text += "FPS: %d | Delta: %.1f ms | Avg: %.1f ms%s\n" % [fps, delta_ms, avg_frame, terrain_info]
+	text += "Process: %.1f ms | Physics: %.1f ms\n" % [process_time, physics_time]
+	text += "Max Proc: %.1f ms | Max Phys: %.1f ms\n" % [_max_process_time, _max_physics_time]
+	text += "Spikes (>%dms): %d\n" % [int(SPIKE_THRESHOLD_MS), _spike_count]
+	if _spike_details != "":
+		text += "  %s\n" % _spike_details
+	text += "Draw: %d | Obj: %d | Nodes: %d\n" % [draw_calls, objects_in_frame, nodes]
+	text += "Phys3D: %d | Mem: %.1f MB" % [physics_3d, mem_static]
 	
 	# Color FPS based on performance
 	if fps >= 55:

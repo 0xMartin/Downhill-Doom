@@ -20,6 +20,11 @@ var _device_id: String = ""
 var _data: Dictionary = {}
 var _is_loaded := false
 
+# Debounced save to prevent stutters from frequent saves
+var _save_pending := false
+var _save_timer: Timer = null
+const SAVE_DEBOUNCE_SEC := 0.5  # Max save frequency
+
 signal data_changed
 signal storage_ready  # Emitted when initial data load is complete
 
@@ -27,8 +32,22 @@ signal storage_ready  # Emitted when initial data load is complete
 func _ready() -> void:
 	_derive_keys()
 	_load_data()
+	
+	# Create debounce timer for saves
+	_save_timer = Timer.new()
+	_save_timer.one_shot = true
+	_save_timer.wait_time = SAVE_DEBOUNCE_SEC
+	_save_timer.timeout.connect(_do_save)
+	add_child(_save_timer)
+	
 	# Emit ready signal after data is loaded
 	storage_ready.emit()
+
+
+func _notification(what: int) -> void:
+	# Save immediately when app is closing or going to background
+	if what == NOTIFICATION_WM_CLOSE_REQUEST or what == NOTIFICATION_APPLICATION_PAUSED:
+		save_data_immediate()
 
 
 # ========== KEY DERIVATION ==========
@@ -159,9 +178,27 @@ func _load_data() -> void:
 	_is_loaded = true
 
 
+## Request save - debounced to prevent stutters from frequent saves
 func save_data() -> void:
 	if not _is_loaded:
 		return
+	
+	# Mark save as pending
+	_save_pending = true
+	
+	# Start/restart debounce timer
+	if _save_timer and not _save_timer.is_stopped():
+		return  # Timer already running, will save when it fires
+	
+	if _save_timer:
+		_save_timer.start()
+
+## Actually perform the save (called by debounce timer)
+func _do_save() -> void:
+	if not _save_pending or not _is_loaded:
+		return
+	
+	_save_pending = false
 	
 	# Prepare data JSON
 	var data_json := JSON.stringify(_data)
@@ -193,6 +230,13 @@ func save_data() -> void:
 	
 	file.store_string(wrapper_json)
 	file.close()
+
+## Force immediate save (for critical moments like app exit)
+func save_data_immediate() -> void:
+	if _save_timer:
+		_save_timer.stop()
+	_save_pending = true
+	_do_save()
 
 
 func _get_default_data() -> Dictionary:

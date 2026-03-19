@@ -672,3 +672,13 @@ static func get_category_name(category: int) -> String:
 		Category.NPC_AERIAL:
 			return "Aerial Enemy"
 	return "Unknown"
+
+## Get all model paths for preloading (avoids first-load stutters)
+static func get_all_model_paths() -> Array[String]:
+	_ensure_initialized()
+	var paths: Array[String] = []
+	for obj in _objects.values():
+		var obj_data := obj as ObjectData
+		if obj_data and obj_data.model_path and obj_data.model_path not in paths:
+			paths.append(obj_data.model_path)
+	return paths

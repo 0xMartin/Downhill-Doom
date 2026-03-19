@@ -9,6 +9,8 @@ extends Node
 ## Objects are pooled by model_path + category combination.
 ## When retrieved from pool, objects are reset to default state.
 
+const ObjectConfigScript := preload("res://scripts/config/object_config.gd")
+
 # Pool storage: { "model_path:category" -> Array[Node3D] }
 var _pools: Dictionary = {}
 
@@ -22,6 +24,10 @@ var _stats_returned := 0
 
 # Pool holder node (keeps pooled objects in scene tree but hidden)
 var _pool_holder: Node3D
+
+# Model preloading cache (avoids first-load stutters)
+var _model_cache: Dictionary = {}  # model_path -> PackedScene
+var _preload_in_progress: bool = false
 
 
 func _ready() -> void:
@@ -39,6 +45,55 @@ func _ready() -> void:
 	timer.autostart = true
 	timer.timeout.connect(_cleanup_invalid_entries)
 	add_child(timer)
+	
+	# Start background preloading of all world object models
+	call_deferred("_preload_all_models")
+
+
+## Preload all object models in background to avoid stutters during gameplay
+func _preload_all_models() -> void:
+	if _preload_in_progress:
+		return
+	_preload_in_progress = true
+	
+	var model_paths := ObjectConfigScript.get_all_model_paths()
+	
+	# Request threaded loading for all models
+	for path in model_paths:
+		if not _model_cache.has(path) and ResourceLoader.exists(path):
+			ResourceLoader.load_threaded_request(path, "PackedScene")
+	
+	# Check loading progress in background
+	_check_model_preload_progress(model_paths)
+
+func _check_model_preload_progress(model_paths: Array[String]) -> void:
+	var all_loaded := true
+	
+	for path in model_paths:
+		if _model_cache.has(path):
+			continue
+		var status := ResourceLoader.load_threaded_get_status(path)
+		if status == ResourceLoader.THREAD_LOAD_LOADED:
+			_model_cache[path] = ResourceLoader.load_threaded_get(path)
+		elif status == ResourceLoader.THREAD_LOAD_IN_PROGRESS:
+			all_loaded = false
+	
+	if not all_loaded:
+		# Continue checking next frame
+		await get_tree().process_frame
+		_check_model_preload_progress(model_paths)
+	else:
+		_preload_in_progress = false
+
+## Get cached model scene (preloaded) - used by ObjectSpawner
+func get_cached_model(model_path: String) -> PackedScene:
+	if _model_cache.has(model_path):
+		return _model_cache[model_path]
+	# Fallback to synchronous load (shouldn't happen if preloading worked)
+	var scene := load(model_path) as PackedScene
+	if scene:
+		_model_cache[model_path] = scene
+	return scene
 
 
 ## Remove invalid/freed objects from all pools

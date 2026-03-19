@@ -4,6 +4,9 @@ extends RigidBody3D
 signal died
 signal hit_rock(impact_position: Vector3)
 
+# Preloaded resources to avoid runtime stutter
+const LightBeamTexture := preload("res://assets/textures/light_beam.png")
+
 # Movement parameters
 @export var forward_force: float = 50.0  # Constant forward push
 @export var lateral_force: float = 110.0  # Direct sideways steering force (+10%)
@@ -467,14 +470,13 @@ func _create_supercharge_particles() -> void:
 	proc_material.scale_max = 0.5
 	proc_material.color = Color(1.0, 0.3, 0.1, 0.8)  # Red-orange
 	
-	# Try to load light beam texture
-	var light_texture := load("res://assets/textures/light_beam.png") as Texture2D
-	if light_texture:
+	# Use preloaded light beam texture (avoids runtime stutter)
+	if LightBeamTexture:
 		var quad_mesh := QuadMesh.new()
 		quad_mesh.size = Vector2(0.5, 0.5)
 		var mat := StandardMaterial3D.new()
 		mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-		mat.albedo_texture = light_texture
+		mat.albedo_texture = LightBeamTexture
 		mat.albedo_color = Color(1.0, 0.3, 0.1, 0.8)
 		mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 		mat.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES

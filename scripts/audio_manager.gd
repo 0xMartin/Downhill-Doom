@@ -34,6 +34,11 @@ var tree_hit_sounds: Array[String] = [
 	"res://assets/sounds/hit/tree/tree_2.mp3",
 ]
 
+# Preloaded audio streams (avoid synchronous loading during gameplay)
+var _game_music_cache: Dictionary = {}  # path -> AudioStream
+var _sfx_cache: Dictionary = {}  # path -> AudioStream
+var _preload_in_progress: bool = false
+
 # Audio players
 var menu_music_player: AudioStreamPlayer
 var game_music_player: AudioStreamPlayer
@@ -89,6 +94,73 @@ func _ready() -> void:
 		if menu_stream:
 			menu_stream.loop = true
 			menu_music_player.stream = menu_stream
+	
+	# Start background preloading of game music tracks (avoids stutters during gameplay)
+	_preload_game_audio()
+
+## Preload all game music and common SFX in the background to avoid stutters during gameplay
+func _preload_game_audio() -> void:
+	if _preload_in_progress:
+		return
+	_preload_in_progress = true
+	
+	# Use threaded loading for all game music tracks
+	for track_path in game_music_tracks:
+		if not _game_music_cache.has(track_path) and ResourceLoader.exists(track_path):
+			ResourceLoader.load_threaded_request(track_path, "AudioStream")
+	
+	# Also preload common SFX
+	var sfx_to_preload: Array[String] = [BUTTON_CLICK, HURT_SOUND, DEATH_SOUND, SUPERCHARGE_SOUND]
+	sfx_to_preload.append_array(tree_hit_sounds)
+	for sfx_path in sfx_to_preload:
+		if not _sfx_cache.has(sfx_path) and ResourceLoader.exists(sfx_path):
+			ResourceLoader.load_threaded_request(sfx_path, "AudioStream")
+	
+	# Check loading progress in background
+	call_deferred("_check_preload_progress")
+
+func _check_preload_progress() -> void:
+	var all_loaded := true
+	
+	# Check game music tracks
+	for track_path in game_music_tracks:
+		if _game_music_cache.has(track_path):
+			continue
+		var status := ResourceLoader.load_threaded_get_status(track_path)
+		if status == ResourceLoader.THREAD_LOAD_LOADED:
+			_game_music_cache[track_path] = ResourceLoader.load_threaded_get(track_path)
+		elif status == ResourceLoader.THREAD_LOAD_IN_PROGRESS:
+			all_loaded = false
+	
+	# Check SFX
+	var sfx_to_check: Array[String] = [BUTTON_CLICK, HURT_SOUND, DEATH_SOUND, SUPERCHARGE_SOUND]
+	sfx_to_check.append_array(tree_hit_sounds)
+	for sfx_path in sfx_to_check:
+		if _sfx_cache.has(sfx_path):
+			continue
+		var status := ResourceLoader.load_threaded_get_status(sfx_path)
+		if status == ResourceLoader.THREAD_LOAD_LOADED:
+			_sfx_cache[sfx_path] = ResourceLoader.load_threaded_get(sfx_path)
+		elif status == ResourceLoader.THREAD_LOAD_IN_PROGRESS:
+			all_loaded = false
+	
+	if not all_loaded:
+		# Continue checking next frame
+		await get_tree().process_frame
+		_check_preload_progress()
+	else:
+		_preload_in_progress = false
+
+## Get cached audio stream (preloaded) or fall back to synchronous load
+func _get_cached_audio(path: String, is_music: bool = false) -> AudioStream:
+	var cache := _game_music_cache if is_music else _sfx_cache
+	if cache.has(path):
+		return cache[path]
+	# Fallback to synchronous load (shouldn't happen if preloading worked)
+	var stream := load(path) as AudioStream
+	if stream:
+		cache[path] = stream
+	return stream
 
 func _process(delta: float) -> void:
 	# Handle roll sound fade based on ground contact with debounce
@@ -111,7 +183,7 @@ func _process(delta: float) -> void:
 # ========== UI Sounds ==========
 
 func play_button_click() -> void:
-	var stream := load(BUTTON_CLICK) as AudioStream
+	var stream := _get_cached_audio(BUTTON_CLICK)
 	if stream:
 		sfx_player.stream = stream
 		sfx_player.volume_db = _get_sfx_db(-5.0)
@@ -121,7 +193,7 @@ func play_button_click() -> void:
 func play_ui_sound(path: String, volume_offset: float = 0.0) -> void:
 	if not ResourceLoader.exists(path):
 		return
-	var stream := load(path) as AudioStream
+	var stream := _get_cached_audio(path)
 	if stream:
 		sfx_player.stream = stream
 		sfx_player.volume_db = _get_sfx_db(volume_offset)
@@ -194,7 +266,7 @@ func _play_random_game_track() -> void:
 			new_index = randi() % game_music_tracks.size()
 	
 	current_game_track_index = new_index
-	var stream := load(game_music_tracks[new_index]) as AudioStream
+	var stream := _get_cached_audio(game_music_tracks[new_index], true)
 	if stream:
 		game_music_player.stream = stream
 		game_music_player.volume_db = -80.0
@@ -247,7 +319,7 @@ func update_roll_pitch(speed_ratio: float) -> void:
 # ========== Player Sounds ==========
 
 func play_hurt_sound() -> void:
-	var stream := load(HURT_SOUND) as AudioStream
+	var stream := _get_cached_audio(HURT_SOUND)
 	if stream:
 		var player := AudioStreamPlayer.new()
 		player.stream = stream
@@ -257,7 +329,7 @@ func play_hurt_sound() -> void:
 		player.finished.connect(player.queue_free)
 
 func play_death_sound() -> void:
-	var stream := load(DEATH_SOUND) as AudioStream
+	var stream := _get_cached_audio(DEATH_SOUND)
 	if stream:
 		var player := AudioStreamPlayer.new()
 		player.stream = stream
@@ -267,7 +339,7 @@ func play_death_sound() -> void:
 		player.finished.connect(player.queue_free)
 
 func play_supercharge_sound() -> void:
-	var stream := load(SUPERCHARGE_SOUND) as AudioStream
+	var stream := _get_cached_audio(SUPERCHARGE_SOUND)
 	if stream:
 		var player := AudioStreamPlayer.new()
 		player.stream = stream
@@ -285,7 +357,7 @@ func play_tree_hit_sound() -> void:
 		return
 	
 	var random_index := randi() % tree_hit_sounds.size()
-	var stream := load(tree_hit_sounds[random_index]) as AudioStream
+	var stream := _get_cached_audio(tree_hit_sounds[random_index])
 	if stream:
 		var player := AudioStreamPlayer.new()
 		player.stream = stream
