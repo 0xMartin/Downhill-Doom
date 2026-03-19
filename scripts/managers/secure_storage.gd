@@ -222,6 +222,9 @@ func _get_default_data() -> Dictionary:
 		
 		# Daily quest data
 		"quest_data": {},
+		
+		# Tutorial state
+		"tutorial_completed": false,
 	}
 
 
@@ -518,3 +521,14 @@ func reset_all_data() -> void:
 	_data = _get_default_data()
 	save_data()
 	data_changed.emit()
+
+
+# ========== PUBLIC API - TUTORIAL ==========
+
+func is_tutorial_completed() -> bool:
+	return bool(_data.get("tutorial_completed", false))
+
+
+func set_tutorial_completed(completed: bool = true) -> void:
+	_data["tutorial_completed"] = completed
+	save_data()

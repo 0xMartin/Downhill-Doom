@@ -77,7 +77,9 @@ var skip_combo_popup: int = 0  # Amount to skip from regular popup (for combo bo
 @onready var quest_progress_bar: ProgressBar = $QuestPanel/Content/QuestProgressBar
 @onready var quest_progress_label: Label = $QuestPanel/Content/QuestProgressBar/QuestProgressLabel
 @onready var buff_indicator: VBoxContainer = $BuffIndicator
+@onready var inventory_ui: Node = $InventoryUI
 var quest_manager: Node
+var tutorial_manager: Node
 var _current_quest_id: String = ""
 const COLOR_QUEST_PROGRESS := Color(0.25, 0.65, 0.96, 1)
 const COLOR_QUEST_COMPLETED := Color(0.30, 0.85, 0.55, 1)
@@ -153,6 +155,9 @@ func _ready() -> void:
 	
 	# Connect quest manager signals
 	call_deferred("_connect_quest_signals")
+	
+	# Initialize tutorial manager (must be direct, not deferred, so it's ready for game_started signal)
+	_init_tutorial()
 
 func _exit_tree() -> void:
 	# Disconnect signals to prevent duplicate connections if re-added
@@ -665,10 +670,17 @@ func _on_game_started() -> void:
 	
 	# Reset stuck detection
 	_reset_stuck_detection()
+	
+	# Start tutorial if needed
+	if tutorial_manager and tutorial_manager.should_start_tutorial():
+		tutorial_manager.start_tutorial()
 
 func _on_supercharge_button_pressed() -> void:
 	if gm and gm.is_supercharge_ready():
 		gm.activate_supercharge()
+		# Notify tutorial manager
+		if tutorial_manager:
+			tutorial_manager.on_supercharge_activated()
 	# Release focus to prevent repeated activation
 	if supercharge_button:
 		supercharge_button.release_focus()
@@ -882,6 +894,30 @@ func _connect_quest_signals() -> void:
 		
 		# Initial state
 		_update_quest_display()
+
+
+# ========== Tutorial System ==========
+
+func _init_tutorial() -> void:
+	const TutorialManager := preload("res://scripts/ui/tutorial_manager.gd")
+	tutorial_manager = TutorialManager.new()
+	tutorial_manager.name = "TutorialManager"
+	add_child(tutorial_manager)
+	tutorial_manager.initialize(self)
+	
+	# Connect inventory slot_clicked to notify tutorial
+	if inventory_ui and inventory_ui.has_signal("slot_clicked"):
+		inventory_ui.slot_clicked.connect(_on_inventory_slot_clicked)
+	
+	# If game is already running (signal was emitted before init), start tutorial now
+	if gm and gm.is_playing and tutorial_manager.should_start_tutorial():
+		tutorial_manager.start_tutorial()
+
+
+func _on_inventory_slot_clicked(_slot_index: int) -> void:
+	# Notify tutorial manager that item was used
+	if tutorial_manager:
+		tutorial_manager.on_item_used()
 
 
 func _on_active_quest_changed(_quest: RefCounted) -> void:
