@@ -154,6 +154,34 @@ func _ready() -> void:
 	# Connect quest manager signals
 	call_deferred("_connect_quest_signals")
 
+func _exit_tree() -> void:
+	# Disconnect signals to prevent duplicate connections if re-added
+	if gm:
+		if gm.coins_changed.is_connected(_on_coins_changed):
+			gm.coins_changed.disconnect(_on_coins_changed)
+		if gm.distance_changed.is_connected(_on_distance_changed):
+			gm.distance_changed.disconnect(_on_distance_changed)
+		if gm.game_paused.is_connected(_on_game_paused):
+			gm.game_paused.disconnect(_on_game_paused)
+		if gm.health_changed.is_connected(_on_health_changed):
+			gm.health_changed.disconnect(_on_health_changed)
+		if gm.player_hit.is_connected(_on_player_hit):
+			gm.player_hit.disconnect(_on_player_hit)
+		if gm.player_healed.is_connected(_on_player_healed):
+			gm.player_healed.disconnect(_on_player_healed)
+		if gm.time_changed.is_connected(_on_time_changed):
+			gm.time_changed.disconnect(_on_time_changed)
+		if gm.supercharge_changed.is_connected(_on_supercharge_changed):
+			gm.supercharge_changed.disconnect(_on_supercharge_changed)
+		if gm.supercharge_activated.is_connected(_on_supercharge_activated):
+			gm.supercharge_activated.disconnect(_on_supercharge_activated)
+		if gm.supercharge_ended.is_connected(_on_supercharge_ended):
+			gm.supercharge_ended.disconnect(_on_supercharge_ended)
+		if gm.game_started.is_connected(_on_game_started):
+			gm.game_started.disconnect(_on_game_started)
+		if gm.object_destroyed.is_connected(_on_object_destroyed):
+			gm.object_destroyed.disconnect(_on_object_destroyed)
+
 func _process(delta: float) -> void:
 	# Sparkle orbits around the coin
 	sparkle_time += delta * 1.5
@@ -350,62 +378,63 @@ func _on_haptic_check_toggled(toggled_on: bool) -> void:
 	if audio:
 		audio.set_haptic_enabled(toggled_on)
 
-# ========== Floating Pickup Popup ==========
+# ========== Floating Popup System ==========
 
-func show_pickup_popup(amount: int, icon_texture: Texture2D) -> void:
-	if not audio or not audio.get_show_pickup_popup():
-		return
-	
+## Creates a floating popup with text and optional icon that animates off screen
+## Direction: true = upward (heal), false = downward (default)
+func _create_floating_popup(text: String, color: Color, outline_color: Color, icon_texture: Texture2D = null, float_up: bool = false) -> void:
 	# Create popup container
 	var popup := HBoxContainer.new()
 	popup.add_theme_constant_override("separation", 12)
 	
-	# Create +N label - large, bold style with outline
+	# Create label - large, bold style with outline
 	var label := Label.new()
-	label.text = "+" + format_number(amount)
+	label.text = text
 	label.add_theme_font_size_override("font_size", 116)
-	label.add_theme_color_override("font_color", Color(1, 0.9, 0.3, 1))  # Bright gold
+	label.add_theme_color_override("font_color", color)
 	label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
-	label.add_theme_color_override("font_outline_color", Color(0.4, 0.2, 0, 1))  # Dark outline
+	label.add_theme_color_override("font_outline_color", outline_color)
 	label.add_theme_constant_override("shadow_offset_x", 4)
 	label.add_theme_constant_override("shadow_offset_y", 4)
 	label.add_theme_constant_override("outline_size", 6)
 	popup.add_child(label)
 	
-	# Create icon - larger
-	var icon := TextureRect.new()
-	icon.texture = icon_texture
-	icon.custom_minimum_size = Vector2(104, 104)
-	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	icon.modulate = Color(1, 0.9, 0.3, 1)  # Bright gold tint
-	popup.add_child(icon)
+	# Create icon if provided
+	if icon_texture:
+		var icon := TextureRect.new()
+		icon.texture = icon_texture
+		icon.custom_minimum_size = Vector2(104, 104)
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.modulate = color
+		popup.add_child(icon)
 	
-	# Position at player area - use design resolution (720x1280 with stretch)
-	# Center horizontally, 70% from top (30% from bottom)
+	# Position at player area
 	var popup_container_width: float = popup_container.get_viewport_rect().size.x
 	var popup_container_height: float = popup_container.get_viewport_rect().size.y
 	var base_x: float = popup_container_width / 2.0
 	var base_y: float = popup_container_height * 0.70
 	
-	# Larger random offset around spawn point for more spread
+	# Random offset around spawn point
 	var offset_x := randf_range(-120, 120)
 	var offset_y := randf_range(-80, 80)
-	# Center the popup (estimate ~200px width for "+1" + icon at 2x size)
 	popup.position = Vector2(base_x - 100 + offset_x, base_y + offset_y)
-	popup.pivot_offset = Vector2(120, 60)  # Center pivot for rotation
-	popup_container.add_child(popup)  # Add to container so it's behind menus
+	popup.pivot_offset = Vector2(120, 60)
+	popup_container.add_child(popup)
 	
-	# Fall downward and off-screen
-	var angle := randf_range(PI * 0.3, PI * 0.7)  # Downward angles
-	var distance := popup_container_height - base_y + 100  # Enough to exit screen at bottom
-	var duration := 1.0  # Animation duration
+	# Animation direction
+	var angle: float
+	if float_up:
+		angle = randf_range(PI * 1.3, PI * 1.7)  # Upward angles
+	else:
+		angle = randf_range(PI * 0.3, PI * 0.7)  # Downward angles
+	
+	var distance := popup_container_height - base_y + 100
+	var duration := 1.0
 	var target_offset := Vector2(cos(angle), sin(angle)) * distance
-	
-	# Random spin (mild rotation)
 	var spin_amount := randf_range(-0.5, 0.5)
 	
-	# Animate: fall down off-screen, spin, and fade out
+	# Animate: move off-screen, spin, and fade out
 	var tween := create_tween()
 	tween.set_parallel(true)
 	tween.tween_property(popup, "position", popup.position + target_offset, duration).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
@@ -413,199 +442,53 @@ func show_pickup_popup(amount: int, icon_texture: Texture2D) -> void:
 	tween.tween_property(popup, "modulate:a", 0.0, duration * 0.8).set_delay(duration * 0.2)
 	tween.set_parallel(false)
 	tween.tween_callback(popup.queue_free)
+
+# ========== Floating Pickup Popup ==========
+
+func show_pickup_popup(amount: int, icon_texture: Texture2D) -> void:
+	if not audio or not audio.get_show_pickup_popup():
+		return
+	_create_floating_popup(
+		"+" + format_number(amount),
+		Color(1, 0.9, 0.3, 1),  # Bright gold
+		Color(0.4, 0.2, 0, 1),  # Dark gold outline
+		icon_texture
+	)
 
 # ========== Floating Combo Bonus Popup ==========
 
 func show_combo_popup(amount: int, icon_texture: Texture2D) -> void:
 	if not audio or not audio.get_show_pickup_popup():
 		return
-	
-	# Create popup container
-	var popup := HBoxContainer.new()
-	popup.add_theme_constant_override("separation", 16)
-	
-	# Create +N label - large, bold style with outline (cyan/turquoise for combo bonus)
-	var label := Label.new()
-	label.text = "+" + format_number(amount)
-	label.add_theme_font_size_override("font_size", 116)
-	label.add_theme_color_override("font_color", Color(0.3, 1.0, 0.9, 1))  # Bright cyan/turquoise
-	label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
-	label.add_theme_color_override("font_outline_color", Color(0, 0.3, 0.3, 1))  # Dark teal outline
-	label.add_theme_constant_override("shadow_offset_x", 4)
-	label.add_theme_constant_override("shadow_offset_y", 4)
-	label.add_theme_constant_override("outline_size", 6)
-	popup.add_child(label)
-	
-	# Create icon - larger
-	var icon := TextureRect.new()
-	icon.texture = icon_texture
-	icon.custom_minimum_size = Vector2(104, 104)
-	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	icon.modulate = Color(0.3, 1.0, 0.9, 1)  # Cyan tint to match
-	popup.add_child(icon)
-	
-	# Position at player area - use design resolution (720x1280 with stretch)
-	# Center horizontally, 70% from top (30% from bottom)
-	var popup_container_width: float = popup_container.get_viewport_rect().size.x
-	var popup_container_height: float = popup_container.get_viewport_rect().size.y
-	var base_x: float = popup_container_width / 2.0
-	var base_y: float = popup_container_height * 0.70
-	
-	# Larger random offset around spawn point for more spread
-	var offset_x := randf_range(-120, 120)
-	var offset_y := randf_range(-80, 80)
-	# Center the combo popup (2x size = ~200px width)
-	popup.position = Vector2(base_x - 100 + offset_x, base_y + offset_y)
-	popup.pivot_offset = Vector2(120, 60)  # Center pivot for rotation
-	popup_container.add_child(popup)  # Add to container so it's behind menus
-	
-	# Fall downward and off-screen
-	var angle := randf_range(PI * 0.3, PI * 0.7)  # Downward angles
-	var distance := popup_container_height - base_y + 100  # Enough to exit screen at bottom
-	var duration := 1.0  # Animation duration
-	var target_offset := Vector2(cos(angle), sin(angle)) * distance
-	
-	# Random spin (mild rotation)
-	var spin_amount := randf_range(-0.5, 0.5)
-	
-	# Animate: fall down off-screen, spin, and fade out
-	var tween := create_tween()
-	tween.set_parallel(true)
-	tween.tween_property(popup, "position", popup.position + target_offset, duration).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	tween.tween_property(popup, "rotation", spin_amount, duration)
-	tween.tween_property(popup, "modulate:a", 0.0, duration * 0.8).set_delay(duration * 0.2)
-	tween.set_parallel(false)
-	tween.tween_callback(popup.queue_free)
+	_create_floating_popup(
+		"+" + format_number(amount),
+		Color(0.3, 1.0, 0.9, 1),  # Bright cyan
+		Color(0, 0.3, 0.3, 1),    # Dark teal outline
+		icon_texture
+	)
 
 # ========== Floating Damage Popup ==========
 
 func show_damage_popup(amount: int) -> void:
 	if not audio or not audio.get_show_damage_popup():
 		return
-	
-	# Create popup container
-	var popup := HBoxContainer.new()
-	popup.add_theme_constant_override("separation", 12)
-	
-	# Create -N label - large, bold style with outline (red theme)
-	var label := Label.new()
-	label.text = "-" + str(amount)
-	label.add_theme_font_size_override("font_size", 116)
-	label.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3, 1))  # Bright red
-	label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
-	label.add_theme_color_override("font_outline_color", Color(0.5, 0, 0, 1))  # Dark red outline
-	label.add_theme_constant_override("shadow_offset_x", 4)
-	label.add_theme_constant_override("shadow_offset_y", 4)
-	label.add_theme_constant_override("outline_size", 6)
-	popup.add_child(label)
-	
-	# Create heart icon
-	var icon := TextureRect.new()
-	if heart_icon_texture:
-		icon.texture = heart_icon_texture
-		icon.custom_minimum_size = Vector2(96, 96)
-		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		icon.modulate = Color(1.0, 0.3, 0.3, 1)  # Red tint
-		popup.add_child(icon)
-	
-	# Position at player area - use design resolution (720x1280 with stretch)
-	# Center horizontally, 70% from top (30% from bottom)
-	var popup_container_width: float = popup_container.get_viewport_rect().size.x
-	var popup_container_height: float = popup_container.get_viewport_rect().size.y
-	var base_x: float = popup_container_width / 2.0
-	var base_y: float = popup_container_height * 0.70
-	
-	# Larger random offset around spawn point for more spread
-	var offset_x := randf_range(-120, 120)
-	var offset_y := randf_range(-80, 80)
-	# Center the damage popup (2x size = ~180px width)
-	popup.position = Vector2(base_x - 90 + offset_x, base_y + offset_y)
-	popup.pivot_offset = Vector2(100, 50)  # Center pivot for rotation
-	popup_container.add_child(popup)  # Add to container so it's behind menus
-	
-	# Fall downward and off-screen
-	var angle := randf_range(PI * 0.3, PI * 0.7)  # Downward angles
-	var distance := popup_container_height - base_y + 100  # Enough to exit screen at bottom
-	var duration := 1.0  # Animation duration
-	var target_offset := Vector2(cos(angle), sin(angle)) * distance
-	
-	# Random spin (mild rotation)
-	var spin_amount := randf_range(-0.5, 0.5)
-	
-	# Animate: fall down off-screen, spin, and fade out
-	var tween := create_tween()
-	tween.set_parallel(true)
-	tween.tween_property(popup, "position", popup.position + target_offset, duration).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	tween.tween_property(popup, "rotation", spin_amount, duration)
-	tween.tween_property(popup, "modulate:a", 0.0, duration * 0.8).set_delay(duration * 0.2)
-	tween.set_parallel(false)
-	tween.tween_callback(popup.queue_free)
-
+	_create_floating_popup(
+		"-" + str(amount),
+		Color(1.0, 0.3, 0.3, 1),  # Bright red
+		Color(0.5, 0, 0, 1),       # Dark red outline
+		heart_icon_texture
+	)
 
 func show_heal_popup(amount: int) -> void:
 	if not audio or not audio.get_show_damage_popup():
 		return
-	
-	# Create popup container
-	var popup := HBoxContainer.new()
-	popup.add_theme_constant_override("separation", 12)
-	
-	# Create +NHp label - large, bold style with outline (green theme)
-	var label := Label.new()
-	label.text = "+" + str(amount) + "Hp"
-	label.add_theme_font_size_override("font_size", 116)
-	label.add_theme_color_override("font_color", Color(0.3, 1.0, 0.5, 1))  # Bright green
-	label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
-	label.add_theme_color_override("font_outline_color", Color(0, 0.4, 0.15, 1))  # Dark green outline
-	label.add_theme_constant_override("shadow_offset_x", 4)
-	label.add_theme_constant_override("shadow_offset_y", 4)
-	label.add_theme_constant_override("outline_size", 6)
-	popup.add_child(label)
-	
-	# Create heart icon
-	var icon := TextureRect.new()
-	if heart_icon_texture:
-		icon.texture = heart_icon_texture
-		icon.custom_minimum_size = Vector2(96, 96)
-		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		icon.modulate = Color(0.3, 1.0, 0.5, 1)  # Green tint
-		popup.add_child(icon)
-	
-	# Position at player area - use design resolution (720x1280 with stretch)
-	# Center horizontally, 70% from top (30% from bottom)
-	var popup_container_width: float = popup_container.get_viewport_rect().size.x
-	var popup_container_height: float = popup_container.get_viewport_rect().size.y
-	var base_x: float = popup_container_width / 2.0
-	var base_y: float = popup_container_height * 0.70
-	
-	# Larger random offset around spawn point for more spread
-	var offset_x := randf_range(-120, 120)
-	var offset_y := randf_range(-80, 80)
-	# Center the heal popup (2x size = ~220px width for "+NHp" label)
-	popup.position = Vector2(base_x - 110 + offset_x, base_y + offset_y)
-	popup.pivot_offset = Vector2(120, 50)  # Center pivot for rotation
-	popup_container.add_child(popup)  # Add to container so it's behind menus
-	
-	# Float upward and fade out (same speed as damage falling down)
-	var angle := randf_range(PI * 1.3, PI * 1.7)  # Upward angles
-	var distance := popup_container_height - base_y + 100  # Same distance as damage popup
-	var duration := 1.0  # Same duration as damage popup
-	var target_offset := Vector2(cos(angle), sin(angle)) * distance
-	
-	# Random spin (mild rotation)
-	var spin_amount := randf_range(-0.5, 0.5)
-	
-	# Animate: float up off-screen, spin, and fade out
-	var tween := create_tween()
-	tween.set_parallel(true)
-	tween.tween_property(popup, "position", popup.position + target_offset, duration).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	tween.tween_property(popup, "rotation", spin_amount, duration)
-	tween.tween_property(popup, "modulate:a", 0.0, duration * 0.8).set_delay(duration * 0.2)
-	tween.set_parallel(false)
-	tween.tween_callback(popup.queue_free)
+	_create_floating_popup(
+		"+" + str(amount) + "Hp",
+		Color(0.3, 1.0, 0.5, 1),   # Bright green
+		Color(0, 0.4, 0.15, 1),    # Dark green outline
+		heart_icon_texture,
+		true  # Float up
+	)
 
 
 func _on_player_healed(heal_amount: int) -> void:

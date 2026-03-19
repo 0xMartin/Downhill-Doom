@@ -84,6 +84,8 @@ func fall(player_velocity: Vector3) -> void:
 	
 	# Remove after delay (only if still in game world, not returned to pool)
 	await tween.finished
+	if not is_inside_tree():
+		return
 	await get_tree().create_timer(2.0).timeout
 	# Check if we're still in the game world (not returned to pool)
 	if is_inside_tree() and get_parent() and not get_parent().name.begins_with("Pooled"):

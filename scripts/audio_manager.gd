@@ -83,11 +83,12 @@ func _ready() -> void:
 	if roll_stream:
 		roll_sound_player.stream = roll_stream
 	
-	# Load menu music as looping
-	var menu_stream := load(MENU_MUSIC) as AudioStreamMP3
-	if menu_stream:
-		menu_stream.loop = true
-		menu_music_player.stream = menu_stream
+	# Load menu music as looping (random track)
+	if menu_music_tracks.size() > 0:
+		var menu_stream := load(menu_music_tracks[0]) as AudioStreamMP3
+		if menu_stream:
+			menu_stream.loop = true
+			menu_music_player.stream = menu_stream
 
 func _process(delta: float) -> void:
 	# Handle roll sound fade based on ground contact with debounce

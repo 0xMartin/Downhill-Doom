@@ -52,7 +52,6 @@ func _ready() -> void:
 	game_manager = get_node("/root/GameManager")
 	audio_manager = get_node("/root/AudioManager")
 	item_manager = get_node_or_null("/root/ItemManager")
-	print("[Player] ItemManager reference: ", item_manager)
 	
 	# Store base values for supercharge
 	base_forward_force = forward_force
@@ -142,10 +141,6 @@ func _physics_process(delta: float) -> void:
 	var item_speed_mult: float = 1.0
 	if item_manager:
 		item_speed_mult = item_manager.speed_multiplier
-		if item_speed_mult != 1.0:
-			print("[Player] Applying speed multiplier: ", item_speed_mult, " to max_speed: ", max_speed * item_speed_mult)
-	else:
-		print("[Player] WARNING: item_manager is null!")
 	
 	var effective_max_speed := max_speed * item_speed_mult
 	if current_forward_speed < effective_max_speed:

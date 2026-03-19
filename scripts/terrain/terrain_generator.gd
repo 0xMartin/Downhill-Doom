@@ -371,6 +371,9 @@ func _create_barriers(chunk: Node3D) -> void:
 
 ## Get terrain height at a specific position - used by ObjectSpawner and HoleManager
 func get_decoration_height(local_x: float, local_z: float, chunk_index: int) -> float:
+	# Guard against null mesh_builder
+	if not mesh_builder:
+		return global_position.y
 	var world_z: float = local_z - chunk_index * chunk_size.y
 	var profile_height: float = mesh_builder.get_cross_section_height(local_x, world_z)
 	
