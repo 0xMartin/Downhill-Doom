@@ -87,6 +87,21 @@ var low_health_pulse_time: float = 0.0
 var is_low_health: bool = false
 const LOW_HEALTH_THRESHOLD: float = 0.3  # 30% health
 
+# Stuck detection system
+@onready var stuck_overlay: Control = $StuckOverlay
+@onready var stuck_label: Label = $StuckOverlay/CenterContainer/VBoxContainer/StuckLabel
+@onready var stuck_progress_bar: ProgressBar = $StuckOverlay/CenterContainer/VBoxContainer/BarContainer/StuckProgressBar
+@onready var stuck_countdown_label: Label = $StuckOverlay/CenterContainer/VBoxContainer/CountdownLabel
+var stuck_checkpoint_z: float = 0.0  # Z position when we started checking
+var stuck_timer: float = 0.0
+var stuck_countdown_timer: float = 0.0
+var is_stuck_warning_shown: bool = false
+var stuck_grace_period: float = 0.0  # Grace period at game start
+const STUCK_MIN_MOVEMENT: float = 10.0  # Min Z distance to count as "moved"
+const STUCK_WARNING_TIME: float = 3.0  # Seconds before warning shows
+const STUCK_DEATH_TIME: float = 10.0  # Seconds to die after warning
+const STUCK_GRACE_PERIOD: float = 5.0  # Grace period at game start
+
 ## Format large numbers with k/M suffix (13410 -> "13.41k")
 static func format_number(n: int) -> String:
 	if n >= 1_000_000:
@@ -165,6 +180,9 @@ func _process(delta: float) -> void:
 		if red_flash.visible:
 			var vignette_pulse := 0.15 + 0.1 * pulse_intensity
 			red_flash.modulate.a = vignette_pulse
+	
+	# Stuck detection
+	_update_stuck_detection(delta)
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
@@ -761,6 +779,9 @@ func _on_game_started() -> void:
 	
 	# Reset supercharge bar animation
 	supercharge_display_value = 0.0
+	
+	# Reset stuck detection
+	_reset_stuck_detection()
 
 func _on_supercharge_button_pressed() -> void:
 	if gm and gm.is_supercharge_ready():
@@ -1061,3 +1082,102 @@ func _show_quest_completed() -> void:
 	await get_tree().create_timer(2.0).timeout
 	if quest_panel:
 		quest_panel.visible = false
+
+
+# ========== Stuck Detection ==========
+
+func _reset_stuck_detection() -> void:
+	stuck_timer = 0.0
+	stuck_countdown_timer = STUCK_DEATH_TIME
+	is_stuck_warning_shown = false
+	stuck_grace_period = STUCK_GRACE_PERIOD  # Reset grace period
+	if stuck_overlay:
+		stuck_overlay.visible = false
+	if stuck_label:
+		stuck_label.modulate = Color(1.0, 1.0, 1.0)  # Reset pulse color
+	if gm and gm.player:
+		stuck_checkpoint_z = gm.player.global_position.z
+
+
+func _update_stuck_detection(delta: float) -> void:
+	# Only run during active gameplay
+	if not gm or not gm.is_playing or gm.is_paused or gm.health <= 0:
+		if stuck_overlay and stuck_overlay.visible:
+			stuck_overlay.visible = false
+		return
+	
+	if not gm.player:
+		return
+	
+	# Grace period at game start
+	if stuck_grace_period > 0.0:
+		stuck_grace_period -= delta
+		stuck_checkpoint_z = gm.player.global_position.z
+		return
+	
+	var current_z: float = gm.player.global_position.z
+	var z_distance: float = abs(current_z - stuck_checkpoint_z)
+	
+	# Check if player moved enough from checkpoint
+	if z_distance > STUCK_MIN_MOVEMENT:
+		# Player moved - reset timers and update checkpoint
+		stuck_timer = 0.0
+		stuck_checkpoint_z = current_z
+		if is_stuck_warning_shown:
+			is_stuck_warning_shown = false
+			if stuck_overlay:
+				stuck_overlay.visible = false
+			if stuck_label:
+				stuck_label.modulate = Color(1.0, 1.0, 1.0)
+		return
+	
+	# Player not moving enough - accumulate time
+	stuck_timer += delta
+	
+	if not is_stuck_warning_shown:
+		if stuck_timer >= STUCK_WARNING_TIME:
+			# Show warning
+			is_stuck_warning_shown = true
+			stuck_countdown_timer = STUCK_DEATH_TIME
+			if stuck_overlay:
+				stuck_overlay.visible = true
+				_pulse_warning()
+	else:
+		# Warning is shown - countdown to death
+		stuck_countdown_timer -= delta
+		
+		# Update UI
+		if stuck_progress_bar:
+			stuck_progress_bar.value = (stuck_countdown_timer / STUCK_DEATH_TIME) * 100.0
+		
+		if stuck_countdown_label:
+			stuck_countdown_label.text = str(ceili(stuck_countdown_timer))
+		
+		# Pulse effect on low time
+		if stuck_countdown_timer <= 3.0 and stuck_label:
+			var pulse := 0.7 + 0.3 * sin(stuck_countdown_timer * 10.0)
+			stuck_label.modulate = Color(1.0, pulse, pulse)
+		
+		# Death!
+		if stuck_countdown_timer <= 0.0:
+			_kill_player_stuck()
+
+
+func _pulse_warning() -> void:
+	if not stuck_label:
+		return
+	
+	var tween := create_tween()
+	tween.set_loops(3)
+	tween.tween_property(stuck_label, "scale", Vector2(1.1, 1.1), 0.15).set_trans(Tween.TRANS_ELASTIC)
+	tween.tween_property(stuck_label, "scale", Vector2(1.0, 1.0), 0.15)
+
+
+func _kill_player_stuck() -> void:
+	is_stuck_warning_shown = false
+	if stuck_overlay:
+		stuck_overlay.visible = false
+	
+	# Kill player by taking exactly their remaining health
+	if gm:
+		gm.take_damage(gm.health)

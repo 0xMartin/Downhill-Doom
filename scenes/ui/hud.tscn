@@ -52,6 +52,20 @@ corner_radius_top_right = 20
 corner_radius_bottom_right = 20
 corner_radius_bottom_left = 20
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_stuck_bg"]
+bg_color = Color(0.15, 0.05, 0.05, 0.5)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_stuck_fill"]
+bg_color = Color(0.9, 0.15, 0.1, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pause_panel"]
 content_margin_left = 24.0
 content_margin_top = 20.0
@@ -684,6 +698,95 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 color = Color(0, 1, 0.3, 0.4)
+
+[node name="StuckOverlay" type="Control" parent="." unique_id=2088562575]
+visible = false
+z_index = 150
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Background" type="ColorRect" parent="StuckOverlay" unique_id=1556320520]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.1, 0, 0, 0.7)
+
+[node name="CenterContainer" type="CenterContainer" parent="StuckOverlay" unique_id=1908886037]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="StuckOverlay/CenterContainer" unique_id=112218785]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 30
+alignment = 1
+
+[node name="StuckLabel" type="Label" parent="StuckOverlay/CenterContainer/VBoxContainer" unique_id=1328569514]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.2, 0.2, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 4
+theme_override_constants/shadow_offset_y = 4
+theme_override_constants/outline_size = 35
+theme_override_font_sizes/font_size = 96
+text = "KEEP MOVING!"
+horizontal_alignment = 1
+
+[node name="SubtitleLabel" type="Label" parent="StuckOverlay/CenterContainer/VBoxContainer" unique_id=747681410]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.6, 0.4, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 20
+theme_override_font_sizes/font_size = 48
+text = "or you will die"
+horizontal_alignment = 1
+
+[node name="BarContainer" type="Control" parent="StuckOverlay/CenterContainer/VBoxContainer" unique_id=1907727254]
+custom_minimum_size = Vector2(500, 50)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="BarBackground" type="ColorRect" parent="StuckOverlay/CenterContainer/VBoxContainer/BarContainer" unique_id=777648264]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.2, 0.1, 0.1, 0.9)
+
+[node name="StuckProgressBar" type="ProgressBar" parent="StuckOverlay/CenterContainer/VBoxContainer/BarContainer" unique_id=909278955]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_stuck_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_stuck_fill")
+value = 100.0
+show_percentage = false
+
+[node name="CountdownLabel" type="Label" parent="StuckOverlay/CenterContainer/VBoxContainer" unique_id=1471301186]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 30
+theme_override_font_sizes/font_size = 72
+text = "10"
+horizontal_alignment = 1
 
 [node name="PauseMenu" type="Control" parent="." unique_id=160735412]
 process_mode = 2

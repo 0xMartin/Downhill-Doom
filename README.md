@@ -3,6 +3,7 @@
 ## Prioritni
 
 - pridat modely: poklad, sloup, stan
+- hrac zemre kdyz se zasekne o neco a nepojede dal
 - kontrola optimalizace
 - skodlive itemy: poison
 - vymyslet dalsi veci co se daji nakupovat 
