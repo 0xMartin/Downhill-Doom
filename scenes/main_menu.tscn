@@ -9,7 +9,7 @@
 [ext_resource type="Texture2D" uid="uid://cpumyhj7tioid" path="res://assets/svg/quit.svg" id="10_quit"]
 [ext_resource type="Texture2D" uid="uid://bsrejrwemnmkg" path="res://assets/svg/shop.svg" id="11_shop"]
 [ext_resource type="Texture2D" uid="uid://jepsdf0och2h" path="res://assets/svg/coin.svg" id="12_coin"]
-[ext_resource type="Texture2D" uid="uid://quest_icon" path="res://assets/svg/quest.svg" id="13_quest"]
+[ext_resource type="Texture2D" uid="uid://dwu4kcvs6pyi" path="res://assets/svg/quest.svg" id="13_quest"]
 
 [sub_resource type="Gradient" id="Gradient_bg"]
 offsets = PackedFloat32Array(0, 0.5, 1)
@@ -114,20 +114,20 @@ border_width_bottom = 2
 border_color = Color(0.35, 0.5, 0.7, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_quest_button"]
-bg_color = Color(0.15, 0.25, 0.4, 0.9)
+bg_color = Color(0.12, 0.16, 0.24, 0.9)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.25, 0.65, 0.96, 1)
+border_color = Color(0.25, 0.35, 0.5, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_quest_button_hover"]
-bg_color = Color(0.2, 0.35, 0.55, 0.95)
+bg_color = Color(0.16, 0.22, 0.32, 0.95)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.35, 0.75, 1, 1)
+border_color = Color(0.35, 0.5, 0.7, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_balance_card"]
 content_margin_left = 16.0

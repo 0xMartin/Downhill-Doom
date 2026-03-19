@@ -26,6 +26,7 @@ var game_music_tracks: Array[String] = [
 	"res://assets/sounds/music/music3.mp3",
 	"res://assets/sounds/music/music4.mp3",
 	"res://assets/sounds/music/music5.mp3",
+	"res://assets/sounds/music/music6.mp3",
 ]
 
 var tree_hit_sounds: Array[String] = [
