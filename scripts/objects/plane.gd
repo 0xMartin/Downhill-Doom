@@ -31,7 +31,7 @@ const TILT_MAX_ANGLE: float = 8.0  # Maximum tilt in degrees
 # Contrail trail
 const TRAIL_LENGTH: int = 180
 const TRAIL_WIDTH: float = 0.3
-const TRAIL_COLOR := Color(1.0, 1.0, 1.0, 0.7)
+const TRAIL_COLOR := Color(0.9, 0.2, 0.1, 0.7)  # Red trail
 
 # Internal state
 var is_dead := false

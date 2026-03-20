@@ -7,8 +7,8 @@ const ShockWaveManager := preload("res://scripts/effects/shock_wave_manager.gd")
 
 const GRAVITY: float = 15.0
 const BOMB_RADIUS: float = 0.3
-const BOMB_COLOR := Color(0.3, 0.3, 0.3)  # Dark gray
-const TRAIL_COLOR := Color(0.8, 0.2, 0.1, 0.6)  # Red-orange trail
+const BOMB_COLOR := Color(0.8, 0.15, 0.1)  # Red
+const TRAIL_COLOR := Color(0.9, 0.2, 0.1, 0.7)  # Bright red trail
 const TRAIL_LENGTH: int = 20
 const TRAIL_WIDTH: float = 0.12
 

@@ -1,6 +1,6 @@
 extends Node3D
 class_name CatapultProjectile
-## Catapult projectile - gray ball with trail that follows ballistic trajectory
+## Catapult projectile - red ball with trail that follows ballistic trajectory
 ## On impact: direct damage + red shock wave that damages player
 
 const GRAVITY: float = 12.0  # Lower gravity for flatter arc
@@ -9,8 +9,8 @@ const TRAIL_LENGTH: int = 30
 const TRAIL_SEGMENT_TIME: float = 0.02
 const TRAIL_WIDTH: float = 0.15
 const PROJECTILE_RADIUS: float = 0.3
-const PROJECTILE_COLOR := Color(0.4, 0.4, 0.4)  # Dark gray
-const TRAIL_COLOR := Color(0.6, 0.1, 0.1, 0.8)  # Red trail
+const PROJECTILE_COLOR := Color(0.8, 0.15, 0.1)  # Red
+const TRAIL_COLOR := Color(0.9, 0.2, 0.1, 0.8)  # Bright red trail
 const IMPACT_SHOCK_WAVE_RADIUS: float = 4.0  # Shock wave radius
 
 var velocity: Vector3 = Vector3.ZERO
