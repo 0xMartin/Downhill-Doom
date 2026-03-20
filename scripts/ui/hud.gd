@@ -108,7 +108,7 @@ const STUCK_GRACE_PERIOD: float = 5.0  # Grace period at game start
 
 # Debug performance overlay
 var debug_label: Label = null
-const DEBUG_PERFORMANCE_ENABLED := true  # Set to false to disable
+const DEBUG_PERFORMANCE_ENABLED := false  # Set to false to disable
 
 # Performance spike tracking
 var _max_process_time: float = 0.0
