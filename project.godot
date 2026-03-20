@@ -69,6 +69,7 @@ sensors/enable_gyroscope=true
 [physics]
 
 3d/physics_engine="Jolt Physics"
+jolt_3d/simulation/update_broadphase_on_add_remove=false
 
 [rendering]
 

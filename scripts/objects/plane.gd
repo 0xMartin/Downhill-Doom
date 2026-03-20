@@ -66,6 +66,8 @@ var jet_audio: AudioStreamPlayer3D
 var trail_points: Array[Vector3] = []
 var trail_mesh: MeshInstance3D
 var trail_material: StandardMaterial3D
+var _trail_surface_tool: SurfaceTool  # Reused to avoid allocations
+var _trail_array_mesh: ArrayMesh  # Reused mesh
 
 
 func _ready() -> void:
@@ -169,6 +171,7 @@ func _setup_contrail() -> void:
 	## Create simple ribbon trail mesh
 	trail_mesh = MeshInstance3D.new()
 	trail_mesh.name = "Contrail"
+	trail_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	
 	trail_material = StandardMaterial3D.new()
 	trail_material.albedo_color = TRAIL_COLOR
@@ -176,13 +179,18 @@ func _setup_contrail() -> void:
 	trail_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	trail_material.cull_mode = BaseMaterial3D.CULL_DISABLED
 	trail_material.vertex_color_use_as_albedo = true
+	trail_mesh.material_override = trail_material
+	
+	# Pre-allocate reusable objects
+	_trail_surface_tool = SurfaceTool.new()
+	_trail_array_mesh = ArrayMesh.new()
 	
 	# Trail is added to root, not to plane (so it stays in world space)
 	get_tree().root.call_deferred("add_child", trail_mesh)
 
 
 func _update_trail() -> void:
-	## Add current position to trail and rebuild mesh
+	## Add current position to trail and rebuild mesh (reuses SurfaceTool)
 	if not trail_mesh or not is_instance_valid(trail_mesh):
 		return
 	
@@ -194,12 +202,14 @@ func _update_trail() -> void:
 	if trail_points.size() < 2:
 		return
 	
-	var st := SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLE_STRIP)
-	
 	var camera := get_viewport().get_camera_3d()
 	if not camera:
 		return
+	
+	# Clear and reuse existing ArrayMesh
+	_trail_array_mesh.clear_surfaces()
+	
+	_trail_surface_tool.begin(Mesh.PRIMITIVE_TRIANGLE_STRIP)
 	
 	var cam_pos := camera.global_position
 	
@@ -221,13 +231,14 @@ func _update_trail() -> void:
 		# Add vertices with fading alpha
 		var color := Color(TRAIL_COLOR.r, TRAIL_COLOR.g, TRAIL_COLOR.b, alpha * TRAIL_COLOR.a)
 		
-		st.set_color(color)
-		st.add_vertex(point + right)
-		st.set_color(color)
-		st.add_vertex(point - right)
+		_trail_surface_tool.set_color(color)
+		_trail_surface_tool.add_vertex(point + right)
+		_trail_surface_tool.set_color(color)
+		_trail_surface_tool.add_vertex(point - right)
 	
-	trail_mesh.mesh = st.commit()
-	trail_mesh.material_override = trail_material
+	# Commit to reused ArrayMesh
+	_trail_surface_tool.commit(_trail_array_mesh)
+	trail_mesh.mesh = _trail_array_mesh
 
 
 func _cleanup_trail() -> void:

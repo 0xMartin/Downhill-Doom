@@ -1199,6 +1199,8 @@ func _update_debug_label() -> void:
 	
 	# Physics bodies
 	var physics_3d := int(Performance.get_monitor(Performance.PHYSICS_3D_ACTIVE_OBJECTS))
+	var physics_islands := int(Performance.get_monitor(Performance.PHYSICS_3D_ISLAND_COUNT))
+	var collision_pairs := int(Performance.get_monitor(Performance.PHYSICS_3D_COLLISION_PAIRS))
 	
 	# Detect spikes - use delta_ms as it's more accurate for actual frame time
 	if delta_ms > SPIKE_THRESHOLD_MS:
@@ -1225,19 +1227,19 @@ func _update_debug_label() -> void:
 		if TerrainGeneratorScript.is_currently_generating:
 			changes.append("GEN")
 		
-		# CONSOLE LOG for debugging
-		var render_cpu := Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME)
-		var audio_latency := Performance.get_monitor(Performance.AUDIO_OUTPUT_LATENCY) * 1000.0
-		print("=== SPIKE #%d ===" % _spike_count)
-		print("  Delta: %.1fms | Process: %.1fms | Physics: %.1fms" % [delta_ms, process_time, physics_time])
-		print("  Nodes: %d (diff: %+d) | Draw calls: %d | Objects: %d" % [nodes, node_diff, draw_calls, objects_in_frame])
-		print("  Primitives: %d | Audio latency: %.1fms" % [int(render_cpu), audio_latency])
-		print("  Terrain generating: %s | Orphans: %d" % [TerrainGeneratorScript.is_currently_generating, orphan])
-		if changes.size() > 0:
-			print("  Changes: %s" % ", ".join(changes))
-		else:
-			print("  No obvious changes - possible causes: GC, shader compile, I/O, system")
-		print("")
+		# CONSOLE LOG for debugging (disabled to avoid I/O stalls)
+		#var render_cpu := Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME)
+		#var audio_latency := Performance.get_monitor(Performance.AUDIO_OUTPUT_LATENCY) * 1000.0
+		#print("=== SPIKE #%d ===" % _spike_count)
+		#print("  Delta: %.1fms | Process: %.1fms | Physics: %.1fms" % [delta_ms, process_time, physics_time])
+		#print("  Nodes: %d (diff: %+d) | Draw calls: %d | Objects: %d" % [nodes, node_diff, draw_calls, objects_in_frame])
+		#print("  Primitives: %d | Audio latency: %.1fms" % [int(render_cpu), audio_latency])
+		#print("  Terrain generating: %s | Orphans: %d" % [TerrainGeneratorScript.is_currently_generating, orphan])
+		#if changes.size() > 0:
+		#	print("  Changes: %s" % ", ".join(changes))
+		#else:
+		#	print("  No obvious changes - possible causes: GC, shader compile, I/O, system")
+		#print("")
 		
 		if changes.is_empty():
 			_spike_details = "delta=%.0fms proc=%.0fms (no obvious cause)" % [delta_ms, process_time]
@@ -1271,7 +1273,8 @@ func _update_debug_label() -> void:
 	if _spike_details != "":
 		text += "  %s\n" % _spike_details
 	text += "Draw: %d | Obj: %d | Nodes: %d\n" % [draw_calls, objects_in_frame, nodes]
-	text += "Phys3D: %d | Mem: %.1f MB" % [physics_3d, mem_static]
+	text += "Phys3D: %d | Islands: %d | Pairs: %d\n" % [physics_3d, physics_islands, collision_pairs]
+	text += "Orphans: %d | Mem: %.1f MB" % [orphan, mem_static]
 	
 	# Color FPS based on performance
 	if fps >= 55:

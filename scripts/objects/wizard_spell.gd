@@ -30,6 +30,9 @@ var blindness_fog_end: float = 40.0
 # Trail
 var trail_points: Array[Vector3] = []
 var trail_mesh_instance: MeshInstance3D
+var _trail_surface_tool: SurfaceTool  # Reused to avoid allocations
+var _trail_array_mesh: ArrayMesh  # Reused mesh
+var _trail_material: StandardMaterial3D  # Reused material
 
 # Ball
 var ball_mesh: MeshInstance3D
@@ -90,7 +93,18 @@ func _create_trail() -> void:
 	## Create trailing effect
 	trail_mesh_instance = MeshInstance3D.new()
 	trail_mesh_instance.name = "Trail"
+	trail_mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(trail_mesh_instance)
+	
+	# Pre-allocate reusable objects to avoid per-frame allocations
+	_trail_surface_tool = SurfaceTool.new()
+	_trail_array_mesh = ArrayMesh.new()
+	_trail_material = StandardMaterial3D.new()
+	_trail_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	_trail_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	_trail_material.vertex_color_use_as_albedo = true
+	_trail_material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	trail_mesh_instance.material_override = _trail_material
 
 
 func _create_particles() -> void:
@@ -258,16 +272,18 @@ func _create_impact_effect() -> void:
 
 
 func _update_trail_mesh() -> void:
-	## Update the trailing ribbon mesh
+	## Update the trailing ribbon mesh (reuses SurfaceTool and ArrayMesh)
 	if trail_points.size() < 2:
 		return
-	
-	var st := SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLE_STRIP)
 	
 	var camera := get_viewport().get_camera_3d()
 	if not camera:
 		return
+	
+	# Clear and reuse existing ArrayMesh
+	_trail_array_mesh.clear_surfaces()
+	
+	_trail_surface_tool.begin(Mesh.PRIMITIVE_TRIANGLE_STRIP)
 	
 	var cam_pos := camera.global_position
 	
@@ -291,19 +307,14 @@ func _update_trail_mesh() -> void:
 		
 		var color := TRAIL_COLOR
 		color.a *= alpha
-		st.set_color(color)
+		_trail_surface_tool.set_color(color)
 		
-		st.add_vertex(point + right)
-		st.add_vertex(point - right)
+		_trail_surface_tool.add_vertex(point + right)
+		_trail_surface_tool.add_vertex(point - right)
 	
-	trail_mesh_instance.mesh = st.commit()
-	
-	var mat := StandardMaterial3D.new()
-	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	mat.vertex_color_use_as_albedo = true
-	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
-	trail_mesh_instance.material_override = mat
+	# Commit to reused ArrayMesh instead of creating new one
+	_trail_surface_tool.commit(_trail_array_mesh)
+	trail_mesh_instance.mesh = _trail_array_mesh
 
 
 func _get_terrain_height() -> float:

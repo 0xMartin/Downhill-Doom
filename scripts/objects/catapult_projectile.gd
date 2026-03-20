@@ -25,6 +25,8 @@ var ground_level: float = 0.0  # Ground level at catapult position
 var trail_points: Array[Vector3] = []
 var trail_mesh_instance: MeshInstance3D
 var trail_material: StandardMaterial3D
+var _trail_surface_tool: SurfaceTool  # Reused to avoid allocations
+var _trail_array_mesh: ArrayMesh  # Reused mesh
 
 # Ball
 var ball_mesh: MeshInstance3D
@@ -55,9 +57,20 @@ func _create_ball() -> void:
 func _create_trail() -> void:
 	trail_mesh_instance = MeshInstance3D.new()
 	trail_mesh_instance.name = "Trail"
+	trail_mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	
 	trail_material = StandardMaterial3D.new()
 	trail_material.albedo_color = TRAIL_COLOR
+	trail_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	trail_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	trail_material.vertex_color_use_as_albedo = true
+	trail_material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	trail_mesh_instance.material_override = trail_material
+	add_child(trail_mesh_instance)
+	
+	# Pre-allocate reusable objects
+	_trail_surface_tool = SurfaceTool.new()
+	_trail_array_mesh = ArrayMesh.new()
 	trail_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	trail_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	trail_material.cull_mode = BaseMaterial3D.CULL_DISABLED
@@ -107,13 +120,15 @@ func _update_trail_mesh() -> void:
 	if trail_points.size() < 2:
 		return
 	
-	var st := SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLE_STRIP)
-	
 	# Get camera for billboard effect
 	var camera := get_viewport().get_camera_3d()
 	if not camera:
 		return
+	
+	# Clear and reuse existing ArrayMesh
+	_trail_array_mesh.clear_surfaces()
+	
+	_trail_surface_tool.begin(Mesh.PRIMITIVE_TRIANGLE_STRIP)
 	
 	var cam_pos := camera.global_position
 	
@@ -135,13 +150,14 @@ func _update_trail_mesh() -> void:
 		# Add vertices with fading alpha
 		var color := Color(TRAIL_COLOR.r, TRAIL_COLOR.g, TRAIL_COLOR.b, alpha * TRAIL_COLOR.a)
 		
-		st.set_color(color)
-		st.add_vertex(point + right - global_position)  # Local space
-		st.set_color(color)
-		st.add_vertex(point - right - global_position)
+		_trail_surface_tool.set_color(color)
+		_trail_surface_tool.add_vertex(point + right - global_position)  # Local space
+		_trail_surface_tool.set_color(color)
+		_trail_surface_tool.add_vertex(point - right - global_position)
 	
-	trail_mesh_instance.mesh = st.commit()
-	trail_mesh_instance.material_override = trail_material
+	# Commit to reused ArrayMesh
+	_trail_surface_tool.commit(_trail_array_mesh)
+	trail_mesh_instance.mesh = _trail_array_mesh
 
 
 func _on_direct_player_hit() -> void:

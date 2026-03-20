@@ -269,7 +269,7 @@ func _create_collision_async(mesh: ArrayMesh, target_body: StaticBody3D) -> void
 	# Poll for completion (doesn't block main thread)
 	_poll_collision_task(task_id, result_container, target_body)
 
-## Poll for task completion and add collision when ready
+## Poll for task completion and add collision when ready (using coroutine to avoid timer spam)
 func _poll_collision_task(task_id: int, result_container: Dictionary, target_body: StaticBody3D) -> void:
 	var scene_tree := Engine.get_main_loop() as SceneTree
 	if not scene_tree:
@@ -284,9 +284,14 @@ func _poll_collision_task(task_id: int, result_container: Dictionary, target_bod
 			target_body.add_child(col_shape)
 		return
 	
-	# Poll via timer (~1 frame delay)
-	var timer := scene_tree.create_timer(0.016)
-	timer.timeout.connect(func():
+	# Poll using coroutine (no timer creation overhead)
+	_await_collision_task(scene_tree, result_container, target_body)
+
+## Coroutine to await collision task completion without creating timers
+func _await_collision_task(scene_tree: SceneTree, result_container: Dictionary, target_body: StaticBody3D) -> void:
+	while true:
+		await scene_tree.process_frame
+		
 		_collision_mutex.lock()
 		var is_done: bool = result_container["done"]
 		var shape: ConcavePolygonShape3D = result_container["shape"] as ConcavePolygonShape3D
@@ -297,10 +302,7 @@ func _poll_collision_task(task_id: int, result_container: Dictionary, target_bod
 				var col_shape := CollisionShape3D.new()
 				col_shape.shape = shape
 				target_body.add_child.call_deferred(col_shape)
-		else:
-			# Not done yet, poll again
-			_poll_collision_task(task_id, result_container, target_body)
-	, CONNECT_ONE_SHOT)
+			return
 
 func get_cross_section_height(world_x: float, world_z: float) -> float:
 	var half_terrain := terrain_width / 2.0
