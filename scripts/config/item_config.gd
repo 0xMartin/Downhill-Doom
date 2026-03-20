@@ -222,7 +222,7 @@ static func _init_items() -> void:
 	_register_item({
 		"id": "slow_motion",
 		"name": "Slow Motion",
-		"rarity": Rarity.RARE,
+		"rarity": Rarity.LEGENDARY,
 		"effect": EffectType.SLOW_MOTION,
 		"value": 0.5,  # 50% time scale
 		"duration": 20.0,
@@ -244,7 +244,7 @@ static func _init_items() -> void:
 	_register_item({
 		"id": "time_stop",
 		"name": "Time Stop",
-		"rarity": Rarity.LEGENDARY,
+		"rarity": Rarity.RARE,
 		"effect": EffectType.TIME_STOP,
 		"value": 1.0,  # Full stop
 		"duration": 5.0,

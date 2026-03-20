@@ -997,7 +997,7 @@ text = "Vibration"
 
 [node name="SideBar" type="VBoxContainer" parent="." unique_id=1871082622]
 anchors_preset = -1
-anchor_left = 0.86
+anchor_left = 0.85
 anchor_top = 0.22
 anchor_right = 0.98
 anchor_bottom = 0.85

@@ -63,6 +63,10 @@ func _update_time_stop(buff: Dictionary, real_delta: float) -> void:
 	const TRANSITION_TIME := 0.5  # Time to slow down / speed up
 	const MIN_TIME_SCALE := 0.1  # Minimum time scale (not fully stopped)
 	
+	# Always decrement total_remaining for UI countdown
+	if buff.has("total_remaining"):
+		buff.total_remaining -= real_delta
+	
 	match buff.phase:
 		"slowing":
 			buff.phase_timer -= real_delta
@@ -354,6 +358,7 @@ func _apply_time_stop(duration: float) -> bool:
 	# Store the effect in active buffs (use real-time tracking)
 	_active_buffs[ItemConfig.EffectType.TIME_STOP] = {
 		"timer": duration,
+		"total_remaining": duration,  # For UI display countdown
 		"value": 0.1,  # Target time scale
 		"phase": "slowing",  # slowing -> stopped -> speeding
 		"phase_timer": 0.5  # Time for slow-down transition
@@ -426,7 +431,11 @@ func has_buff(effect_type: int) -> bool:
 
 func get_buff_remaining_time(effect_type: int) -> float:
 	if _active_buffs.has(effect_type):
-		return _active_buffs[effect_type].timer
+		var buff: Dictionary = _active_buffs[effect_type]
+		# TIME_STOP uses total_remaining for accurate UI display
+		if effect_type == ItemConfig.EffectType.TIME_STOP and buff.has("total_remaining"):
+			return maxf(buff.total_remaining, 0.0)
+		return buff.timer
 	return 0.0
 
 func get_active_buffs() -> Dictionary:

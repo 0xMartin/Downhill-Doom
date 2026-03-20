@@ -571,7 +571,7 @@ static func _init_objects() -> void:
 		"height": 1.0,
 		"height_var": 0.0,
 		"spawn_chance": 0.10,
-		"coins": 3500,
+		"coins": 6000,
 		"damage": 40,
 		"destructible": true,
 	})
