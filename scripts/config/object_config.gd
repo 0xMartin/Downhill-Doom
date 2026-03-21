@@ -259,7 +259,7 @@ static func _init_objects() -> void:
 		"height": 4.8,
 		"height_var": 0.1,
 		"spawn_chance": 1.0,
-		"coins": 350,
+		"coins": 700,
 		"destructible": true,
 	})
 	_register_object({
@@ -270,7 +270,7 @@ static func _init_objects() -> void:
 		"height": 4.8,
 		"height_var": 0.1,
 		"spawn_chance": 1.0,
-		"coins": 350,
+		"coins": 700,
 		"destructible": true,
 	})
 	_register_object({
@@ -281,7 +281,7 @@ static func _init_objects() -> void:
 		"height": 5.5,
 		"height_var": 0.1,
 		"spawn_chance": 0.5,
-		"coins": 550,
+		"coins": 1000,
 		"destructible": true,
 	})
 	_register_object({
@@ -292,7 +292,7 @@ static func _init_objects() -> void:
 		"height": 7.0,
 		"height_var": 0.1,
 		"spawn_chance": 0.3,
-		"coins": 750,
+		"coins": 1300,
 		"destructible": true,
 	})
 	_register_object({
@@ -303,7 +303,7 @@ static func _init_objects() -> void:
 		"height": 7.0,
 		"height_var": 0.1,
 		"spawn_chance": 0.2,
-		"coins": 1000,
+		"coins": 1700,
 		"destructible": true,
 	})
 	_register_object({
@@ -314,7 +314,7 @@ static func _init_objects() -> void:
 		"height": 7.7,
 		"height_var": 0.1,
 		"spawn_chance": 0.1,
-		"coins": 2000,
+		"coins": 3900,
 		"destructible": true,
 	})
 	_register_object({
@@ -325,7 +325,7 @@ static func _init_objects() -> void:
 		"height": 9.8,
 		"height_var": 0.1,
 		"spawn_chance": 0.05,
-		"coins": 4000,
+		"coins": 6400,
 		"destructible": true,
 	})
 	
@@ -338,7 +338,7 @@ static func _init_objects() -> void:
 		"height": 1.95, 
 		"height_var": 0.1,
 		"spawn_chance": 1.0,
-		"coins": 700,
+		"coins": 1100,
 		"damage": 15,
 		"destructible": false,
 		"collision_shape": "sphere",
@@ -351,7 +351,7 @@ static func _init_objects() -> void:
 		"height": 2.0, 
 		"height_var": 0.05,
 		"spawn_chance": 0.6, 
-		"coins": 1250,
+		"coins": 2000,
 		"damage": 15,
 		"destructible": false,
 	})
@@ -363,7 +363,7 @@ static func _init_objects() -> void:
 		"height": 5.0, 
 		"height_var": 0.1,
 		"spawn_chance": 0.3, 
-		"coins": 1800,
+		"coins": 4000,
 		"damage": 20,
 		"destructible": false,
 	})
@@ -589,7 +589,7 @@ static func _init_objects() -> void:
 		"height": 2.0,
 		"height_var": 0.1,
 		"spawn_chance": 0.2,  
-		"coins": 1250,
+		"coins": 1950,
 		"damage": 20, 
 		"destructible": true,
 	})
@@ -601,7 +601,7 @@ static func _init_objects() -> void:
 		"height": 2.9,
 		"height_var": 0.1,
 		"spawn_chance": 0.1,
-		"coins": 2200,
+		"coins": 3500,
 		"damage": 25,
 		"destructible": true,
 	})
@@ -615,7 +615,7 @@ static func _init_objects() -> void:
 		"height": 1.0,
 		"height_var": 0.0,
 		"spawn_chance": 0.10,
-		"coins": 6000,
+		"coins": 8000,
 		"damage": 40,
 		"destructible": true,
 	})
