@@ -44,7 +44,7 @@ const MILESTONE_0: Array[String] = [
 	# Rocks (all)
 	"rock_1", "rock_2", "rock_3", "rock_4", "rock_5", "rock_6",
 	# Basic buildings
-	"building_log_stack", "building_small_hut", "building_market_stall", "building_wooden_cart",
+	"building_log_stack", "building_barrels", "building_market_stall", "building_wooden_cart",
 	# Friendly animals (all)
 	"npc_chicken", "npc_rabbit", "npc_sheep", "npc_cow", "npc_dog", "npc_cat",
 	"npc_squirrel", "npc_penguin", "npc_lord_penguin", "npc_chicken_rider",
@@ -52,15 +52,15 @@ const MILESTONE_0: Array[String] = [
 
 ## Objects unlocked at 960m
 const MILESTONE_960: Array[String] = [
-	"building_barrels",
+	"building_small_hut",
 	"building_well",
-	"building_column",
 	"enemy_spike",
 	"npc_dark_pawn",
 ]
 
 ## Objects unlocked at 1800m
 const MILESTONE_1800: Array[String] = [
+	"building_column",
 	"building_house",
 	"building_house_2",
 	"npc_dark_knight",
