@@ -61,9 +61,9 @@ var npc_friend_density: float = 0.015  # Was 0.03 → 0.024 → 0.015
 var npc_enemy_density: float = 0.012  # Was 0.021 → 0.017 → 0.012
 
 # Item spawning configuration
-var item_density: float = 0.008  # ~1 item per 125 units
+var item_density: float = 0.010  # ~1 item per 100 units (+25% total)
 var item_safe_chunks: int = 2  # No items in first 2 chunks
-var item_min_spacing: float = 230.0  # Minimum distance between items in Z (~12 items per 3km)
+var item_min_spacing: float = 180.0  # Minimum distance between items in Z (+25% total)
 var item_last_spawn_z: float = -999999.0  # Track last item spawn position
 var height_offset_item: float = 0.8  # Items float above ground (higher to be visible)
 

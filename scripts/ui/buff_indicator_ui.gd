@@ -38,7 +38,14 @@ func _on_buff_started(buff_type: int, duration: float) -> void:
 	_buff_durations[buff_type] = duration
 	
 	if _buff_items.has(buff_type):
-		# Refresh - just update the stored duration
+		# Refresh - update the stored duration
+		# For shields, also update the displayed charge count
+		if buff_type == 6:  # SHIELD
+			var item_manager := get_node_or_null("/root/ItemManager")
+			if item_manager:
+				var item: BuffIndicatorItem = _buff_items[buff_type]
+				item.set_timer_text(str(item_manager.shield_charges))
+				item.flash()  # Visual feedback
 		return
 	
 	_create_buff_item(buff_type, duration)
