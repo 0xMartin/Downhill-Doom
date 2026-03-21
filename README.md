@@ -3,7 +3,7 @@
 ## Prioritni
 
 - basic: sloup, stan
-- rare: poklad, socha slepice, socha tucnaka // slender man, slepice na konovi
+- rare: poklad, socha slepice, socha tucnaka // slepice na konovi
 - vymyslet dalsi veci co se daji nakupovat 
 
 ## Dalsi

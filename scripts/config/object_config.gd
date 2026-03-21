@@ -206,6 +206,17 @@ static func _init_objects() -> void:
 		"destructible": true,
 	})
 	_register_object({
+		"id": "building_column",
+		"name": "Column",
+		"category": Category.BUILDING,
+		"model": "res://assets/models/buildings/column.blend",
+		"height": 2.8,
+		"height_var": 0.1,
+		"spawn_chance": 0.2,
+		"coins": 60,
+		"destructible": true,
+	})
+	_register_object({
 		"id": "building_excalibur",
 		"name": "Excalibur",
 		"category": Category.BUILDING,
@@ -214,6 +225,28 @@ static func _init_objects() -> void:
 		"height_var": 0.05,
 		"spawn_chance": 0.01,
 		"coins": 1800,
+		"destructible": true,
+	})
+	_register_object({
+		"id": "building_chicken_statue",
+		"name": "Chicken Statue",
+		"category": Category.BUILDING,
+		"model": "res://assets/models/buildings/chicken_statue.blend",
+		"height": 3.0,
+		"height_var": 0.1,
+		"spawn_chance": 0.005,
+		"coins": 4000,
+		"destructible": true,
+	})
+	_register_object({
+		"id": "building_penguin_statue",
+		"name": "Penguin Statue",
+		"category": Category.BUILDING,
+		"model": "res://assets/models/buildings/penguin_statue.blend",
+		"height": 4.0,
+		"height_var": 0.1,
+		"spawn_chance": 0.002,
+		"coins": 10000,
 		"destructible": true,
 	})
 	
