@@ -74,9 +74,9 @@ const BOOST_ICONS := {
 
 # Crate prices and properties
 const CRATE_PRICES := {
-	"basic": 80000,
-	"premium": 200000,
-	"legendary": 500000,
+	"basic": 88000,
+	"premium": 220000,
+	"legendary": 550000,
 }
 
 const CRATE_DROP_CHANCES := {

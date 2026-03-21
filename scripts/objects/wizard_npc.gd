@@ -10,14 +10,14 @@ class_name WizardNPC
 @export var object_name: String = "Wizard"
 
 # Detection and movement - larger than horse_knight by 10%
-const DETECTION_RANGE: float = 66.0  # 60 * 1.1 = 66 (10% more than horse_knight)
-const SHOOTING_RANGE: float = 33.0  # 50% of detection range
-const MOVE_SPEED: float = 6.0  # Same as dark_knight
+const DETECTION_RANGE: float = 66.0 
+const SHOOTING_RANGE: float = 33.0  
+const MOVE_SPEED: float = 6.0  
 
 # Spell settings
 const SPELL_COOLDOWN: float = 2.0
-const SPELL_LIFETIME: float = 5.0
-const SPELL_SPEED: float = 23.4  # 30% faster (18 * 1.3)
+const SPELL_LIFETIME: float = 3.0  
+const SPELL_SPEED: float = 23.4  
 const BLINDNESS_DURATION: float = 5.0
 const BLINDNESS_FOG_BEGIN: float = 0.0
 const BLINDNESS_FOG_END: float = 40.0
