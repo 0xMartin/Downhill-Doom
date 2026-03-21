@@ -1,8 +1,9 @@
 # Downhill Doom
 
 ## Prioritni
-
-- vymyslet dalsi veci co se daji nakupovat 
+- precizni zarovnani objektu s plochou terenu
+- vylepsit generovani daly questu (dat ai presni plan jak generovat questy)
+- vymyslet dalsi veci co se daji nakupovat: 
 
 ## Dalsi
 
