@@ -438,7 +438,7 @@ static func _init_objects() -> void:
 		"name": "Chicken",
 		"category": Category.NPC_FRIEND,
 		"model": "res://assets/models/npc_friend/chicken.blend",
-		"height": 0.85,
+		"height": 0.9,
 		"height_var": 0.1,
 		"spawn_chance": 1.0,
 		"coins": 4,
@@ -449,7 +449,7 @@ static func _init_objects() -> void:
 		"name": "Rabbit",
 		"category": Category.NPC_FRIEND,
 		"model": "res://assets/models/npc_friend/rabbit.blend",
-		"height": 0.9,
+		"height": 1.0,
 		"height_var": 0.1,
 		"spawn_chance": 0.8,
 		"coins": 6,
@@ -530,6 +530,17 @@ static func _init_objects() -> void:
 		"height_var": 0.1,
 		"spawn_chance": 0.01, # 0.01
 		"coins": 2000,
+		"destructible": true,
+	})
+	_register_object({
+		"id": "npc_chicken_rider",
+		"name": "Chicken Rider",
+		"category": Category.NPC_FRIEND,
+		"model": "res://assets/models/npc_friend/chicken_rider.blend",
+		"height": 2.3,
+		"height_var": 0.1,
+		"spawn_chance": 0.003, # 0.003
+		"coins": 8000,
 		"destructible": true,
 	})
 	
