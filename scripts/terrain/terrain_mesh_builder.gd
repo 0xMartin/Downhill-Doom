@@ -18,6 +18,25 @@ var narrow_hole_irregularity: float
 # References for hole detection
 var hole_manager: RefCounted  # HoleManager
 
+# Cached materials to prevent memory leak (reused across all chunks)
+static var _terrain_material: StandardMaterial3D = null
+static var _hole_material: StandardMaterial3D = null
+
+static func _get_terrain_material() -> StandardMaterial3D:
+	if _terrain_material == null:
+		_terrain_material = StandardMaterial3D.new()
+		_terrain_material.vertex_color_use_as_albedo = true
+		_terrain_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	return _terrain_material
+
+static func _get_hole_material() -> StandardMaterial3D:
+	if _hole_material == null:
+		_hole_material = StandardMaterial3D.new()
+		_hole_material.vertex_color_use_as_albedo = true
+		_hole_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		_hole_material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	return _hole_material
+
 func _init(config: Dictionary) -> void:
 	noise = config.get("noise")
 	terrain_width = config.get("terrain_width", 36.0)
@@ -219,10 +238,8 @@ func create_terrain(chunk_index: int) -> StaticBody3D:
 	var mesh_instance := MeshInstance3D.new()
 	mesh_instance.mesh = mesh
 	
-	var material := StandardMaterial3D.new()
-	material.vertex_color_use_as_albedo = true
-	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	mesh_instance.set_surface_override_material(0, material)
+	# Use cached material to prevent memory leak
+	mesh_instance.set_surface_override_material(0, _get_terrain_material())
 	static_body.add_child(mesh_instance)
 	
 	if hole_vertex_count > 0:
@@ -232,11 +249,8 @@ func create_terrain(chunk_index: int) -> StaticBody3D:
 			hole_mesh_instance.name = "HoleWalls"
 			hole_mesh_instance.mesh = hole_mesh
 			
-			var hole_material := StandardMaterial3D.new()
-			hole_material.vertex_color_use_as_albedo = true
-			hole_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-			hole_material.cull_mode = BaseMaterial3D.CULL_DISABLED
-			hole_mesh_instance.set_surface_override_material(0, hole_material)
+			# Use cached material to prevent memory leak
+			hole_mesh_instance.set_surface_override_material(0, _get_hole_material())
 			static_body.add_child(hole_mesh_instance)
 			
 			# Hole walls collision - create async on background thread

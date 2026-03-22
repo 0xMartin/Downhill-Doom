@@ -33,6 +33,7 @@ var is_moving := false
 var model: Node3D = null
 var model_base_y: float = 0.0
 var hop_phase: float = 0.0
+var _wander_cycle_running := false  # Prevent duplicate wander cycles
 
 
 func _ready() -> void:
@@ -132,14 +133,21 @@ func _start_wander_cycle() -> void:
 	if is_dead:
 		return
 	
+	# CRITICAL: Prevent multiple concurrent wander cycles
+	if _wander_cycle_running:
+		return
+	_wander_cycle_running = true
+	
 	# Wait for random time
 	var wait_time := randf_range(wait_time_min, wait_time_max)
 	var tree := get_tree()
 	if tree == null:
+		_wander_cycle_running = false
 		return
 	await tree.create_timer(wait_time).timeout
 	
 	if is_dead or get_tree() == null:
+		_wander_cycle_running = false
 		return
 	
 	# Pick new random target within radius
@@ -153,9 +161,12 @@ func _start_wander_cycle() -> void:
 	while is_moving and elapsed < timeout and not is_dead:
 		var loop_tree := get_tree()
 		if loop_tree == null:
+			_wander_cycle_running = false
 			return
 		await loop_tree.process_frame
 		elapsed += get_process_delta_time()
+	
+	_wander_cycle_running = false
 	
 	# Start next cycle
 	if not is_dead and get_tree() != null:
@@ -225,6 +236,7 @@ func _pool_reset() -> void:
 	is_dead = false
 	is_moving = false
 	hop_phase = 0.0
+	_wander_cycle_running = false  # Reset to allow new wander cycle
 
 
 func _notification(what: int) -> void:
@@ -239,6 +251,6 @@ func _update_spawn_position() -> void:
 	if not is_dead:
 		spawn_position = global_position
 		target_position = global_position
-		# Start wandering if not already
-		if not is_moving:
+		# Start wandering if not already running (critical check to prevent duplicates)
+		if not is_moving and not _wander_cycle_running:
 			_start_wander_cycle()

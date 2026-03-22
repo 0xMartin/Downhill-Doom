@@ -7,6 +7,33 @@ signal hit_rock(impact_position: Vector3)
 # Preloaded resources to avoid runtime stutter
 const LightBeamTexture := preload("res://assets/textures/light_beam.png")
 
+# Cached materials for rock impact particles (created once, reused)
+static var _rock_particle_material: ParticleProcessMaterial = null
+static var _rock_particle_mesh: BoxMesh = null
+
+static func _get_rock_particle_material() -> ParticleProcessMaterial:
+	if _rock_particle_material == null:
+		_rock_particle_material = ParticleProcessMaterial.new()
+		_rock_particle_material.direction = Vector3(0, 1, 0)
+		_rock_particle_material.spread = 80.0
+		_rock_particle_material.initial_velocity_min = 4.0
+		_rock_particle_material.initial_velocity_max = 10.0
+		_rock_particle_material.gravity = Vector3(0, -15, 0)
+		_rock_particle_material.scale_min = 0.05
+		_rock_particle_material.scale_max = 0.12
+		_rock_particle_material.color = Color(0.5, 0.45, 0.4)  # Gray rock color
+	return _rock_particle_material
+
+static func _get_rock_particle_mesh() -> BoxMesh:
+	if _rock_particle_mesh == null:
+		_rock_particle_mesh = BoxMesh.new()
+		_rock_particle_mesh.size = Vector3(1.0, 1.0, 1.0)
+		var mesh_material := StandardMaterial3D.new()
+		mesh_material.albedo_color = Color(0.5, 0.45, 0.4)
+		mesh_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		_rock_particle_mesh.material = mesh_material
+	return _rock_particle_mesh
+
 # Movement parameters
 @export var forward_force: float = 50.0  # Constant forward push
 @export var lateral_force: float = 110.0  # Direct sideways steering force (+10%)
@@ -329,24 +356,9 @@ func _spawn_rock_impact_particles(impact_pos: Vector3) -> void:
 	particles.amount = 25
 	particles.lifetime = 0.8
 	
-	var proc_material := ParticleProcessMaterial.new()
-	proc_material.direction = Vector3(0, 1, 0)
-	proc_material.spread = 80.0
-	proc_material.initial_velocity_min = 4.0
-	proc_material.initial_velocity_max = 10.0
-	proc_material.gravity = Vector3(0, -15, 0)
-	proc_material.scale_min = 0.05
-	proc_material.scale_max = 0.12
-	proc_material.color = Color(0.5, 0.45, 0.4)  # Gray rock color
-	particles.process_material = proc_material
-	
-	var mesh := BoxMesh.new()
-	mesh.size = Vector3(1.0, 1.0, 1.0)
-	var mesh_material := StandardMaterial3D.new()
-	mesh_material.albedo_color = Color(0.5, 0.45, 0.4)
-	mesh_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	mesh.material = mesh_material
-	particles.draw_pass_1 = mesh
+	# Use cached materials to prevent memory leak
+	particles.process_material = _get_rock_particle_material()
+	particles.draw_pass_1 = _get_rock_particle_mesh()
 	
 	var scene_root := get_tree().current_scene
 	if scene_root:
@@ -354,9 +366,12 @@ func _spawn_rock_impact_particles(impact_pos: Vector3) -> void:
 		particles.global_position = impact_pos  # Set position AFTER adding to tree
 		particles.emitting = true
 		
+		# Use weak reference to avoid holding particles alive
+		var particles_ref := weakref(particles)
 		get_tree().create_timer(2.0).timeout.connect(func():
-			if is_instance_valid(particles):
-				particles.queue_free()
+			var p = particles_ref.get_ref()
+			if p:
+				p.queue_free()
 		)
 
 func _setup_unshaded_materials(node: Node) -> void:
@@ -507,9 +522,11 @@ func _remove_supercharge_effects() -> void:
 	
 	if supercharge_particles:
 		supercharge_particles.emitting = false
-		# Delay removal to let particles fade
+		# Use weak reference to avoid holding particles alive if player is freed
+		var particles_ref := weakref(supercharge_particles)
+		supercharge_particles = null  # Clear reference immediately
 		get_tree().create_timer(1.0).timeout.connect(func():
-			if is_instance_valid(supercharge_particles):
-				supercharge_particles.queue_free()
-				supercharge_particles = null
+			var p = particles_ref.get_ref()
+			if p:
+				p.queue_free()
 		)

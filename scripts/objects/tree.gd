@@ -8,6 +8,7 @@ extends RigidBody3D
 @export var object_name: String = "Tree"
 
 var is_fallen := false
+var _active_tween: Tween = null  # Track active tween for cleanup
 
 func _ready() -> void:
 	# Start as static (frozen) - will unfreeze when hit
@@ -59,8 +60,11 @@ func fall(player_velocity: Vector3) -> void:
 	var fall_angle := atan2(fall_direction.x, fall_direction.z)
 	
 	# Instead of physics, use a tween to animate the tree toppling
-	var tween := create_tween()
-	tween.set_parallel(true)
+	# Kill any existing tween first
+	if _active_tween and _active_tween.is_valid():
+		_active_tween.kill()
+	_active_tween = create_tween()
+	_active_tween.set_parallel(true)
 	
 	# First orient the tree to face the fall direction (instant or very fast)
 	rotation.y = fall_angle
@@ -70,11 +74,11 @@ func fall(player_velocity: Vector3) -> void:
 	var target_rotation_x := PI / 2  # 90 degrees tip forward
 	
 	# Animate rotation - tree tips over in the direction it's facing
-	tween.tween_property(self, "rotation:x", target_rotation_x, 0.48).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+	_active_tween.tween_property(self, "rotation:x", target_rotation_x, 0.48).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
 	
 	# Move slightly in fall direction and down
 	var target_pos := position + fall_direction * 2.0 + Vector3(0, -1.5, 0)
-	tween.tween_property(self, "position", target_pos, 0.48).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+	_active_tween.tween_property(self, "position", target_pos, 0.48).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
 	
 	# Award coin and record stats
 	var gm := get_node_or_null("/root/GameManager")
@@ -83,13 +87,29 @@ func fall(player_velocity: Vector3) -> void:
 		gm.record_destroyed_object(object_id, object_name, coin_value)
 	
 	# Remove after delay (only if still in game world, not returned to pool)
-	await tween.finished
-	if not is_inside_tree():
+	await _active_tween.finished
+	# Check validity after await - object may have been pooled/freed
+	if not is_inside_tree() or is_queued_for_deletion():
 		return
-	await get_tree().create_timer(2.0).timeout
+	var tree := get_tree()
+	if tree == null:
+		return
+	await tree.create_timer(2.0).timeout
+	# Double-check after timer - object may have been pooled/freed during wait
+	if not is_inside_tree() or is_queued_for_deletion():
+		return
 	# Check if we're still in the game world (not returned to pool)
-	if is_inside_tree() and get_parent() and not get_parent().name.begins_with("Pooled"):
+	var parent := get_parent()
+	if parent and not parent.name.begins_with("Pooled"):
 		queue_free()
+
+
+## Called by ObjectPool when this object is about to be stored in pool
+func _pool_prepare() -> void:
+	# Kill any active tweens to prevent lingering coroutines
+	if _active_tween and _active_tween.is_valid():
+		_active_tween.kill()
+		_active_tween = null
 
 
 ## Called by ObjectPool when this object is retrieved from pool
@@ -102,3 +122,4 @@ func _pool_reset() -> void:
 	is_fallen = false
 	freeze = true
 	rotation = Vector3.ZERO
+	_active_tween = null
