@@ -105,6 +105,9 @@ func _transition_to_game() -> void:
 	await last_tween.finished
 	await get_tree().create_timer(0.05).timeout
 	
+	# Clean up resources before scene change to prevent memory leaks
+	_cleanup_before_scene_change()
+	
 	# Change scene while fully covered
 	get_tree().change_scene_to_file(_target_scene)
 	await get_tree().process_frame
@@ -187,6 +190,9 @@ func _transition_to_menu() -> void:
 	await last_tween.finished
 	await get_tree().create_timer(0.08).timeout
 	
+	# Clean up resources before scene change to prevent memory leaks
+	_cleanup_before_scene_change()
+	
 	# Change scene while fully covered
 	get_tree().change_scene_to_file(_target_scene)
 	await get_tree().process_frame
@@ -223,6 +229,20 @@ func _hide_all_layers() -> void:
 		layer.position = Vector2.ZERO
 		layer.scale = Vector2.ONE
 		layer.rotation = 0.0
+
+## Clean up pooled objects and caches before scene change to prevent memory leaks
+func _cleanup_before_scene_change() -> void:
+	# Clear object pool (pooled 3D objects)
+	var object_pool := get_node_or_null("/root/ObjectPool")
+	if object_pool and object_pool.has_method("clear_pool"):
+		object_pool.clear_pool()
+	
+	# Clear model cache to free PackedScene resources
+	if object_pool and object_pool.has_method("clear_model_cache"):
+		object_pool.clear_model_cache()
+	
+	# Force garbage collection
+	# Note: Godot 4 doesn't have explicit GC call, but clearing refs helps
 
 ## Legacy API support
 func fade_in() -> void:

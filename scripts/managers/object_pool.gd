@@ -258,6 +258,14 @@ func clear_pool() -> void:
 	_stats_returned = 0
 
 
+## Clear model cache to free PackedScene resources (call on scene change)
+## This helps release video memory from cached 3D models
+func clear_model_cache() -> void:
+	_model_cache.clear()
+	# Reset preload state so models can be preloaded again for next game
+	_preload_in_progress = false
+
+
 ## Clear specific pool category
 func clear_category_pool(category: int) -> void:
 	var keys_to_clear: Array[String] = []

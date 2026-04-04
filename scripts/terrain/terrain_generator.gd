@@ -152,16 +152,26 @@ func _init_subsystems() -> void:
 	object_spawner.set_hole_manager(hole_manager)
 
 func _exit_tree() -> void:
+	# Stop any async generation in progress
+	_generation_queue.clear()
+	_generating_chunks.clear()
+	_is_generating = false
+	is_currently_generating = false
+	
+	# Cleanup all chunks
 	var all_chunks := chunks.keys().duplicate()
 	for chunk_index in all_chunks:
 		_cleanup_chunk(chunk_index)
 	
 	chunks.clear()
 	
-	# Clear sub-systems
+	# Clear sub-systems (releases RefCounted references)
 	mesh_builder = null
 	hole_manager = null
 	object_spawner = null
+	
+	# Clear noise resource
+	noise = null
 
 func _process(_delta: float) -> void:
 	if not player:
@@ -354,13 +364,18 @@ func _cleanup_node_recursive(node: Node) -> void:
 	
 	if node is MeshInstance3D:
 		var mesh_instance := node as MeshInstance3D
-		if mesh_instance.mesh:
-			for i in range(mesh_instance.get_surface_override_material_count()):
-				mesh_instance.set_surface_override_material(i, null)
+		# Clear material overrides first
+		for i in range(mesh_instance.get_surface_override_material_count()):
+			mesh_instance.set_surface_override_material(i, null)
+		# Clear mesh reference to help garbage collection
+		# Note: Don't free() static cached materials, just clear the reference
+		mesh_instance.mesh = null
 	
 	if node is CollisionShape3D:
 		var col_shape := node as CollisionShape3D
 		col_shape.disabled = true
+		# Clear shape reference for terrain collision shapes
+		col_shape.shape = null
 	
 	for child in node.get_children():
 		_cleanup_node_recursive(child)
