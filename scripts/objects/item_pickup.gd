@@ -134,32 +134,14 @@ func _play_pickup_effect() -> void:
 	# Move up slightly
 	tween.tween_property(self, "position:y", position.y + 1.0, 0.2)
 	
-	# Fade out 3D model by adjusting material transparency
-	if _model:
-		_fade_out_model(_model, tween, 0.2)
+	# Hide particles and glow immediately
+	if _particles:
+		_particles.emitting = false
+	if _glow_beam:
+		_glow_beam.visible = false
 	
 	# Delete after animation
 	tween.chain().tween_callback(queue_free)
-
-## Fade out a 3D model by making all mesh materials transparent
-func _fade_out_model(node: Node, tween: Tween, duration: float) -> void:
-	if node is MeshInstance3D:
-		var mesh_instance := node as MeshInstance3D
-		# Get or create material for each surface
-		for i in range(mesh_instance.get_surface_override_material_count()):
-			var mat := mesh_instance.get_surface_override_material(i)
-			if mat == null and mesh_instance.mesh:
-				mat = mesh_instance.mesh.surface_get_material(i)
-			if mat and mat is StandardMaterial3D:
-				# Duplicate material to avoid affecting other instances
-				var new_mat := mat.duplicate() as StandardMaterial3D
-				new_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-				mesh_instance.set_surface_override_material(i, new_mat)
-				tween.tween_property(new_mat, "albedo_color:a", 0.0, duration)
-	
-	# Recurse into children
-	for child in node.get_children():
-		_fade_out_model(child, tween, duration)
 
 func _play_inventory_full_feedback() -> void:
 	# Brief shake to indicate can't pick up
