@@ -6,6 +6,7 @@
 		<a href="https://github.com/0xMartin/Downhill-Doom/releases/latest"><img src="https://img.shields.io/badge/Download-Latest%20Release-2ea44f?style=for-the-badge&logo=github" alt="Download the latest release"></a>
 	</p>
 	<p>
+		<a href="https://github.com/0xMartin/Downhill-Doom/releases/latest"><img src="https://img.shields.io/badge/Version-0.1.0-2ea44f?logo=github" alt="Version 0.1.0"></a>
 		<img src="https://img.shields.io/badge/Engine-Godot%204.6-478cbf?logo=godotengine&logoColor=white" alt="Godot 4.6">
 		<img src="https://img.shields.io/badge/Platform-Android-3ddc84?logo=android&logoColor=white" alt="Android">
 	</p>
