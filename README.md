@@ -40,7 +40,12 @@ Downhill Doom is a mobile arcade game inspired by *Giant Boulder of Death*. Take
 
 ### 🎨 Used Assets
 
+#### 🌌 Visual Assets
+
 - AllSky by Distant Lantern
+
+#### 🔊 Sound Effects
+
 - Squeaky Rat by Iwan 'qubodup' Gabovitch ([OpenGameArt](http://opengameart.org/users/qubodup))
 - Chicken Sound Effect by IMadeIt
 - Concrete SMASH 2 by magnuswaker
@@ -61,6 +66,10 @@ Downhill Doom is a mobile arcade game inspired by *Giant Boulder of Death*. Take
 - Item or Material Pickup Pop 1 of 3 by el_boss
 - Synth chiptune 8 bit ui interface item use health power up by ryusa
 
+### ✨ Special Skins
+
+All special skins were created by **0xM4R71N** using AI tools and refined through post-production.
+
 ## 👤 Author
 
-**0xM4R71N** — [github.com/0xMartin](https://github.com/0xMartin)
+**0xM4R71N** — [github.com/0xMartin](https://github.com/0xMartin). Creator of Downhill Doom and all 3D models featured in the game.
