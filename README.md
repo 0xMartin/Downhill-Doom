@@ -1,5 +1,5 @@
 <div align="center">
-	<img src="assets/icon.png" alt="Downhill Doom game icon" width="160">
+	<img src="doc/banner.png" alt="Downhill Doom game banner" width="100%">
 	<h1>Downhill Doom</h1>
 	<p><strong>Roll downhill. Smash through everything. Get rich.</strong></p>
 	<p>
