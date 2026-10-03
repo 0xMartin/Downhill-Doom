@@ -29,13 +29,9 @@ Downhill Doom is a mobile arcade game inspired by *Giant Boulder of Death*. Take
 |:---:|:---:|
 | <img src="doc/main_menu.jpg" alt="Downhill Doom main menu" width="240"> | <img src="doc/in_game_2.jpg" alt="Downhill Doom gameplay" width="240"> |
 
-| Shop | Daily Quests |
-|:---:|:---:|
-| <img src="doc/shop.jpg" alt="In-game shop" width="240"> | <img src="doc/daily_quests.jpg" alt="Daily quests screen" width="240"> |
-
-| Crate Opening |
-|:---:|
-| <img src="doc/crate_opening.jpg" alt="Crate opening screen" width="240"> |
+| Shop | Daily Quests | Crate Opening |
+|:---:|:---:|:---:|
+| <img src="doc/shop.jpg" alt="In-game shop" width="240"> | <img src="doc/daily_quests.jpg" alt="Daily quests screen" width="240"> | <img src="doc/crate_opening.jpg" alt="Crate opening screen" width="240"> |
 
 </div>
 
