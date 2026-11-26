@@ -14,6 +14,8 @@
 
 ## 🎮 About Downhill Doom
 
+[Gameplay video on Youtube](https://youtu.be/M4NTED1tpsg)
+
 Downhill Doom is a mobile arcade game inspired by *Giant Boulder of Death*. Take control of a boulder rolling downhill, smash through obstacles to earn coins, and spend your haul on items in the shop.
 
 ## 🕹️ How to Play
